@@ -1,0 +1,32 @@
+{
+    "name": "ekyna/resource",
+    "description": "Resource management library",
+    "type": "component",
+    "authors": [
+        {
+            "name": "Etienne Dauvergne",
+            "homepage": "http://ekyna.com"
+        }
+    ],
+    "keywords": [
+        "php",
+        "resource"
+    ],
+    "homepage" : "https://github.com/ekyna/Resource",
+    "license": [
+        "MIT"
+    ],
+    "require": {
+        "php": ">=5.4",
+        "symfony/event-dispatcher": "~2.7|~3.0",
+        "doctrine/orm": "~2.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ekyna\\Component\\Resource\\": ""
+        }
+    }
+}
