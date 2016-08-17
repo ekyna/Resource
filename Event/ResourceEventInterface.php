@@ -2,8 +2,6 @@
 
 namespace Ekyna\Component\Resource\Event;
 
-use Ekyna\Component\Resource\Model\ResourceInterface;
-
 /**
  * Interface ResourceEventInterface
  * @package Ekyna\Component\Resource\Event
