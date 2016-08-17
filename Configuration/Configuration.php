@@ -1,0 +1,204 @@
+<?php
+
+namespace Ekyna\Component\Resource\Configuration;
+
+use Doctrine\Common\Inflector\Inflector;
+use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
+
+/**
+ * Class Configuration
+ * @package Ekyna\Component\Resource\Configuration
+ * @author  Étienne Dauvergne <contact@ekyna.com>
+ */
+class Configuration implements ConfigurationInterface
+{
+    /**
+     * @var array
+     */
+    protected $config;
+
+
+    /**
+     * Constructor.
+     *
+     * @param array $config
+     */
+    public function __construct(array $config)
+    {
+        $this->config = $config;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getId()
+    {
+        return $this->config['id'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getNamespace()
+    {
+        return $this->config['namespace'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getParentId()
+    {
+        return $this->config['parent_id'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAlias()
+    {
+        return sprintf('%s_%s', $this->getNamespace(), $this->getId());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceId()
+    {
+        return sprintf('%s.%s', $this->getNamespace(), $this->getId());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getParentControllerId()
+    {
+        return sprintf('%s.controller', $this->getParentId());
+    }
+
+    /**
+     * Returns the class for the given key.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    private function getClass($key)
+    {
+        if (!array_key_exists($key, $this->config['classes'])) {
+            throw new \InvalidArgumentException(sprintf('Undefined resource class "%s".', $key));
+        }
+
+        return $this->config['classes'][$key];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceClass()
+    {
+        return $this->getClass('resource');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEventClass()
+    {
+        return $this->getClass('event');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceName($plural = false)
+    {
+        return $plural ? Inflector::pluralize($this->config['name']) : $this->config['name'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getResourceLabel($plural = false)
+    {
+        return sprintf('%s.%s.label.%s', $this->getNamespace(), $this->getId(), $plural ? 'plural' : 'singular');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTemplate($name)
+    {
+        if (!array_key_exists($name, $this->config['templates'])) {
+            throw new \InvalidArgumentException(sprintf('Template "%s.twig" is not registered.', $name));
+        }
+
+        return sprintf('%s.twig', $this->config['templates'][$name]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRoutePrefix()
+    {
+        return sprintf('%s_%s_admin', $this->getNamespace(), $this->getId());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getRoute($action)
+    {
+        return sprintf('%s_%s', $this->getRoutePrefix(), $action);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getEventName($action)
+    {
+        return sprintf('%s.%s.%s', $this->getNamespace(), $this->getId(), $action);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormType()
+    {
+        return $this->getClass('form_type');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTableType()
+    {
+        return sprintf('%s_%s', $this->getNamespace(), $this->getId());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getServiceKey($service)
+    {
+        return sprintf('%s.%s.%s', $this->getNamespace(), $this->getId(), $service);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getObjectIdentity()
+    {
+        return new ObjectIdentity($this->getAlias(), $this->getResourceClass());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isRelevant($object)
+    {
+        $class = $this->getResourceClass();
+
+        return $object instanceOf $class;
+    }
+}

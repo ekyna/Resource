@@ -16,7 +16,7 @@
     </php>
 
     <testsuites>
-        <testsuite name="Ekyna Component Test Suite">
+        <testsuite name="Component Test Suite">
             <directory>./Tests/</directory>
         </testsuite>
     </testsuites>

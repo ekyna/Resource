@@ -6,8 +6,8 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
-use Ekyna\Bundle\AdminBundle\Exception\NotFoundConfigurationException;
-use Ekyna\Bundle\AdminBundle\Pool\ConfigurationRegistry;
+use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
+use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
 use Ekyna\Component\Resource\Event\PersistenceEvent;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -38,7 +38,7 @@ class EntityListener implements EventSubscriber
     /**
      * Constructor.
      *
-     * @param ConfigurationRegistry   $registry
+     * @param ConfigurationRegistry    $registry
      * @param EventDispatcherInterface $dispatcher
      */
     public function __construct(ConfigurationRegistry $registry, EventDispatcherInterface $dispatcher)
@@ -117,7 +117,7 @@ class EntityListener implements EventSubscriber
             $eventName = sprintf('%s.insert', $this->getResourceId($resource));
 
             $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
-        } catch(NotFoundConfigurationException $e) {
+        } catch (NotFoundConfigurationException $e) {
 
         }
     }
