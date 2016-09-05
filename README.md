@@ -9,6 +9,7 @@ Resource component
 
 * toggleable : enable/disable, default (eventually per group)
 * timestampable
+* searchable : elasticsearch (external behavior/out of this component)
 * ...
 
 ### Auto mapping
@@ -23,6 +24,7 @@ With persistence layer, based on behaviors.
 * delete
 * toggle
 * move
+* search
 * ...
 
 ### Auto Routing
