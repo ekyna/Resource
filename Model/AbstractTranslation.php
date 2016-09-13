@@ -7,7 +7,7 @@ namespace Ekyna\Component\Resource\Model;
  * @package Ekyna\Component\Resource\Model
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-class AbstractTranslation implements TranslationInterface
+abstract class AbstractTranslation implements TranslationInterface
 {
     use TranslationTrait;
 }

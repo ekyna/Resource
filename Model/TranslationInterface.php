@@ -10,6 +10,13 @@ namespace Ekyna\Component\Resource\Model;
 interface TranslationInterface
 {
     /**
+     * Returns the id.
+     *
+     * @return int
+     */
+    public function getId();
+
+    /**
      * Get the translatable object.
      *
      * @return TranslatableInterface
