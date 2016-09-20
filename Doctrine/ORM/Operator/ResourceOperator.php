@@ -93,6 +93,14 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
+    public function refresh($resource)
+    {
+        $this->manager->refresh($resource);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function clear()
     {
         $this->manager->clear($this->config->getResourceClass());

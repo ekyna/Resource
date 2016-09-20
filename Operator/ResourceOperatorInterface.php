@@ -35,6 +35,13 @@ interface ResourceOperatorInterface
     public function merge($resource);
 
     /**
+     * Refreshes the resource in the manager.
+     *
+     * @param $resource
+     */
+    public function refresh($resource);
+
+    /**
      * Clears the manager.
      */
     public function clear();
