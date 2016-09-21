@@ -77,19 +77,11 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * Returns the class for the given key.
-     *
-     * @param string $key
-     *
-     * @return string
+     * {@inheritdoc}
      */
-    private function getClass($key)
+    public function getParentConfigurationId()
     {
-        if (!array_key_exists($key, $this->config['classes'])) {
-            throw new \InvalidArgumentException(sprintf('Undefined resource class "%s".', $key));
-        }
-
-        return $this->config['classes'][$key];
+        return sprintf('%s.configuration', $this->getParentId());
     }
 
     /**
@@ -200,5 +192,21 @@ class Configuration implements ConfigurationInterface
         $class = $this->getResourceClass();
 
         return $object instanceOf $class;
+    }
+
+    /**
+     * Returns the class for the given key.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    private function getClass($key)
+    {
+        if (!array_key_exists($key, $this->config['classes'])) {
+            throw new \InvalidArgumentException(sprintf('Undefined resource class "%s".', $key));
+        }
+
+        return $this->config['classes'][$key];
     }
 }

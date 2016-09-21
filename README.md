@@ -27,6 +27,11 @@ With persistence layer, based on behaviors.
 * search
 * ...
 
+### Responder (ADR pattern)
+
+* ResponderRegistry, stored as [<class> => <service>] by a compiler pass
+* Configured on route, operation or behavior level.
+
 ### Auto Routing
 
 * api

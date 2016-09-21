@@ -50,6 +50,13 @@ interface ConfigurationInterface
     public function getParentControllerId();
 
     /**
+     * Returns the parent configuration identifier.
+     *
+     * @return string
+     */
+    public function getParentConfigurationId();
+
+    /**
      * Returns the resource FQCN.
      *
      * @return string
