@@ -113,12 +113,8 @@ class EntityListener implements EventSubscriber
      */
     public function dispatchInsertEvent(ResourceInterface $resource)
     {
-        try {
-            $eventName = sprintf('%s.insert', $this->getResourceId($resource));
-
+        if (null !== $eventName = sprintf('%s.insert', $this->getResourceId($resource))) {
             $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
-        } catch (NotFoundConfigurationException $e) {
-
         }
     }
 
@@ -129,12 +125,8 @@ class EntityListener implements EventSubscriber
      */
     public function dispatchUpdateEvent(ResourceInterface $resource)
     {
-        try {
-            $eventName = sprintf('%s.update', $this->getResourceId($resource));
-
+        if (null !== $eventName = sprintf('%s.update', $this->getResourceId($resource))) {
             $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
-        } catch (NotFoundConfigurationException $e) {
-
         }
     }
 
@@ -145,15 +137,10 @@ class EntityListener implements EventSubscriber
      */
     public function dispatchDeleteEvent(ResourceInterface $resource)
     {
-        try {
-            $eventName = sprintf('%s.delete', $this->getResourceId($resource));
-
+        if (null !== $eventName = sprintf('%s.delete', $this->getResourceId($resource))) {
             $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
-        } catch (NotFoundConfigurationException $e) {
-
         }
     }
-
 
     /**
      * Creates the persistence event.
@@ -181,9 +168,14 @@ class EntityListener implements EventSubscriber
      */
     private function getResourceId(ResourceInterface $resource)
     {
-        $configuration = $this->registry->findConfiguration($resource);
+        try {
+            $configuration = $this->registry->findConfiguration($resource);
 
-        return $configuration->getResourceId();
+            return $configuration->getResourceId();
+        } catch (NotFoundConfigurationException $e) {
+        }
+
+        return null;
     }
 
     /**
