@@ -12,6 +12,13 @@ use Doctrine\Common\Collections\ArrayCollection;
 interface TranslatableInterface extends ResourceInterface
 {
     /**
+     * Initializes the translations collection.
+     *
+     * @see \Ekyna\Component\Resource\Doctrine\ORM\Listener\TranslatableListener::postLoad
+     */
+    public function initializeTranslations();
+
+    /**
      * Returns the translation regarding to the current or fallback locale.
      *
      * @param string $locale

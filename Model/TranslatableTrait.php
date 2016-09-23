@@ -14,28 +14,44 @@ trait TranslatableTrait
 {
     /**
      * @var string
-     * @JMS\Exclude()
      */
     protected $currentLocale;
 
     /**
      * @var string
-     * @JMS\Exclude()
      */
     protected $fallbackLocale;
 
     /**
      * @var TranslationInterface
-     * @JMS\Exclude()
      */
     protected $currentTranslation;
 
     /**
      * @var ArrayCollection|TranslationInterface[]
-     * @JMS\Expose()
      */
     protected $translations;
 
+
+    /**
+     * Constructor.
+     */
+    public function __construct()
+    {
+        $this->initializeTranslations();
+    }
+
+    /**
+     * Initializes the translations collection.
+     *
+     * @see \Ekyna\Component\Resource\Doctrine\ORM\Listener\TranslatableListener::postLoad
+     */
+    public function initializeTranslations()
+    {
+        if (null === $this->translations) {
+            $this->translations = new ArrayCollection();
+        }
+    }
 
     /**
      * Returns the translation regarding to the current or fallback locale.
@@ -111,7 +127,6 @@ trait TranslatableTrait
     public function getCurrentLocale()
     {
         return $this->currentLocale;
-
     }
 
     /**
@@ -134,7 +149,6 @@ trait TranslatableTrait
      */
     public function getFallbackLocale()
     {
-
         return $this->fallbackLocale;
     }
 
@@ -178,7 +192,6 @@ trait TranslatableTrait
     public function hasTranslation(TranslationInterface $translation)
     {
         return $this->translations->containsKey($translation->getLocale());
-
     }
 
     /**

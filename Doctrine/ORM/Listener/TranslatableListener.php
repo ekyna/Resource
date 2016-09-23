@@ -168,6 +168,7 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
             return;
         }
 
+        $entity->initializeTranslations();
         $entity->setCurrentLocale($this->localeProvider->getCurrentLocale());
         $entity->setFallbackLocale($this->localeProvider->getFallbackLocale());
     }
