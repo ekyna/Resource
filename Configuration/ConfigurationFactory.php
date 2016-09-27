@@ -3,6 +3,7 @@
 namespace Ekyna\Component\Resource\Configuration;
 
 use Doctrine\Common\Inflector\Inflector;
+use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -74,14 +75,14 @@ class ConfigurationFactory
 
             $resolver->setAllowedValues('classes', function ($value) {
                 if (!array_key_exists('resource', $value)) {
-                    return false;
+                    throw new InvalidOptionsException("Key 'resource' is missing in resource configuration classes.");
                 }
                 /*if (!empty(array_diff(array_keys($value), ['resource', 'form_type', 'event']))) {
                     return false;
                 }*/
                 foreach ($value as $class) {
                     if ($class && !class_exists($class)) {
-                        return false;
+                        throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
                     }
                 }
 

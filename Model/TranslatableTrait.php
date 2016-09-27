@@ -3,7 +3,6 @@
 namespace Ekyna\Component\Resource\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use JMS\Serializer\Annotation as JMS;
 
 /**
  * Trait TranslatableTrait

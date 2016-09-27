@@ -2,8 +2,6 @@
 
 namespace Ekyna\Component\Resource\Model;
 
-use JMS\Serializer\Annotation as JMS;
-
 /**
  * Trait TranslationTrait
  * @package Ekyna\Component\Resource\Model
