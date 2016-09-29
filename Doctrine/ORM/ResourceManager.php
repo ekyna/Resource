@@ -5,10 +5,11 @@ namespace Ekyna\Component\Resource\Doctrine\ORM;
 use Doctrine\ORM\Decorator\EntityManagerDecorator;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use Ekyna\Bundle\AdminBundle\Event\ResourceEvent;
-use Ekyna\Bundle\AdminBundle\Event\ResourceMessage;
+use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Event\ResourceMessage;
 use Ekyna\Component\Resource\Configuration\ConfigurationInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
  * Class ResourceManager
@@ -25,20 +26,21 @@ class ResourceManager extends EntityManagerDecorator
     private $config;
 
     /**
-     * @var EventDispatcherInterface
+     * @var ResourceEventDispatcherInterface
      */
     private $dispatcher;
+
 
     /**
      * Constructor.
      *
      * @param EntityManagerInterface $wrapped
-     * @param EventDispatcherInterface $dispatcher
+     * @param ResourceEventDispatcherInterface $dispatcher
      * @param ConfigurationInterface $config
      */
     public function __construct(
         EntityManagerInterface $wrapped,
-        EventDispatcherInterface $dispatcher,
+        ResourceEventDispatcherInterface $dispatcher,
         ConfigurationInterface $config
     ) {
         $this->dispatcher = $dispatcher;
@@ -50,11 +52,11 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Creates the resource.
      *
-     * @param object $resource
+     * @param ResourceInterface $resource
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    public function create($resource)
+    public function create(ResourceInterface $resource)
     {
         $event = $this->createResourceEvent($resource);
         $this->dispatcher->dispatch($this->config->getEventName('pre_create'), $event);
@@ -71,11 +73,11 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Updates the resource.
      *
-     * @param object $resource
+     * @param ResourceInterface $resource
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    public function update($resource)
+    public function update(ResourceInterface $resource)
     {
         $event = $this->createResourceEvent($resource);
         $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
@@ -92,11 +94,11 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Deletes the resource.
      *
-     * @param object $resource
+     * @param ResourceInterface $resource
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    public function delete($resource)
+    public function delete(ResourceInterface $resource)
     {
         $event = $this->createResourceEvent($resource);
         $this->dispatcher->dispatch($this->config->getEventName('pre_delete'), $event);
@@ -113,11 +115,11 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Persists a resource.
      *
-     * @param ResourceEvent $event
+     * @param ResourceEventInterface $event
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    private function persistResource(ResourceEvent $event)
+    private function persistResource(ResourceEventInterface $event)
     {
         $resource = $event->getResource();
         $this->persist($resource);
@@ -144,11 +146,11 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Removes a resource.
      *
-     * @param ResourceEvent $event
+     * @param ResourceEventInterface $event
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    private function removeResource(ResourceEvent $event)
+    private function removeResource(ResourceEventInterface $event)
     {
         $resource = $event->getResource();
         $this->remove($resource);
@@ -182,14 +184,12 @@ class ResourceManager extends EntityManagerDecorator
     /**
      * Creates the resource event.
      *
-     * @param object $resource
+     * @param ResourceInterface $resource
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
-    private function createResourceEvent($resource)
+    private function createResourceEvent(ResourceInterface $resource)
     {
-        $event = new ResourceEvent();
-        $event->setResource($resource);
-        return $event;
+        return $this->dispatcher->createResourceEvent($resource);
     }
 }

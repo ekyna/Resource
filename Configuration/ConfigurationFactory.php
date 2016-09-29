@@ -3,6 +3,7 @@
 namespace Ekyna\Component\Resource\Configuration;
 
 use Doctrine\Common\Inflector\Inflector;
+use Ekyna\Component\Resource\Event\ResourceEvent;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -14,8 +15,15 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class ConfigurationFactory
 {
-    // TODO configurable
-    const DEFAULT_TEMPLATES = 'EkynaAdminBundle:Entity/Default';
+    /**
+     * @var string
+     */
+    private $defaultEventClass;
+
+    /**
+     * @var string
+     */
+    private $defaultTemplates;
 
     /**
      * @var OptionsResolver
@@ -34,6 +42,21 @@ class ConfigurationFactory
         'edit'   => ['html'],
         'remove' => ['html'],
     ];
+
+
+    /**
+     * Constructor.
+     *
+     * @param string $defaultEventClass
+     * @param string $defaultTemplates
+     */
+    public function __construct(
+        $defaultEventClass = ResourceEvent::class,
+        $defaultTemplates = 'EkynaAdminBundle:Entity/Default'
+    ) {
+        $this->defaultEventClass = $defaultEventClass;
+        $this->defaultTemplates = $defaultTemplates;
+    }
 
     /**
      * Creates and register a configuration
@@ -106,6 +129,15 @@ class ConfigurationFactory
             $classesResolver->setAllowedTypes('event', ['null', 'string']);
 
             /** @noinspection PhpUnusedParameterInspection */
+            $classesResolver->setNormalizer('event', function (Options $options, $value) {
+                if (null === $value) {
+                    return $this->defaultEventClass;
+                }
+
+                return $value;
+            });
+
+            /** @noinspection PhpUnusedParameterInspection */
             $resolver->setNormalizer('classes', function (Options $options, $value) use ($classesResolver) {
                 return $classesResolver->resolve($value);
             });
@@ -125,7 +157,7 @@ class ConfigurationFactory
      */
     private function buildTemplateList($templatesConfig)
     {
-        $templateNamespace = self::DEFAULT_TEMPLATES;
+        $templateNamespace = $this->defaultTemplates;
         if (is_string($templatesConfig)) {
             $templateNamespace = $templatesConfig;
         }

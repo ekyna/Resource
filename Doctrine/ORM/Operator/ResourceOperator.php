@@ -4,12 +4,13 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Operator;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use Ekyna\Bundle\AdminBundle\Event\ResourceEvent;
-use Ekyna\Bundle\AdminBundle\Event\ResourceMessage;
+use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Event\ResourceMessage;
 use Ekyna\Component\Resource\Configuration\ConfigurationInterface;
+use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Operator\ResourceOperatorInterface;
 use Gedmo\SoftDeleteable\SoftDeleteableListener;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class ResourceManager
@@ -26,7 +27,7 @@ class ResourceOperator implements ResourceOperatorInterface
     protected $manager;
 
     /**
-     * @var EventDispatcherInterface
+     * @var ResourceEventDispatcherInterface
      */
     protected $dispatcher;
 
@@ -45,13 +46,13 @@ class ResourceOperator implements ResourceOperatorInterface
      * Constructor.
      *
      * @param EntityManagerInterface   $manager
-     * @param EventDispatcherInterface $dispatcher
+     * @param ResourceEventDispatcherInterface $dispatcher
      * @param ConfigurationInterface   $config
      * @param bool                     $debug
      */
     public function __construct(
         EntityManagerInterface $manager,
-        EventDispatcherInterface $dispatcher,
+        ResourceEventDispatcherInterface $dispatcher,
         ConfigurationInterface $config,
         $debug = false
     ) {
@@ -66,7 +67,10 @@ class ResourceOperator implements ResourceOperatorInterface
      */
     public function persist($resourceOrEvent)
     {
-        $resource = $resourceOrEvent instanceof ResourceEvent ? $resourceOrEvent->getResource() : $resourceOrEvent;
+        $resource = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent->getResource()
+            : $resourceOrEvent;
+
         if (0 < $resource->getId()) {
             return $this->update($resourceOrEvent);
         }
@@ -77,7 +81,7 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
-    public function detach($resource)
+    public function detach(ResourceInterface $resource)
     {
         $this->manager->detach($resource);
     }
@@ -85,7 +89,7 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
-    public function merge($resource)
+    public function merge(ResourceInterface$resource)
     {
         $this->manager->merge($resource);
     }
@@ -93,7 +97,7 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
-    public function refresh($resource)
+    public function refresh(ResourceInterface $resource)
     {
         $this->manager->refresh($resource);
     }
@@ -111,7 +115,10 @@ class ResourceOperator implements ResourceOperatorInterface
      */
     public function create($resourceOrEvent)
     {
-        $event = $resourceOrEvent instanceof ResourceEvent ? $resourceOrEvent : $this->createResourceEvent($resourceOrEvent);
+        $event = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent
+            : $this->createResourceEvent($resourceOrEvent);
+
         $this->dispatcher->dispatch($this->config->getEventName('pre_create'), $event);
 
         if (!$event->isPropagationStopped()) {
@@ -128,7 +135,10 @@ class ResourceOperator implements ResourceOperatorInterface
      */
     public function update($resourceOrEvent)
     {
-        $event = $resourceOrEvent instanceof ResourceEvent ? $resourceOrEvent : $this->createResourceEvent($resourceOrEvent);
+        $event = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent
+            : $this->createResourceEvent($resourceOrEvent);
+
         $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
 
         if (!$event->isPropagationStopped()) {
@@ -145,12 +155,17 @@ class ResourceOperator implements ResourceOperatorInterface
      */
     public function delete($resourceOrEvent, $hard = false)
     {
-        $event = $resourceOrEvent instanceof ResourceEvent ? $resourceOrEvent : $this->createResourceEvent($resourceOrEvent);
+        $event = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent
+            : $this->createResourceEvent($resourceOrEvent);
+
         $event->setHard($event->getHard() || $hard);
+
         $this->dispatcher->dispatch($this->config->getEventName('pre_delete'), $event);
 
         if (!$event->isPropagationStopped()) {
             $eventManager = $this->manager->getEventManager();
+
             $disabledListeners = [];
             if ($event->getHard()) {
                 foreach ($eventManager->getListeners() as $eventName => $listeners) {
@@ -178,19 +193,24 @@ class ResourceOperator implements ResourceOperatorInterface
     }
 
     /**
+     * @inheritdoc
+     */
+    public function createResourceEvent($resource)
+    {
+        return $this->dispatcher->createResourceEvent($resource);
+    }
+
+    /**
      * Persists a resource.
      *
-     * @param ResourceEvent $event
+     * @param ResourceEventInterface $event
      *
-     * @return ResourceEvent
      * @throws DBALException
      * @throws \Exception
      */
-    protected function persistResource(ResourceEvent $event)
+    protected function persistResource(ResourceEventInterface $event)
     {
         $resource = $event->getResource();
-
-        // TODO Validation ?
 
         try {
             $this->manager->persist($resource);
@@ -199,15 +219,16 @@ class ResourceOperator implements ResourceOperatorInterface
             if ($this->debug) {
                 throw $e;
             }
+
             $event->addMessage(new ResourceMessage(
                 'ekyna_admin.resource.message.persist.failure',
                 ResourceMessage::TYPE_ERROR
             ));
 
-            return $event;
+            return;
         }
 
-        return $event->addMessage(new ResourceMessage(
+        $event->addMessage(new ResourceMessage(
             'ekyna_admin.resource.message.persist.success',
             ResourceMessage::TYPE_SUCCESS
         ));
@@ -216,13 +237,12 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * Removes a resource.
      *
-     * @param ResourceEvent $event
+     * @param ResourceEventInterface $event
      *
-     * @return ResourceEvent
      * @throws DBALException
      * @throws \Exception
      */
-    protected function removeResource(ResourceEvent $event)
+    protected function removeResource(ResourceEventInterface $event)
     {
         $resource = $event->getResource();
 
@@ -235,41 +255,23 @@ class ResourceOperator implements ResourceOperatorInterface
             }
             if (null !== $previous = $e->getPrevious()) {
                 if ($previous instanceof \PDOException && $previous->getCode() == 23000) {
-                    return $event->addMessage(new ResourceMessage(
+                    $event->addMessage(new ResourceMessage(
                         'ekyna_admin.resource.message.remove.integrity',
                         ResourceMessage::TYPE_ERROR
                     ));
+                    return;
                 }
             }
 
-            return $event->addMessage(new ResourceMessage(
+            $event->addMessage(new ResourceMessage(
                 'ekyna_admin.resource.message.remove.failure',
                 ResourceMessage::TYPE_ERROR
             ));
         }
 
-        return $event->addMessage(new ResourceMessage(
+        $event->addMessage(new ResourceMessage(
             'ekyna_admin.resource.message.remove.success',
             ResourceMessage::TYPE_SUCCESS
         ));
-    }
-
-    /**
-     * Creates the resource event.
-     *
-     * @param object $resource
-     *
-     * @return ResourceEvent
-     */
-    protected function createResourceEvent($resource)
-    {
-        if (null !== $eventClass = $this->config->getEventClass()) {
-            $event = new $eventClass($resource);
-        } else {
-            $event = new ResourceEvent();
-            $event->setResource($resource);
-        }
-
-        return $event;
     }
 }

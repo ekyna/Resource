@@ -3,14 +3,12 @@
 namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 
 use Doctrine\Common\EventSubscriber;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
+use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
 use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
-use Ekyna\Component\Resource\Event\PersistenceEvent;
 use Ekyna\Component\Resource\Model\ResourceInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class EntityListener
@@ -25,23 +23,18 @@ class EntityListener implements EventSubscriber
     private $registry;
 
     /**
-     * @var EventDispatcherInterface
+     * @var ResourceEventDispatcherInterface
      */
     private $dispatcher;
-
-    /**
-     * @var EntityManagerInterface
-     */
-    private $manager;
 
 
     /**
      * Constructor.
      *
-     * @param ConfigurationRegistry    $registry
-     * @param EventDispatcherInterface $dispatcher
+     * @param ConfigurationRegistry            $registry
+     * @param ResourceEventDispatcherInterface $dispatcher
      */
-    public function __construct(ConfigurationRegistry $registry, EventDispatcherInterface $dispatcher)
+    public function __construct(ConfigurationRegistry $registry, ResourceEventDispatcherInterface $dispatcher)
     {
         $this->registry = $registry;
         $this->dispatcher = $dispatcher;
@@ -56,8 +49,7 @@ class EntityListener implements EventSubscriber
      */
     public function onFlush(OnFlushEventArgs $eventArgs)
     {
-        $this->manager = $eventArgs->getEntityManager();
-        $uow = $this->manager->getUnitOfWork();
+        $uow = $eventArgs->getEntityManager()->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
             if ($entity instanceof ResourceInterface) {
@@ -114,7 +106,7 @@ class EntityListener implements EventSubscriber
     public function dispatchInsertEvent(ResourceInterface $resource)
     {
         if (null !== $eventName = sprintf('%s.insert', $this->getResourceId($resource))) {
-            $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
+            $this->dispatchResourceEvent($eventName, $resource);
         }
     }
 
@@ -126,7 +118,7 @@ class EntityListener implements EventSubscriber
     public function dispatchUpdateEvent(ResourceInterface $resource)
     {
         if (null !== $eventName = sprintf('%s.update', $this->getResourceId($resource))) {
-            $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
+            $this->dispatchResourceEvent($eventName, $resource);
         }
     }
 
@@ -138,25 +130,21 @@ class EntityListener implements EventSubscriber
     public function dispatchDeleteEvent(ResourceInterface $resource)
     {
         if (null !== $eventName = sprintf('%s.delete', $this->getResourceId($resource))) {
-            $this->dispatcher->dispatch($eventName, $this->createPersistenceEvent($resource));
+            $this->dispatchResourceEvent($eventName, $resource);
         }
     }
 
     /**
-     * Creates the persistence event.
+     * Dispatches the resource event.
      *
+     * @param string            $eventName
      * @param ResourceInterface $resource
-     *
-     * @return PersistenceEvent
      */
-    private function createPersistenceEvent(ResourceInterface $resource)
+    private function dispatchResourceEvent($eventName, ResourceInterface $resource)
     {
-        $event = new PersistenceEvent();
-
-        $event->setResource($resource);
-        $event->setManager($this->manager);
-
-        return $event;
+        if (null !== $event = $this->dispatcher->createResourceEvent($resource, false)) {
+            $this->dispatcher->dispatch($eventName, $event);
+        }
     }
 
     /**
@@ -168,11 +156,8 @@ class EntityListener implements EventSubscriber
      */
     private function getResourceId(ResourceInterface $resource)
     {
-        try {
-            $configuration = $this->registry->findConfiguration($resource);
-
+        if ($configuration = $this->registry->findConfiguration($resource, false)) {
             return $configuration->getResourceId();
-        } catch (NotFoundConfigurationException $e) {
         }
 
         return null;

@@ -2,7 +2,8 @@
 
 namespace Ekyna\Component\Resource\Operator;
 
-use Ekyna\Bundle\AdminBundle\Event\ResourceEvent;
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
  * Interface ResourceOperatorInterface
@@ -14,32 +15,32 @@ interface ResourceOperatorInterface
     /**
      * Persists the resource.
      *
-     * @param object|ResourceEvent $resourceOrEvent
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
     public function persist($resourceOrEvent);
 
     /**
      * Detaches the resource from the manager.
      *
-     * @param $resource
+     * @param ResourceInterface $resource
      */
-    public function detach($resource);
+    public function detach(ResourceInterface $resource);
 
     /**
      * Merges the resource in the manager.
      *
-     * @param $resource
+     * @param ResourceInterface $resource
      */
-    public function merge($resource);
+    public function merge(ResourceInterface $resource);
 
     /**
      * Refreshes the resource in the manager.
      *
-     * @param $resource
+     * @param ResourceInterface $resource
      */
-    public function refresh($resource);
+    public function refresh(ResourceInterface $resource);
 
     /**
      * Clears the manager.
@@ -49,28 +50,37 @@ interface ResourceOperatorInterface
     /**
      * Creates the resource.
      *
-     * @param object|ResourceEvent $resourceOrEvent
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
     public function create($resourceOrEvent);
 
     /**
      * Updates the resource.
      *
-     * @param object|ResourceEvent $resourceOrEvent
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
     public function update($resourceOrEvent);
 
     /**
      * Deletes the resource.
      *
-     * @param object|ResourceEvent $resourceOrEvent
-     * @param boolean $hard Whether to bypass soft deleteable behavior or not.
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     * @param boolean $hard Whether or not to bypass deletion prevention.
      *
-     * @return ResourceEvent
+     * @return ResourceEventInterface
      */
     public function delete($resourceOrEvent, $hard = false);
+
+    /**
+     * Creates the resource event.
+     *
+     * @param ResourceInterface $resource
+     *
+     * @return ResourceEventInterface
+     */
+    public function createResourceEvent($resource);
 }
