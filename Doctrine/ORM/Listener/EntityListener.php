@@ -6,7 +6,6 @@ use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
-use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
 use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
@@ -103,9 +102,9 @@ class EntityListener implements EventSubscriber
      *
      * @param ResourceInterface $resource
      */
-    public function dispatchInsertEvent(ResourceInterface $resource)
+    private function dispatchInsertEvent(ResourceInterface $resource)
     {
-        if (null !== $eventName = sprintf('%s.insert', $this->getResourceId($resource))) {
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, 'insert')) {
             $this->dispatchResourceEvent($eventName, $resource);
         }
     }
@@ -115,9 +114,9 @@ class EntityListener implements EventSubscriber
      *
      * @param \Ekyna\Component\Resource\Model\ResourceInterface $resource
      */
-    public function dispatchUpdateEvent(ResourceInterface $resource)
+    private function dispatchUpdateEvent(ResourceInterface $resource)
     {
-        if (null !== $eventName = sprintf('%s.update', $this->getResourceId($resource))) {
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, 'update')) {
             $this->dispatchResourceEvent($eventName, $resource);
         }
     }
@@ -127,9 +126,9 @@ class EntityListener implements EventSubscriber
      *
      * @param ResourceInterface $resource
      */
-    public function dispatchDeleteEvent(ResourceInterface $resource)
+    private function dispatchDeleteEvent(ResourceInterface $resource)
     {
-        if (null !== $eventName = sprintf('%s.delete', $this->getResourceId($resource))) {
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, 'delete')) {
             $this->dispatchResourceEvent($eventName, $resource);
         }
     }
@@ -145,22 +144,6 @@ class EntityListener implements EventSubscriber
         if (null !== $event = $this->dispatcher->createResourceEvent($resource, false)) {
             $this->dispatcher->dispatch($eventName, $event);
         }
-    }
-
-    /**
-     * Returns the resource identifier.
-     *
-     * @param ResourceInterface $resource
-     *
-     * @return string
-     */
-    private function getResourceId(ResourceInterface $resource)
-    {
-        if ($configuration = $this->registry->findConfiguration($resource, false)) {
-            return $configuration->getResourceId();
-        }
-
-        return null;
     }
 
     /**

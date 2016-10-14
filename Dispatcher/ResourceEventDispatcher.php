@@ -46,4 +46,16 @@ class ResourceEventDispatcher extends EventDispatcher implements ResourceEventDi
 
         return null;
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function getResourceEventName(ResourceInterface $resource, $suffix)
+    {
+        if (null !== $configuration = $this->registry->findConfiguration($resource, false)) {
+            return sprintf('%s.%s', $configuration->getResourceId(), $suffix);
+        }
+
+        return null;
+    }
 }

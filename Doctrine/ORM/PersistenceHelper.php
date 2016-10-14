@@ -14,6 +14,7 @@ use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
 class PersistenceHelper implements PersistenceHelperInterface
 {
     /**
+     * // TODO use doctrine registry to get resource own manager (if not default)
      * @var EntityManagerInterface
      */
     protected $manager;
@@ -77,6 +78,10 @@ class PersistenceHelper implements PersistenceHelperInterface
         }
 
         $metadata = $this->manager->getClassMetadata(get_class($resource));
-        $uow->recomputeSingleEntityChangeSet($metadata, $resource);
+        if ($uow->getEntityChangeSet($resource)) {
+            $uow->recomputeSingleEntityChangeSet($metadata, $resource);
+        } else {
+            $uow->computeChangeSet($metadata, $resource);
+        }
     }
 }

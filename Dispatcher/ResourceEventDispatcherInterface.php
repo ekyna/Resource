@@ -22,4 +22,14 @@ interface ResourceEventDispatcherInterface extends EventDispatcherInterface
      * @return ResourceEventInterface
      */
     public function createResourceEvent(ResourceInterface $resource, $throwException = true);
+
+    /**
+     * Returns the resource event name.
+     *
+     * @param ResourceInterface $resource
+     * @param string            $suffix
+     *
+     * @return null|string
+     */
+    public function getResourceEventName(ResourceInterface $resource, $suffix);
 }
