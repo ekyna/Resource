@@ -3,6 +3,7 @@
 namespace Ekyna\Component\Resource\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Ekyna\Component\Resource\Event\EventQueueInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
 
@@ -19,15 +20,22 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     protected $manager;
 
+    /**
+     * @var EventQueueInterface
+     */
+    protected $eventQueue;
+
 
     /**
      * Constructor.
      *
      * @param EntityManagerInterface $manager
+     * @param EventQueueInterface    $eventQueue
      */
-    public function __construct(EntityManagerInterface $manager)
+    public function __construct(EntityManagerInterface $manager, EventQueueInterface $eventQueue)
     {
         $this->manager = $manager;
+        $this->eventQueue = $eventQueue;
     }
 
     /**
@@ -82,6 +90,12 @@ class PersistenceHelper implements PersistenceHelperInterface
             $uow->recomputeSingleEntityChangeSet($metadata, $resource);
         } else {
             $uow->computeChangeSet($metadata, $resource);
+        }
+
+        if ($resource->getId()) {
+            $this->eventQueue->scheduleUpdate($resource);
+        } else {
+            $this->eventQueue->scheduleInsert($resource);
         }
     }
 }
