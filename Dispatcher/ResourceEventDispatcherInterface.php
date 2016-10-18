@@ -19,7 +19,7 @@ interface ResourceEventDispatcherInterface extends EventDispatcherInterface
      * @param ResourceInterface $resource
      * @param bool              $throwException
      *
-     * @return ResourceEventInterface
+     * @return ResourceEventInterface|null
      */
     public function createResourceEvent(ResourceInterface $resource, $throwException = true);
 
@@ -29,7 +29,7 @@ interface ResourceEventDispatcherInterface extends EventDispatcherInterface
      * @param ResourceInterface $resource
      * @param string            $suffix
      *
-     * @return null|string
+     * @return string|null
      */
     public function getResourceEventName(ResourceInterface $resource, $suffix);
 }

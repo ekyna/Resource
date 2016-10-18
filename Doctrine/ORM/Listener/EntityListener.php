@@ -62,12 +62,6 @@ class EntityListener implements EventSubscriber
             }
         }
 
-        foreach ($uow->getScheduledEntityDeletions() as $entity) {
-            if ($entity instanceof ResourceInterface) {
-                $this->eventQueue->scheduleDelete($entity);
-            }
-        }
-
         foreach ($uow->getScheduledCollectionDeletions() as $col) {
             foreach ($col as $c) {
                 foreach ($c as $entity) {
@@ -89,6 +83,12 @@ class EntityListener implements EventSubscriber
                         }
                     }
                 }
+            }
+        }
+
+        foreach ($uow->getScheduledEntityDeletions() as $entity) {
+            if ($entity instanceof ResourceInterface) {
+                $this->eventQueue->scheduleDelete($entity);
             }
         }
 
