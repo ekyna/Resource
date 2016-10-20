@@ -12,6 +12,13 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 interface PersistenceHelperInterface
 {
     /**
+     * Returns the manager.
+     *
+     * @return \Doctrine\ORM\EntityManagerInterface
+     */
+    public function getManager();
+
+    /**
      * Returns the entity change set.
      *
      * @param ResourceInterface $resource

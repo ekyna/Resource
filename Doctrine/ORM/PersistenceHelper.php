@@ -39,9 +39,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     }
 
     /**
-     * Returns the manager.
-     *
-     * @return EntityManagerInterface
+     * @inheritdoc
      */
     public function getManager()
     {
