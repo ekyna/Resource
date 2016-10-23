@@ -80,7 +80,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         $uow = $this->manager->getUnitOfWork();
 
         if (!($uow->isScheduledForInsert($resource) || $uow->isScheduledForUpdate($resource))) {
-            $uow->persist($resource);
+            $this->manager->persist($resource);
         }
 
         $metadata = $this->manager->getClassMetadata(get_class($resource));
@@ -102,9 +102,7 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     public function remove(ResourceInterface $resource)
     {
-        $uow = $this->manager->getUnitOfWork();
-
-        $uow->remove($resource);
+        $this->manager->remove($resource);
 
         $this->eventQueue->scheduleDelete($resource);
     }
