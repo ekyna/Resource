@@ -96,4 +96,16 @@ class PersistenceHelper implements PersistenceHelperInterface
             $this->eventQueue->scheduleInsert($resource);
         }
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function remove(ResourceInterface $resource)
+    {
+        $uow = $this->manager->getUnitOfWork();
+
+        $uow->remove($resource);
+
+        $this->eventQueue->scheduleDelete($resource);
+    }
 }

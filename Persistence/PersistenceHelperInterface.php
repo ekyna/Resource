@@ -44,4 +44,11 @@ interface PersistenceHelperInterface
      * @param ResourceInterface $resource
      */
     public function persistAndRecompute(ResourceInterface $resource);
+
+    /**
+     * Removes the given resource.
+     *
+     * @param ResourceInterface $resource
+     */
+    public function remove(ResourceInterface $resource);
 }

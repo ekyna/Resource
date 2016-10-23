@@ -37,6 +37,7 @@ class EventQueue implements EventQueueInterface
     public function __construct(ResourceEventDispatcherInterface $dispatcher)
     {
         $this->dispatcher = $dispatcher;
+        // TODO logger to track queued events
 
         $this->reset();
     }
