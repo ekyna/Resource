@@ -17,6 +17,12 @@ class ConfigurationRegistry
     protected $configurations;
 
     /**
+     * @var array
+     */
+    protected $parentMap;
+
+
+    /**
      * Constructor.
      *
      * @param array|ConfigurationInterface[]
@@ -34,7 +40,7 @@ class ConfigurationRegistry
      *
      * @throws \Ekyna\Component\Resource\Exception\NotFoundConfigurationException
      *
-     * @return Configuration|NULL
+     * @return ConfigurationInterface|NULL
      */
     public function findConfiguration($resource, $throwException = true)
     {
@@ -173,5 +179,37 @@ class ConfigurationRegistry
         }
 
         return null;
+    }
+
+    /**
+     * Returns the hierarchy map.
+     *
+     * @return array
+     */
+    public function getParentMap()
+    {
+        if (null !== $this->parentMap) {
+            return $this->parentMap;
+        }
+
+        return $this->parentMap = $this->buildParentMap();
+    }
+
+    /**
+     * Builds the parent map.
+     *
+     * @return array
+     */
+    private function buildParentMap()
+    {
+        $map = [];
+
+        foreach ($this->configurations as $configuration) {
+            $map[$configuration->getResourceId()] = $configuration->getParentId();
+        }
+
+        ksort($map);
+
+        return $map;
     }
 }

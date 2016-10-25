@@ -14,6 +14,16 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 interface ResourceEventDispatcherInterface extends EventDispatcherInterface
 {
     /**
+     * Schedule the resource event to be dispatched during the persistence phase (onFlush).
+     *
+     * @param string                                   $eventName
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     *
+     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     */
+    public function scheduleEvent($eventName, $resourceOrEvent);
+
+    /**
      * Creates the resource event.
      *
      * @param ResourceInterface $resource

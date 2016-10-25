@@ -2,6 +2,7 @@
 
 namespace Ekyna\Component\Resource\Persistence;
 
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
@@ -32,7 +33,7 @@ interface PersistenceHelperInterface
      *
      *
      * @param ResourceInterface $resource
-     * @param string|array $properties
+     * @param string|array      $properties
      *
      * @return bool
      */
@@ -42,13 +43,25 @@ interface PersistenceHelperInterface
      * Persists and recompute the given resource.
      *
      * @param ResourceInterface $resource
+     * @param bool              $schedule
      */
-    public function persistAndRecompute(ResourceInterface $resource);
+    public function persistAndRecompute(ResourceInterface $resource, $schedule = false);
 
     /**
      * Removes the given resource.
      *
      * @param ResourceInterface $resource
+     * @param bool              $schedule
      */
-    public function remove(ResourceInterface $resource);
+    public function remove(ResourceInterface $resource, $schedule = false);
+
+    /**
+     * Schedule the resource event to be dispatched during the persistence phase (onFlush).
+     *
+     * @param string                                   $eventName
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     *
+     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     */
+    public function scheduleEvent($eventName, $resourceOrEvent);
 }

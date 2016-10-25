@@ -2,8 +2,10 @@
 
 namespace Ekyna\Component\Resource\Event;
 
+use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
-use Ekyna\Component\Resource\Exception\PersistenceEventException;
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
+use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
@@ -13,57 +15,59 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 class EventQueue implements EventQueueInterface
 {
-    const INSERT = 'insert';
-    const UPDATE = 'update';
-    const DELETE = 'delete';
-
+    /**
+     * @var ConfigurationRegistry
+     */
+    protected $registry;
 
     /**
      * @var ResourceEventDispatcherInterface
      */
-    private $dispatcher;
+    protected $dispatcher;
 
     /**
      * @var array
      */
-    private $queue;
+    protected $queue;
+
+    /**
+     * @var bool
+     */
+    protected $opened = false;
 
 
     /**
      * Constructor.
      *
+     * @param ConfigurationRegistry            $registry
      * @param ResourceEventDispatcherInterface $dispatcher
      */
-    public function __construct(ResourceEventDispatcherInterface $dispatcher)
-    {
+    public function __construct(
+        ConfigurationRegistry $registry,
+        ResourceEventDispatcherInterface $dispatcher
+    ) {
+        $this->registry = $registry;
         $this->dispatcher = $dispatcher;
+
         // TODO logger to track queued events
 
-        $this->reset();
+        $this->clear();
     }
 
     /**
      * @inheritdoc
      */
-    public function scheduleInsert(ResourceInterface $resource)
+    public function setOpened($opened)
     {
-        $this->scheduleEvent(static::INSERT, $resource);
+        $this->opened = (bool)$opened;
     }
 
     /**
      * @inheritdoc
      */
-    public function scheduleUpdate(ResourceInterface $resource)
+    public function scheduleEvent($eventName, $resourceOrEvent)
     {
-        $this->scheduleEvent(static::UPDATE, $resource);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function scheduleDelete(ResourceInterface $resource)
-    {
-        $this->scheduleEvent(static::DELETE, $resource);
+        $this->enqueue($eventName, $resourceOrEvent);
     }
 
     /**
@@ -71,77 +75,191 @@ class EventQueue implements EventQueueInterface
      */
     public function flush()
     {
-        while (!$this->isEmpty()) {
-            foreach ($this->getTypes() as $type) {
-                foreach ($this->queue[$type] as $key => $resource) {
-                    if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, $type)) {
-                        $event = $this->dispatcher->createResourceEvent($resource);
+        while (!empty($queue = $this->clear())) {
+            $queue = $this->sortQueue($queue);
 
-                        $this->dispatcher->dispatch($eventName, $event);
+            foreach ($queue as $eventName => $resources) {
+                foreach ($resources as $oid => $resourceOrEvent) {
+                    if (!$resourceOrEvent instanceof ResourceEventInterface) {
+                        $resourceOrEvent = $this->dispatcher->createResourceEvent($resourceOrEvent);
                     }
 
-                    unset($this->queue[$type][$key]);
+                    $this->dispatcher->dispatch($eventName, $resourceOrEvent);
                 }
             }
         }
+    }
 
-        $this->reset();
+    /**
+     * Returns whether the queue is opened or not.
+     *
+     * @return boolean
+     */
+    protected function isOpened()
+    {
+        return $this->opened;
     }
 
     /**
      * Schedules a resource event of the given type.
      *
-     * @param string $type
-     * @param ResourceInterface $resource
+     * @param string                                   $eventName
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     *
+     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
      */
-    private function scheduleEvent($type, ResourceInterface $resource)
+    protected function enqueue($eventName, $resourceOrEvent)
     {
+        if (!$this->isOpened()) {
+            throw new RuntimeException("The event queue is closed.");
+        }
+
+        if (!preg_match('~^[a-z_]+\.[a-z_]+\.[a-z_]+$~', $eventName)) {
+            throw new InvalidArgumentException("Unexpected event name '{$eventName}'.");
+        }
+
+        if ($resourceOrEvent instanceof ResourceInterface) {
+            $resource = $resourceOrEvent;
+        } elseif ($resourceOrEvent instanceof ResourceEventInterface) {
+            $resource = $resourceOrEvent->getResource();
+        } else {
+            throw new InvalidArgumentException("Expected instanceof ResourceInterface or ResourceEventInterface");
+        }
+
         $oid = spl_object_hash($resource);
 
-        // Watch for event conflict
-        foreach (array_diff($this->getTypes(), [$type]) as $other) {
-            if (isset($this->queue[$other][$oid])) {
-                throw new PersistenceEventException("Already scheduled for $other.");
+        // TODO we are enqueueing into en empty queue (cleared by the flush method)
+        //      so duplication and conflict can't be resolved
+        // TODO see persistAndRecompute (.., $andSchedule = false)
+
+        // Don't add twice
+        if (isset($this->queue[$eventName]) && isset($this->queue[$eventName][$oid])) {
+            return;
+        }
+
+        $this->preventEventConflict($eventName, $oid);
+
+        if (!isset($this->queue[$eventName])) {
+            $this->queue[$eventName] = [];
+        }
+
+        $this->queue[$eventName][$oid] = $resourceOrEvent;
+    }
+
+    /**
+     * Sorts the event queue by resource hierarchy and event priority.
+     *
+     * @param array $queue
+     *
+     * @return array The sorted queue.
+     */
+    protected function sortQueue(array $queue)
+    {
+        if (!@uksort($queue, $this->getQueueSortingCallback())) {
+            throw new RuntimeException("Failed to sort the event queue.");
+        }
+
+        return $queue;
+    }
+
+    /**
+     * Throws an exception on en event conflict case.
+     *
+     * @param string $eventName
+     * @param string $oid
+     *
+     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     */
+    protected function preventEventConflict($eventName, $oid)
+    {
+
+    }
+
+    /**
+     * Returns the queue sorting callback.
+     *
+     * @return \Closure
+     */
+    protected function getQueueSortingCallback()
+    {
+        return function ($a, $b) {
+            // By resource hierarchy
+            $aId = $this->getEventPrefix($a);
+            $bId = $this->getEventPrefix($b);
+
+            $parentMap = $this->registry->getParentMap();
+
+            if (in_array($bId, $parentMap[$aId])) {
+                // B is a parent of A
+                return -1;
+            } elseif (in_array($aId, $parentMap[$bId])) {
+                // A is a parent of B
+                return 1;
             }
-        }
 
-        // Queue if not already queued
-        if (!isset($this->queue[$type][$oid])) {
-            $this->queue[$type][$oid] = $resource;
-        }
+            // By suffix priority
+            $aPriority = $this->getEventPriority($a);
+            $bPriority = $this->getEventPriority($b);
+
+            if ($aPriority < $bPriority) {
+                return -1;
+            } elseif ($bPriority < $aPriority) {
+                return 1;
+            }
+
+            return 0;
+        };
     }
 
     /**
-     * Resets the event queue.
-     */
-    private function reset()
-    {
-        $this->queue = [
-            static::INSERT => [],
-            static::UPDATE => [],
-            static::DELETE => [],
-        ];
-    }
-
-    /**
-     * Returns whether or not the queue is empty.
+     * Returns the event priority.
      *
-     * @return bool
+     * @param string $eventName
+     *
+     * @return int
      */
-    private function isEmpty()
+    protected function getEventPriority($eventName)
     {
-        return empty($this->queue[static::INSERT])
-            && empty($this->queue[static::UPDATE])
-            && empty($this->queue[static::DELETE]);
+        // TODO We could use the resource configuration to get the custom event's priority
+
+        return 0;
     }
 
     /**
-     * Returns the events types.
+     * Returns the event prefix (resource id).
      *
-     * @return array
+     * @param string $eventName
+     *
+     * @return string
      */
-    private function getTypes()
+    protected function getEventPrefix($eventName)
     {
-        return [static::INSERT, static::UPDATE, static::DELETE];
+        return substr($eventName, 0, strrpos($eventName, '.'));
+    }
+
+    /**
+     * Returns the event suffix (action).
+     *
+     * @param string $eventName
+     *
+     * @return string
+     */
+    protected function getEventSuffix($eventName)
+    {
+        return substr($eventName, strrpos($eventName, '.') + 1);
+    }
+
+    /**
+     * Clears the event queue.
+     *
+     * @return array The copy of the event queue
+     */
+    protected function clear()
+    {
+        $queue = $this->queue;
+
+        $this->queue = [];
+
+        return $queue;
     }
 }

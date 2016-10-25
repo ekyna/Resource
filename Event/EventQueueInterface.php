@@ -12,25 +12,21 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 interface EventQueueInterface
 {
     /**
-     * Schedules an insert resource event.
+     * Sets whether the queue is opened or not.
      *
-     * @param ResourceInterface $resource
+     * @param boolean $opened
      */
-    public function scheduleInsert(ResourceInterface $resource);
+    public function setOpened($opened);
 
     /**
-     * Schedules an insert resource event.
+     * Schedules the resource event.
      *
-     * @param ResourceInterface $resource
-     */
-    public function scheduleUpdate(ResourceInterface $resource);
-
-    /**
-     * Schedules an insert resource event.
+     * @param string                                   $eventName
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      *
-     * @param ResourceInterface $resource
+     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
      */
-    public function scheduleDelete(ResourceInterface $resource);
+    public function scheduleEvent($eventName, $resourceOrEvent);
 
     /**
      * Flushes the event queue.

@@ -5,9 +5,8 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
-use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
-use Ekyna\Component\Resource\Event\EventQueueInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
+use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 
 /**
  * Class EntityListener
@@ -17,12 +16,7 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 class EntityListener implements EventSubscriber
 {
     /**
-     * @var ConfigurationRegistry
-     */
-    private $registry;
-
-    /**
-     * @var EventQueueInterface
+     * @var PersistenceEventQueueInterface
      */
     protected $eventQueue;
 
@@ -30,12 +24,10 @@ class EntityListener implements EventSubscriber
     /**
      * Constructor.
      *
-     * @param ConfigurationRegistry            $registry
-     * @param EventQueueInterface $eventQueue
+     * @param PersistenceEventQueueInterface $eventQueue
      */
-    public function __construct(ConfigurationRegistry $registry, EventQueueInterface $eventQueue)
+    public function __construct(PersistenceEventQueueInterface $eventQueue)
     {
-        $this->registry = $registry;
         $this->eventQueue = $eventQueue;
     }
 
@@ -48,6 +40,8 @@ class EntityListener implements EventSubscriber
      */
     public function onFlush(OnFlushEventArgs $eventArgs)
     {
+        $this->eventQueue->setOpened(true);
+
         $uow = $eventArgs->getEntityManager()->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
@@ -93,6 +87,8 @@ class EntityListener implements EventSubscriber
         }
 
         $this->eventQueue->flush();
+
+        $this->eventQueue->setOpened(false);
     }
 
     /**

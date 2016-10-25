@@ -3,8 +3,8 @@
 namespace Ekyna\Component\Resource\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Ekyna\Component\Resource\Event\EventQueueInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
+use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
 
 /**
@@ -21,7 +21,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     protected $manager;
 
     /**
-     * @var EventQueueInterface
+     * @var PersistenceEventQueueInterface
      */
     protected $eventQueue;
 
@@ -29,10 +29,10 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * Constructor.
      *
-     * @param EntityManagerInterface $manager
-     * @param EventQueueInterface    $eventQueue
+     * @param EntityManagerInterface         $manager
+     * @param PersistenceEventQueueInterface $eventQueue
      */
-    public function __construct(EntityManagerInterface $manager, EventQueueInterface $eventQueue)
+    public function __construct(EntityManagerInterface $manager, PersistenceEventQueueInterface $eventQueue)
     {
         $this->manager = $manager;
         $this->eventQueue = $eventQueue;
@@ -75,7 +75,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritdoc
      */
-    public function persistAndRecompute(ResourceInterface $resource)
+    public function persistAndRecompute(ResourceInterface $resource, $schedule = false)
     {
         $uow = $this->manager->getUnitOfWork();
 
@@ -90,20 +90,32 @@ class PersistenceHelper implements PersistenceHelperInterface
             $uow->computeChangeSet($metadata, $resource);
         }
 
-        if ($resource->getId()) {
-            $this->eventQueue->scheduleUpdate($resource);
-        } else {
-            $this->eventQueue->scheduleInsert($resource);
+        if ($schedule) {
+            if ($resource->getId()) {
+                $this->eventQueue->scheduleUpdate($resource);
+            } else {
+                $this->eventQueue->scheduleInsert($resource);
+            }
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function remove(ResourceInterface $resource)
+    public function remove(ResourceInterface $resource, $schedule = false)
     {
         $this->manager->remove($resource);
 
-        $this->eventQueue->scheduleDelete($resource);
+        if ($schedule) {
+            $this->eventQueue->scheduleDelete($resource);
+        }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function scheduleEvent($eventName, $resourceOrEvent)
+    {
+        $this->eventQueue->scheduleEvent($eventName, $resourceOrEvent);
     }
 }
