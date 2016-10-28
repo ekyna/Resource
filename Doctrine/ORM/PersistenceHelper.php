@@ -104,7 +104,9 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     public function remove(ResourceInterface $resource, $schedule = false)
     {
-        $this->manager->remove($resource);
+        if (null !== $resource->getId()) {
+            $this->manager->remove($resource);
+        }
 
         if ($schedule) {
             $this->eventQueue->scheduleDelete($resource);
