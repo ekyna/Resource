@@ -78,6 +78,7 @@ class ConfigurationFactory
      */
     private function getOptionsResolver()
     {
+        // TODO use a common option resolver with ConfigurationBuilder
         if (!$this->optionsResolver) {
             $resolver = new OptionsResolver();
 
@@ -88,6 +89,7 @@ class ConfigurationFactory
             });
             $resolver->setDefault('parent_id', null);
             $resolver->setDefault('templates', null);
+            $resolver->setDefault('translation', null);
 
             $resolver->setAllowedTypes('namespace', 'string');
             $resolver->setAllowedTypes('id', 'string');
@@ -95,6 +97,7 @@ class ConfigurationFactory
             $resolver->setAllowedTypes('parent_id', ['null', 'string']);
             $resolver->setAllowedTypes('classes', 'array');
             $resolver->setAllowedTypes('templates', ['null', 'string', 'array']);
+            $resolver->setAllowedTypes('translation', ['null', 'array']);
 
             $resolver->setAllowedValues('classes', function ($value) {
                 if (!array_key_exists('resource', $value)) {

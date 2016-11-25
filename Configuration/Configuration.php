@@ -29,7 +29,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getId()
     {
@@ -37,7 +37,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getNamespace()
     {
@@ -45,7 +45,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getParentId()
     {
@@ -53,7 +53,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAlias()
     {
@@ -61,7 +61,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResourceId()
     {
@@ -69,7 +69,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getParentControllerId()
     {
@@ -77,7 +77,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getParentConfigurationId()
     {
@@ -85,7 +85,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResourceClass()
     {
@@ -93,7 +93,23 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     */
+    public function getTranslationClass()
+    {
+        return $this->getTranslation('entity'); // TODO rename key to 'class' (and in builder / config tree)
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getTranslationFields()
+    {
+        return $this->getTranslation('fields');
+    }
+
+    /**
+     * @inheritdoc
      */
     public function getEventClass()
     {
@@ -101,7 +117,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResourceName($plural = false)
     {
@@ -109,7 +125,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getResourceLabel($plural = false)
     {
@@ -117,7 +133,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getTemplate($name)
     {
@@ -129,7 +145,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getRoutePrefix()
     {
@@ -137,7 +153,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getRoute($action)
     {
@@ -145,7 +161,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getEventName($action)
     {
@@ -153,7 +169,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getFormType()
     {
@@ -161,7 +177,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getTableType()
     {
@@ -169,7 +185,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getServiceKey($service)
     {
@@ -177,7 +193,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getObjectIdentity()
     {
@@ -185,7 +201,7 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function isRelevant($object)
     {
@@ -208,5 +224,21 @@ class Configuration implements ConfigurationInterface
         }
 
         return $this->config['classes'][$key];
+    }
+
+    /**
+     * Returns the translation $key config.
+     *
+     * @param string $key
+     *
+     * @return mixed
+     */
+    private function getTranslation($key)
+    {
+        if ($this->config['translation']) {
+            return $this->config['translation'][$key];
+        }
+
+        return null;
     }
 }

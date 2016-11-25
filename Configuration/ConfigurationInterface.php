@@ -64,6 +64,20 @@ interface ConfigurationInterface
     public function getResourceClass();
 
     /**
+     * Returns the translation class.
+     *
+     * @return string|null
+     */
+    public function getTranslationClass();
+
+    /**
+     * Returns the translation fields.
+     *
+     * @return array|null
+     */
+    public function getTranslationFields();
+
+    /**
      * Returns the eventClass.
      *
      * @return string

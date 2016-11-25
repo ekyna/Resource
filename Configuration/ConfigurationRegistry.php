@@ -3,6 +3,7 @@
 namespace Ekyna\Component\Resource\Configuration;
 
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
+use Ekyna\Component\Resource\Model\TranslationInterface;
 
 /**
  * Class ConfigurationRegistry
@@ -40,7 +41,7 @@ class ConfigurationRegistry
      *
      * @throws \Ekyna\Component\Resource\Exception\NotFoundConfigurationException
      *
-     * @return ConfigurationInterface|NULL
+     * @return ConfigurationInterface|null
      */
     public function findConfiguration($resource, $throwException = true)
     {
@@ -51,15 +52,15 @@ class ConfigurationRegistry
                     return $config;
                 }
             }
+        } elseif (is_string($resource)) {
             // By class
-        } elseif (class_exists($resource, false)) {
-            foreach ($this->configurations as $config) {
-                if ($resource == $config->getResourceClass()) {
-                    return $config;
+            if (class_exists($resource, false)) {
+                foreach ($this->configurations as $config) {
+                    if ($resource == $config->getResourceClass()) {
+                        return $config;
+                    }
                 }
             }
-            // By configuration identifier
-        } elseif (is_string($resource)) {
             // By Alias
             if ($this->has($resource)) {
                 return $this->get($resource);
@@ -74,6 +75,37 @@ class ConfigurationRegistry
 
         if ($throwException) {
             throw new NotFoundConfigurationException($resource);
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds a configuration for the given translation (object/class)
+     *
+     * @param mixed   $translation object or class.
+     * @param boolean $throwException
+     *
+     * @throws \Ekyna\Component\Resource\Exception\NotFoundConfigurationException
+     *
+     * @return ConfigurationInterface|null
+     */
+    public function findConfigurationByTranslation($translation, $throwException = true)
+    {
+        if ($translation instanceof TranslationInterface) {
+            return $this->findConfiguration($translation->getTranslatable());
+        }
+
+        if (is_subclass_of($translation, TranslationInterface::class)) {
+            foreach ($this->configurations as $config) {
+                if ((null !== $class = $config->getTranslationClass()) && $translation == $class) {
+                    return $config;
+                }
+            }
+        }
+
+        if ($throwException) {
+            throw new NotFoundConfigurationException($translation);
         }
 
         return null;
