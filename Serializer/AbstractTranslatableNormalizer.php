@@ -21,22 +21,39 @@ abstract class AbstractTranslatableNormalizer extends AbstractResourceNormalizer
      */
     public function normalize($resource, $format = null, array $context = [])
     {
-        $data = parent::normalize($resource, $format, $context);
+        return array_replace(
+            parent::normalize($resource, $format, $context),
+            $this->normalizeTranslations($resource, $format, $context)
+        );
+    }
 
-        /** @var Model\ResourceInterface $resource */
+    /**
+     * Normalizes the translatable's translations.
+     *
+     * @param Model\TranslatableInterface $translatable
+     * @param string                      $format
+     * @param array                       $context
+     *
+     * @return array
+     */
+    protected function normalizeTranslations(Model\TranslatableInterface $translatable, $format, array $context = [])
+    {
+        $data = [];
+
         $groups = isset($context['groups']) ? (array)$context['groups'] : [];
 
-        if (in_array('Default', $groups)) {
-            if ($resource instanceof Model\TranslatableInterface) {
+        /*if (in_array('Default', $groups)) {
+            if ($translatable instanceof Model\TranslatableInterface) {
                 $data['translations'] = array_map(function (Model\TranslationInterface $t) use ($format, $context) {
                     return $t->getId();
-                }, $resource->getTranslations()->toArray());
+                }, $translatable->getTranslations()->toArray());
             }
-        } elseif (in_array('Search', $groups)) {
-            if ($resource instanceof Model\TranslatableInterface) {
+        }*/
+        if (in_array('Search', $groups)) {
+            if ($translatable instanceof Model\TranslatableInterface) {
                 $data['translations'] = array_map(function (Model\TranslationInterface $t) use ($format, $context) {
                     return $this->normalizeObject($t, $format, $context);
-                }, $resource->getTranslations()->toArray());
+                }, $translatable->getTranslations()->toArray());
             }
         }
 
