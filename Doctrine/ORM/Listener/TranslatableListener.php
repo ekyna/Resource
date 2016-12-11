@@ -71,7 +71,7 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
             'fieldName'     => 'translations',
             'targetEntity'  => $this->configs[$metadata->name],
             'mappedBy'      => 'translatable',
-            'fetch'         => ClassMetadataInfo::FETCH_EXTRA_LAZY,
+            //'fetch'         => ClassMetadataInfo::FETCH_EXTRA_LAZY,
             'indexBy'       => 'locale',
             'cascade'       => ['persist', 'merge', 'refresh', 'remove', 'detach'],
             'orphanRemoval' => true,
