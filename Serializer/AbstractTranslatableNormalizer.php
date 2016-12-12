@@ -69,4 +69,28 @@ abstract class AbstractTranslatableNormalizer extends AbstractResourceNormalizer
 
         throw new \Exception('Not yet implemented');
     }
+
+    /**
+     * @inheritdoc
+     */
+    public function supportsNormalization($data, $format = null)
+    {
+        if ($data instanceof Model\TranslatableInterface) {
+            return null !== $this->configurationRegistry->findConfiguration($data);
+        }
+
+        return false;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function supportsDenormalization($data, $type, $format = null)
+    {
+        if (class_exists($type) && is_subclass_of($type, Model\TranslatableInterface::class)) {
+            return null !== $this->configurationRegistry->findConfiguration($type);
+        }
+
+        return false;
+    }
 }
