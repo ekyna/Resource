@@ -10,7 +10,7 @@ use Ekyna\Component\Resource\Model\TranslatableInterface;
 /**
  * Class TranslatableResourceRepositoryTrait
  * @package Ekyna\Component\Resource\Doctrine\ORM\Util
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 trait TranslatableResourceRepositoryTrait
 {
@@ -38,11 +38,9 @@ trait TranslatableResourceRepositoryTrait
     protected function getQueryBuilder()
     {
         $qb = $this->traitGetQueryBuilder();
-
         $qb
             ->addSelect('translation')
-            ->leftJoin($this->getAlias() . '.translations', 'translation')
-        ;
+            ->leftJoin($this->getAlias() . '.translations', 'translation');
 
         return $qb;
     }
@@ -53,11 +51,9 @@ trait TranslatableResourceRepositoryTrait
     protected function getCollectionQueryBuilder()
     {
         $qb = $this->traitGetCollectionQueryBuilder();
-
         $qb
             ->addSelect('translation')
-            ->leftJoin($this->getAlias() . '.translations', 'translation')
-        ;
+            ->leftJoin($this->getAlias() . '.translations', 'translation');
 
         return $qb;
     }
@@ -104,6 +100,31 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Returns the current/fallback locale condition.
+     *
+     * @param string $alias
+     *
+     * @return Query\Expr\Base|Query\Expr\Comparison
+     */
+    public function getLocaleCondition($alias = 'translation')
+    {
+        $expr = new Query\Expr();
+
+        // TODO This may change between master/sub requests
+        $current = $this->localeProvider->getCurrentLocale();
+        $fallback = $this->localeProvider->getFallbackLocale();
+
+        if ($current != $fallback) {
+            return $expr->orX(
+                $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getCurrentLocale())),
+                $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getFallbackLocale()))
+            );
+        }
+
+        return $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getCurrentLocale()));
+    }
+
+    /**
      * @param string $name
      *
      * @return string
@@ -111,8 +132,9 @@ trait TranslatableResourceRepositoryTrait
     protected function getPropertyName($name)
     {
         if (in_array($name, $this->translatableFields)) {
-            return 'translation.'.$name;
+            return 'translation.' . $name;
         }
+
         return $this->traitGetPropertyName($name);
     }
 

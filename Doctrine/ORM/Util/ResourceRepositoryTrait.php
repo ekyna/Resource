@@ -4,6 +4,7 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Util;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
+use Ekyna\Component\Resource\Model\TaggedEntityInterface;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
@@ -14,10 +15,14 @@ use Pagerfanta\Pagerfanta;
  * @author Étienne Dauvergne <contact@ekyna.com>
  *
  * @method string getClassName()
- * @method QueryBuilder createQueryBuilder($alias)
  */
 trait ResourceRepositoryTrait
 {
+    /**
+     * @var string
+     */
+    private $cachePrefix;
+
     /**
      * Creates a new resource.
      *
@@ -185,7 +190,7 @@ trait ResourceRepositoryTrait
     /**
      * Returns the (doctrine) pager.
      *
-     * @param \Doctrine\ORM\Query|\Doctrine\ORM\QueryBuilder $query
+     * @param Query|QueryBuilder $query
      *
      * @return Pagerfanta
      */
@@ -209,7 +214,24 @@ trait ResourceRepositoryTrait
     }
 
     /**
-     * Returns the query builder.
+     * Creates a query builder.
+     *
+     * @param string $alias
+     * @param string $indexBy
+     *
+     * @return QueryBuilder
+     */
+    public function createQueryBuilder($alias = null, $indexBy = null)
+    {
+        $alias = $alias ?: $this->getAlias();
+
+        /** @noinspection PhpUndefinedMethodInspection */
+        /** @noinspection PhpUndefinedClassInspection */
+        return parent::createQueryBuilder($alias, $indexBy);
+    }
+
+    /**
+     * Returns the singe result query builder.
      *
      * @return QueryBuilder
      */
@@ -292,6 +314,29 @@ trait ResourceRepositoryTrait
     protected function collectionResult(Query $query)
     {
         return $query->getResult();
+    }
+
+    /**
+     * Returns the cache prefix.
+     *
+     * @return string
+     */
+    public function getCachePrefix()
+    {
+        if ($this->cachePrefix) {
+            return $this->cachePrefix;
+        }
+
+        $class = $this->getClassName();
+
+        if (!in_array(TaggedEntityInterface::class, class_implements($class))) {
+            throw new \RuntimeException(sprintf(
+                'The entity %s does not implements %s, query should not be cached.',
+                $class, TaggedEntityInterface::class
+            ));
+        }
+
+        return $this->cachePrefix = call_user_func([$this->getClassName(), 'getEntityTagPrefix']);
     }
 
     /**
