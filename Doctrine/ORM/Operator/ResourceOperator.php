@@ -45,10 +45,10 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * Constructor.
      *
-     * @param EntityManagerInterface   $manager
+     * @param EntityManagerInterface           $manager
      * @param ResourceEventDispatcherInterface $dispatcher
-     * @param ConfigurationInterface   $config
-     * @param bool                     $debug
+     * @param ConfigurationInterface           $config
+     * @param bool                             $debug
      */
     public function __construct(
         EntityManagerInterface $manager,
@@ -89,7 +89,7 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
-    public function merge(ResourceInterface$resource)
+    public function merge(ResourceInterface $resource)
     {
         $this->manager->merge($resource);
     }
@@ -133,11 +133,13 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
-    public function update($resourceOrEvent)
+    public function update($resourceOrEvent, $hard = false)
     {
         $event = $resourceOrEvent instanceof ResourceEventInterface
             ? $resourceOrEvent
             : $this->createResourceEvent($resourceOrEvent);
+
+        $event->setHard($event->getHard() || $hard);
 
         $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
 
@@ -259,6 +261,7 @@ class ResourceOperator implements ResourceOperatorInterface
                         'ekyna_admin.resource.message.remove.integrity',
                         ResourceMessage::TYPE_ERROR
                     ));
+
                     return;
                 }
             }

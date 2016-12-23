@@ -233,21 +233,27 @@ trait ResourceRepositoryTrait
     /**
      * Returns the singe result query builder.
      *
+     * @param string $alias
+     * @param string $indexBy
+     *
      * @return QueryBuilder
      */
-    protected function getQueryBuilder()
+    protected function getQueryBuilder($alias = null, $indexBy = null)
     {
-        return $this->createQueryBuilder($this->getAlias());
+        return $this->createQueryBuilder($alias, $indexBy);
     }
 
     /**
      * Returns the collection query builder.
      *
+     * @param string $alias
+     * @param string $indexBy
+     *
      * @return QueryBuilder
      */
-    protected function getCollectionQueryBuilder()
+    protected function getCollectionQueryBuilder($alias = null, $indexBy = null)
     {
-        return $this->createQueryBuilder($this->getAlias());
+        return $this->createQueryBuilder($alias, $indexBy);
     }
 
     /**

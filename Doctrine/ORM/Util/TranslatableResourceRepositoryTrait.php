@@ -33,29 +33,41 @@ trait TranslatableResourceRepositoryTrait
 
 
     /**
+     * Returns the singe result query builder.
+     *
+     * @param string $alias
+     * @param string $indexBy
+     *
      * @return \Doctrine\ORM\QueryBuilder
      */
-    protected function getQueryBuilder()
+    protected function getQueryBuilder($alias = null, $indexBy = null)
     {
-        $qb = $this->traitGetQueryBuilder();
-        $qb
-            ->addSelect('translation')
-            ->leftJoin($this->getAlias() . '.translations', 'translation');
+        $qb = $this->traitGetQueryBuilder($alias, $indexBy);
 
-        return $qb;
+        $alias = $alias ?: $this->getAlias();
+
+        return $qb
+            ->addSelect('translation')
+            ->leftJoin($alias . '.translations', 'translation');
     }
 
     /**
+     * Returns the collection query builder.
+     *
+     * @param string $alias
+     * @param string $indexBy
+     *
      * @return \Doctrine\ORM\QueryBuilder
      */
-    protected function getCollectionQueryBuilder()
+    protected function getCollectionQueryBuilder($alias = null, $indexBy = null)
     {
-        $qb = $this->traitGetCollectionQueryBuilder();
-        $qb
-            ->addSelect('translation')
-            ->leftJoin($this->getAlias() . '.translations', 'translation');
+        $qb = $this->traitGetCollectionQueryBuilder($alias, $indexBy);
 
-        return $qb;
+        $alias = $alias ?: $this->getAlias();
+
+        return $qb
+            ->addSelect('translation')
+            ->leftJoin($alias . '.translations', 'translation');
     }
 
     /**

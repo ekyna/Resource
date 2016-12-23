@@ -73,7 +73,6 @@ abstract class AbstractResourceNormalizer implements NormalizerInterface, Denorm
     public function normalize($resource, $format = null, array $context = [])
     {
         /** @var Model\ResourceInterface $resource */
-
         $data = [
             'id'           => $resource->getId(),
             'choice_label' => (string)$resource,
