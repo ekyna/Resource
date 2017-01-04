@@ -20,6 +20,7 @@
         "php": ">=5.4",
         "symfony/event-dispatcher": "~2.7|~3.0",
         "symfony/options-resolver": "~2.7|~3.0",
+        "symfony/property-access": "~2.7|~3.0",
         "doctrine/orm": "~2.5"
     },
     "require-dev": {

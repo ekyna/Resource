@@ -5,9 +5,9 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
+use Doctrine\ORM\Event\PreFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Ekyna\Component\Resource\Model\TranslatableInterface;
 use Ekyna\Component\Resource\Doctrine\AbstractTranslatableListener;
 use Ekyna\Component\Resource\Model\TranslationInterface;
@@ -15,12 +15,12 @@ use Ekyna\Component\Resource\Model\TranslationInterface;
 /**
  * Class ORMTranslatableListener
  * @package Ekyna\Component\Resource\Doctrine\ORM\Listener
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 class TranslatableListener extends AbstractTranslatableListener implements EventSubscriber
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getSubscribedEvents()
     {
@@ -39,7 +39,7 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
     {
         /** @var ClassMetadata $classMetadata */
         $classMetadata = $eventArgs->getClassMetadata();
-        $reflection    = $classMetadata->reflClass;
+        $reflection = $classMetadata->reflClass;
 
         if (!$reflection || $reflection->isAbstract()) {
             return;
@@ -76,6 +76,8 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
             'cascade'       => ['persist', 'merge', 'refresh', 'remove', 'detach'],
             'orphanRemoval' => true,
         ]);
+
+        $metadata->addEntityListener('preFlush', self::class, 'onTranslatablePreFlush');
     }
 
     /**
@@ -92,9 +94,9 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
         }
 
         $metadata->mapManyToOne([
-            'fieldName'    => 'translatable' ,
+            'fieldName'    => 'translatable',
             'targetEntity' => $this->configs[$metadata->name],
-            'inversedBy'   => 'translations' ,
+            'inversedBy'   => 'translations',
             'joinColumns'  => [[
                 'name'                 => 'translatable_id',
                 'referencedColumnName' => 'id',
@@ -114,13 +116,13 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
         // Map unique index.
         $columns = [
             $metadata->getSingleAssociationJoinColumnName('translatable'),
-            'locale'
+            'locale',
         ];
 
         if (!$this->hasUniqueConstraint($metadata, $columns)) {
             $constraints = isset($metadata->table['uniqueConstraints']) ? $metadata->table['uniqueConstraints'] : [];
 
-            $constraints[$metadata->getTableName().'_uniq_trans'] = [
+            $constraints[$metadata->getTableName() . '_uniq_trans'] = [
                 'columns' => $columns,
             ];
 
@@ -129,7 +131,8 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
             ]);
         }
 
-        $metadata->addEntityListener('preFlush', TranslationListener::class, 'preFlush');
+        // TODO Replace this : the goal is to trigger a cache invalidation on the translatable.
+        //$metadata->addEntityListener('preFlush', TranslationListener::class, 'preFlush');
     }
 
     /**
@@ -156,7 +159,9 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
     }
 
     /**
-     * Load translations.
+     * Translatable post load event handler.
+     *
+     * Initializes the translations and sets the current and fallback locales.
      *
      * @param LifecycleEventArgs $args
      */
@@ -171,5 +176,32 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
         $entity->initializeTranslations();
         $entity->setCurrentLocale($this->localeProvider->getCurrentLocale());
         $entity->setFallbackLocale($this->localeProvider->getFallbackLocale());
+    }
+
+    /**
+     * Translatable pre flush event handler.
+     *
+     * Removes translations when all 'content' fields are set to null.
+     *
+     * @param TranslatableInterface $translatable
+     * @param PreFlushEventArgs     $event
+     */
+    public function onTranslatablePreFlush(TranslatableInterface $translatable, PreFlushEventArgs $event)
+    {
+        if (null === $config = $this->registry->findConfiguration($translatable, false)) {
+            return;
+        }
+
+        $accessor = $this->getPropertyAccessor();
+
+        foreach ($translatable->getTranslations() as $translation) {
+            foreach ($config->getTranslationFields() as $field) {
+                if (null !== $accessor->getValue($translatable, $field)) {
+                    continue 2;
+                }
+            }
+
+            $translatable->removeTranslation($translation);
+        }
     }
 }
