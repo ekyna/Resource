@@ -196,7 +196,7 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
 
         foreach ($translatable->getTranslations() as $translation) {
             foreach ($config->getTranslationFields() as $field) {
-                if (null !== $accessor->getValue($translatable, $field)) {
+                if (null !== $accessor->getValue($translation, $field)) {
                     continue 2;
                 }
             }
