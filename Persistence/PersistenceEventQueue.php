@@ -16,7 +16,6 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
     const INSERT = 'insert';
     const UPDATE = 'update';
     const DELETE = 'delete';
-    const CUSTOM = 'custom';
 
 
     /**

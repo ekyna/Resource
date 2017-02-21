@@ -89,7 +89,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getResourceClass()
     {
-        return $this->getClass('resource');
+        return $this->getClass('entity');
     }
 
     /**

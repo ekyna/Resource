@@ -61,8 +61,8 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
      */
     private function mapTranslatable(ClassMetadata $metadata)
     {
-        // In the case A -> B -> TranslatableInterface, B might not have mapping defined as it
-        // is probably defined in A, so in that case, we just return.
+        // In the case A -> B -> TranslatableInterface, B might not have mapping defined
+        // as it is probably defined in A, so in that case, we just return.
         if (!isset($this->configs[$metadata->name])) {
             return;
         }

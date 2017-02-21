@@ -3,7 +3,14 @@
 namespace Ekyna\Component\Resource\Configuration;
 
 use Doctrine\Common\Inflector\Inflector;
+use Ekyna\Component\Resource\Doctrine\ORM\ResourceRepository;
+use Ekyna\Component\Resource\Doctrine\ORM\ResourceRepositoryInterface;
+use Ekyna\Component\Resource\Doctrine\ORM\TranslatableResourceRepository;
+use Ekyna\Component\Resource\Doctrine\ORM\TranslatableResourceRepositoryInterface;
 use Ekyna\Component\Resource\Event\ResourceEvent;
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Model\TranslatableInterface;
+use Ekyna\Component\Resource\Model\TranslationInterface;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -78,72 +85,161 @@ class ConfigurationFactory
      */
     private function getOptionsResolver()
     {
-        // TODO use a common option resolver with ConfigurationBuilder
+        // TODO use the ConfigurationBuilder option resolver
         if (!$this->optionsResolver) {
             $resolver = new OptionsResolver();
 
-            $resolver->setRequired(['namespace', 'id', 'classes']);
+            $resolver
+                ->setRequired(['namespace', 'id', 'classes'])
+                ->setDefaults([
+                    'name' => function (Options $options) {
+                        return Inflector::camelize($options['id']);
+                    },
+                    'parent_id'   => null,
+                    'templates'   => null,
+                    'translation' => null,
+                ])
+                ->setAllowedTypes('namespace', 'string')
+                ->setAllowedTypes('id', 'string')
+                ->setAllowedTypes('name', 'string')
+                ->setAllowedTypes('parent_id', ['null', 'string'])
+                ->setAllowedTypes('classes', 'array')
+                ->setAllowedTypes('templates', ['null', 'string', 'array'])
+                ->setAllowedTypes('translation', ['null', 'array']);
 
-            $resolver->setDefault('name', function (Options $options) {
-                return Inflector::camelize($options['id']);
-            });
-            $resolver->setDefault('parent_id', null);
-            $resolver->setDefault('templates', null);
-            $resolver->setDefault('translation', null);
 
-            $resolver->setAllowedTypes('namespace', 'string');
-            $resolver->setAllowedTypes('id', 'string');
-            $resolver->setAllowedTypes('name', 'string');
-            $resolver->setAllowedTypes('parent_id', ['null', 'string']);
-            $resolver->setAllowedTypes('classes', 'array');
-            $resolver->setAllowedTypes('templates', ['null', 'string', 'array']);
-            $resolver->setAllowedTypes('translation', ['null', 'array']);
+            // Classes option
+            $classesResolver = new OptionsResolver();
+            $classesResolver
+                ->setRequired(['entity'])
+                ->setDefaults([
+                    'form_type'  => null, // @TODO/WARNING no longer required, prior to resource behavior refactoring
+                    'repository' => null,
+                    'event'      => null,
+                ])
+                ->setAllowedTypes('entity', 'string')
+                ->setAllowedTypes('repository', ['null', 'string'])
+                ->setAllowedTypes('event', ['null', 'string'])
+                ->setAllowedTypes('form_type', ['null', 'string']); // @TODO/WARNING no longer required, prior to resource behavior refactoring;
+                /*->setNormalizer('event', function (Options $options, $value) {
+                    if (null === $value) {
+                        return $this->defaultEventClass;
+                    }
 
-            $resolver->setAllowedValues('classes', function ($value) {
-                if (!array_key_exists('resource', $value)) {
-                    throw new InvalidOptionsException("Key 'resource' is missing in resource configuration classes.");
-                }
-                /*if (!empty(array_diff(array_keys($value), ['resource', 'form_type', 'event']))) {
-                    return false;
-                }*/
-                foreach ($value as $class) {
-                    if ($class && !class_exists($class)) {
+                    return $value;
+                })*/
+                /*->setAllowedValues('classes', function ($value) {
+                    foreach ($value as $class) {
+                        if ($class && !class_exists($class)) {
+                            throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
+                        }
+                    }
+
+                    return true;
+                })*/
+
+            $resolver
+                ->setNormalizer('classes', function (Options $options, $value) use ($classesResolver) {
+                    foreach ($value as $class) {
+                        if ($class && !class_exists($class)) {
+                            throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
+                        }
+                    }
+
+                    $entity = $value['entity'];
+                    if (null !== $options['translation'] && !is_subclass_of($entity, TranslatableInterface::class)) {
+                        throw new InvalidOptionsException(sprintf(
+                            "Class '%s' must implements '%s'.",
+                            $entity,
+                            TranslatableInterface::class));
+                    }
+
+                    $repository = array_key_exists('repository', $value) ? $value['repository'] : null;
+                    if (null === $repository) {
+                        $value['repository'] = null !== $options['translation']
+                            ? TranslatableResourceRepository::class
+                            : ResourceRepository::class;
+                    } elseif (null !== $options['translation']) {
+                        if (!is_subclass_of($repository, TranslatableResourceRepositoryInterface::class)) {
+                            throw new InvalidOptionsException(sprintf(
+                                "Class '%s' must implements '%s'.",
+                                $repository,
+                                TranslatableResourceRepositoryInterface::class
+                            ));
+                        }
+                    } else {
+                        if (!is_subclass_of($repository, ResourceRepositoryInterface::class)) {
+                            throw new InvalidOptionsException(sprintf(
+                                "Class '%s' must implements '%s'.",
+                                $repository,
+                                ResourceRepositoryInterface::class
+                            ));
+                        }
+                    }
+
+                    $event = array_key_exists('event', $value) ? $value['event'] : null;
+                    if (null === $event) {
+                        $value['event'] = $this->defaultEventClass;
+                    } elseif (!is_subclass_of($event, ResourceEventInterface::class)) {
+                        throw new InvalidOptionsException(sprintf(
+                            "Class '%s' must implements '%s'.",
+                            $event,
+                            ResourceEventInterface::class
+                        ));
+                    }
+
+                    return $classesResolver->resolve($value);
+                });
+
+
+            // Translation option
+            $translationResolver = new OptionsResolver();
+            $translationResolver
+                ->setRequired(['entity', 'fields'])
+                ->setDefault('repository', null)
+                ->setAllowedTypes('entity', 'string')
+                ->setAllowedTypes('fields', 'array')
+                ->setAllowedTypes('repository', ['null', 'string'])
+                ->setAllowedValues('entity', function ($class) {
+                    if (!class_exists($class)) {
                         throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
                     }
-                }
+                    if (!is_subclass_of($class, TranslationInterface::class)) {
+                        throw new InvalidOptionsException(sprintf("Class '%s' must implements '%s'.", $class, TranslationInterface::class));
+                    }
 
-                return true;
-            });
+                    return true;
+                })
+                ->setAllowedValues('fields', function ($fields) {
+                    if (empty($fields)) {
+                        throw new InvalidOptionsException("Translatable fields cannot be empty.");
+                    }
 
+                    return true;
+                })
+                ->setAllowedValues('repository', function ($class) {
+                    if (null !== $class && !class_exists($class)) {
+                        throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
+                    }
+
+                    return true;
+                });
             /** @noinspection PhpUnusedParameterInspection */
-            $resolver->setNormalizer('templates', function (Options $options, $value) {
-                return $this->buildTemplateList($value);
-            });
-
-            $classesResolver = new OptionsResolver();
-
-            $classesResolver->setRequired(['resource']);
-
-            $classesResolver->setDefault('form_type', null); // @TODO/WARNING no longer required, prior to resource behavior refactoring
-            $classesResolver->setDefault('event', null);
-
-            $classesResolver->setAllowedTypes('resource', 'string');
-            $classesResolver->setAllowedTypes('form_type', ['null', 'string']); // @TODO/WARNING no longer required, prior to resource behavior refactoring
-            $classesResolver->setAllowedTypes('event', ['null', 'string']);
-
-            /** @noinspection PhpUnusedParameterInspection */
-            $classesResolver->setNormalizer('event', function (Options $options, $value) {
-                if (null === $value) {
-                    return $this->defaultEventClass;
+            $resolver->setNormalizer('translation', function (Options $options, $value) use ($translationResolver) {
+                if (is_array($value)) {
+                    return $translationResolver->resolve($value);
                 }
 
                 return $value;
             });
 
+
+            // Templates option
             /** @noinspection PhpUnusedParameterInspection */
-            $resolver->setNormalizer('classes', function (Options $options, $value) use ($classesResolver) {
-                return $classesResolver->resolve($value);
+            $resolver->setNormalizer('templates', function (Options $options, $value) {
+                return $this->buildTemplateList($value);
             });
+
 
             $this->optionsResolver = $resolver;
         }

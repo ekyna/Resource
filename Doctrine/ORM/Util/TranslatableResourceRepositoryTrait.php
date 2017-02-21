@@ -4,7 +4,7 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Util;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Ekyna\Bundle\CoreBundle\Locale\LocaleProviderInterface;
+use Ekyna\Component\Resource\Locale\LocaleProviderInterface;
 use Ekyna\Component\Resource\Model\TranslatableInterface;
 
 /**
@@ -71,6 +71,10 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Returns a new resource instance.
+     *
+     * @throws \InvalidArgumentException
+     *
      * @return object
      */
     public function createNew()
@@ -88,6 +92,8 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Sets the locale provider.
+     *
      * @param LocaleProviderInterface $provider
      *
      * @return $this
@@ -100,6 +106,8 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Sets the translatable fields.
+     *
      * @param array $translatableFields
      *
      * @return $this
@@ -137,6 +145,8 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Returns the aliased property name (for query builder usage).
+     *
      * @param string $name
      *
      * @return string
@@ -151,6 +161,8 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
+     * Returns the paginated collection result.
+     *
      * @param Query $query
      *
      * @return array|\Doctrine\ORM\Tools\Pagination\Paginator

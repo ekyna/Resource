@@ -2,7 +2,7 @@
 
 namespace Ekyna\Component\Resource\Doctrine;
 
-use Ekyna\Bundle\CoreBundle\Locale\LocaleProviderInterface;
+use Ekyna\Component\Resource\Locale\LocaleProviderInterface;
 use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
 use Symfony\Component\PropertyAccess as PA;
 
@@ -24,7 +24,10 @@ abstract class AbstractTranslatableListener
     protected $localeProvider;
 
     /**
-     * Mappings.
+     * Translation mapping = [
+     *     Translatable class => Translation class,
+     *     Translation class  => Translatable class,
+     * ]
      *
      * @var array
      */

@@ -28,9 +28,30 @@ class ConfigurationRegistry
      *
      * @param array|ConfigurationInterface[]
      */
-    public function __construct(array $configurations)
+    public function __construct(array $configurations = [])
     {
         $this->configurations = $configurations;
+    }
+
+    /**
+     * Adds the resource configuration.
+     *
+     * @param ConfigurationInterface $configuration
+     *
+     * @throws \RuntimeException
+     */
+    public function addConfiguration(ConfigurationInterface $configuration)
+    {
+        // Clear the parent map.
+        $this->parentMap = null;
+
+        $id = $configuration->getResourceId();
+
+        if (array_key_exists($id, $this->configurations)) {
+            throw new \RuntimeException(sprintf("Configuration for resource '%s' is already registered.", $id));
+        }
+
+        $this->configurations[$id] = $configuration;
     }
 
     /**

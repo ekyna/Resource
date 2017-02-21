@@ -91,7 +91,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         }
 
         if ($schedule) {
-            if ($resource->getId()) {
+            if (null !== $resource->getId()) {
                 $this->eventQueue->scheduleUpdate($resource);
             } else {
                 $this->eventQueue->scheduleInsert($resource);
