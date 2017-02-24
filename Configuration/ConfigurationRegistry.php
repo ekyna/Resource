@@ -258,7 +258,9 @@ class ConfigurationRegistry
         $map = [];
 
         foreach ($this->configurations as $configuration) {
-            $map[$configuration->getResourceId()] = $configuration->getParentId();
+            if (null !== $parentId = $configuration->getParentId()) {
+                $map[$configuration->getResourceId()] = $parentId;
+            }
         }
 
         ksort($map);

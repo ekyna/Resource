@@ -187,12 +187,13 @@ class EventQueue implements EventQueueInterface
             $aId = $this->getEventPrefix($a);
             $bId = $this->getEventPrefix($b);
 
+            // [$resourceId => $parentId]
             $parentMap = $this->registry->getParentMap();
 
-            if (in_array($bId, $parentMap[$aId])) {
+            if (isset($parentMap[$aId]) && $parentMap[$aId] == $bId) {
                 // B is a parent of A
                 return -1;
-            } elseif (in_array($aId, $parentMap[$bId])) {
+            } elseif (isset($parentMap[$bId]) && $parentMap[$bId] == $aId) {
                 // A is a parent of B
                 return 1;
             }
