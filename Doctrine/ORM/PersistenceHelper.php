@@ -51,7 +51,7 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     public function getChangeSet(ResourceInterface $resource)
     {
-        return $this->manager
+        return $this
             ->getUnitOfWork()
             ->getEntityChangeSet($resource);
     }
@@ -75,9 +75,36 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritdoc
      */
+    public function isScheduledForInsert(ResourceInterface $resource)
+    {
+        // TODO Check event queue ?
+        return $this->getUnitOfWork()->isScheduledForInsert($resource);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isScheduledForUpdate(ResourceInterface $resource)
+    {
+        // TODO Check event queue ?
+        return $this->getUnitOfWork()->isScheduledForUpdate($resource);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isScheduledForRemove(ResourceInterface $resource)
+    {
+        // TODO Check event queue ?
+        return $this->getUnitOfWork()->isScheduledForDelete($resource);
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function persistAndRecompute(ResourceInterface $resource, $schedule = false)
     {
-        $uow = $this->manager->getUnitOfWork();
+        $uow = $this->getUnitOfWork();
 
         if (!($uow->isScheduledForInsert($resource) || $uow->isScheduledForUpdate($resource))) {
             $this->manager->persist($resource);
@@ -119,5 +146,15 @@ class PersistenceHelper implements PersistenceHelperInterface
     public function scheduleEvent($eventName, $resourceOrEvent)
     {
         $this->eventQueue->scheduleEvent($eventName, $resourceOrEvent);
+    }
+
+    /**
+     * Returns the unit of work.
+     *
+     * @return \Doctrine\ORM\UnitOfWork
+     */
+    private function getUnitOfWork()
+    {
+        return $this->manager->getUnitOfWork();
     }
 }

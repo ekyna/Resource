@@ -26,7 +26,7 @@ interface PersistenceHelperInterface
      *
      * @return array
      */
-    public function getChangeSet(ResourceInterface $resource);
+    public function getChangeSet(ResourceInterface $resource); // TODO property arg
 
     /**
      * Returns whether at least one one of the properties has changed.
@@ -38,6 +38,33 @@ interface PersistenceHelperInterface
      * @return bool
      */
     public function isChanged(ResourceInterface $resource, $properties);
+
+    /**
+     * Returns whether or not the resource is scheduled for insert.
+     *
+     * @param ResourceInterface $resource
+     *
+     * @return bool
+     */
+    public function isScheduledForInsert(ResourceInterface $resource);
+
+    /**
+     * Returns whether or not the resource is scheduled for update.
+     *
+     * @param ResourceInterface $resource
+     *
+     * @return bool
+     */
+    public function isScheduledForUpdate(ResourceInterface $resource);
+
+    /**
+     * Returns whether or not the resource is scheduled for remove.
+     *
+     * @param ResourceInterface $resource
+     *
+     * @return bool
+     */
+    public function isScheduledForRemove(ResourceInterface $resource);
 
     /**
      * Persists and recompute the given resource.
