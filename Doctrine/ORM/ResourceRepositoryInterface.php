@@ -54,7 +54,7 @@ interface ResourceRepositoryInterface extends ObjectRepository, Selectable
      *
      * @return array|\Doctrine\ORM\Tools\Pagination\Paginator
      */
-    public function findBy(array $criteria, array $sorting = [], $limit = null, $offset = null);
+    public function findBy(array $criteria, array $sorting = null, $limit = null, $offset = null);
 
     /**
      * Finds a random resource by criteria.

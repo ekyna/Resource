@@ -94,12 +94,12 @@ trait ResourceRepositoryTrait
      *
      * @return array|\Doctrine\ORM\Tools\Pagination\Paginator
      */
-    public function findBy(array $criteria = [], array $sorting = [], $limit = null, $offset = null)
+    public function findBy(array $criteria, array $sorting = null, $limit = null, $offset = null)
     {
         $queryBuilder = $this->getCollectionQueryBuilder();
 
         $this->applyCriteria($queryBuilder, $criteria);
-        $this->applySorting($queryBuilder, $sorting);
+        $this->applySorting($queryBuilder, (array) $sorting);
 
         if (null !== $limit) {
             $queryBuilder->setMaxResults($limit);
@@ -286,7 +286,7 @@ trait ResourceRepositoryTrait
      * @param QueryBuilder $queryBuilder
      * @param array        $sorting
      */
-    protected function applySorting(QueryBuilder $queryBuilder, array $sorting = [])
+    protected function applySorting(QueryBuilder $queryBuilder, array $sorting = null)
     {
         foreach ($sorting as $property => $order) {
             if (!empty($order)) {
