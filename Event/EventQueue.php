@@ -182,18 +182,52 @@ class EventQueue implements EventQueueInterface
      */
     protected function getQueueSortingCallback()
     {
-        return function ($a, $b) {
-            // By resource hierarchy
+        // [$resourceId => $parentId]
+        $parentMap = $this->registry->getParentMap();
+
+        // [$resourceId => $priority]
+        $priorityMap = $this->registry->getEventPriorityMap();
+
+        /**
+         * Returns whether or not $a is a child of $b.
+         *
+         * @param string $a
+         * @param string $b
+         *
+         * @return bool
+         *
+         * @todo Move in resource registry
+         */
+        $isChildOf = function($a, $b) use ($parentMap) {
+            while (isset($parentMap[$a])) {
+                $parentId = $parentMap[$a];
+                if ($parentId === $b) {
+                    return true;
+                }
+                $a = $parentId;
+            }
+            return false;
+        };
+
+        return function ($a, $b) use ($isChildOf, $priorityMap) {
             $aId = $this->getEventPrefix($a);
             $bId = $this->getEventPrefix($b);
 
-            // [$resourceId => $parentId]
-            $parentMap = $this->registry->getParentMap();
+            // By prefix (resource id) priority
+            $aPriority = isset($priorityMap[$aId]) ? $priorityMap[$aId] : 0;
+            $bPriority = isset($priorityMap[$bId]) ? $priorityMap[$bId] : 0;
 
-            if (isset($parentMap[$aId]) && $parentMap[$aId] == $bId) {
+            if ($aPriority > $bPriority) {
+                return -1;
+            } elseif ($bPriority > $aPriority) {
+                return 1;
+            }
+
+            // By resource hierarchy (children first)
+            if ($isChildOf($aId, $bId)) {
                 // B is a parent of A
                 return -1;
-            } elseif (isset($parentMap[$bId]) && $parentMap[$bId] == $aId) {
+            } elseif ($isChildOf($bId, $aId)) {
                 // A is a parent of B
                 return 1;
             }
@@ -202,9 +236,9 @@ class EventQueue implements EventQueueInterface
             $aPriority = $this->getEventPriority($a);
             $bPriority = $this->getEventPriority($b);
 
-            if ($aPriority < $bPriority) {
+            if ($aPriority > $bPriority) {
                 return -1;
-            } elseif ($bPriority < $aPriority) {
+            } elseif ($bPriority > $aPriority) {
                 return 1;
             }
 
@@ -218,6 +252,7 @@ class EventQueue implements EventQueueInterface
      * @param string $eventName
      *
      * @return int
+     * @deprecated
      */
     protected function getEventPriority($eventName)
     {

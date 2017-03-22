@@ -113,7 +113,15 @@ class Configuration implements ConfigurationInterface
      */
     public function getEventClass()
     {
-        return $this->getClass('event');
+        return $this->config['event']['class'];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getEventPriority()
+    {
+        return $this->config['event']['priority'];
     }
 
     /**

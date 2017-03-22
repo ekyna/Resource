@@ -8,6 +8,7 @@ use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Event\ResourceEventInterface;
 use Ekyna\Component\Resource\Event\ResourceMessage;
 use Ekyna\Component\Resource\Configuration\ConfigurationInterface;
+use Ekyna\Component\Resource\Exception\ResourceExceptionInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Operator\ResourceOperatorInterface;
 use Gedmo\SoftDeleteable\SoftDeleteableListener;
@@ -119,12 +120,22 @@ class ResourceOperator implements ResourceOperatorInterface
             ? $resourceOrEvent
             : $this->createResourceEvent($resourceOrEvent);
 
-        $this->dispatcher->dispatch($this->config->getEventName('pre_create'), $event);
+        try {
+            $this->dispatcher->dispatch($this->config->getEventName('pre_create'), $event);
 
-        if (!$event->isPropagationStopped()) {
-            $this->persistResource($event);
+            if (!$event->isPropagationStopped()) {
+                $this->persistResource($event);
 
-            $this->dispatcher->dispatch($this->config->getEventName('post_create'), $event);
+                if (!$event->isPropagationStopped()) {
+                    $this->dispatcher->dispatch($this->config->getEventName('post_create'), $event);
+                }
+            }
+        } catch (ResourceExceptionInterface $e) {
+            if ($this->debug) {
+                throw $e;
+            }
+
+            $event->addMessage(new ResourceMessage($e->getMessage(), ResourceMessage::TYPE_ERROR));
         }
 
         return $event;
@@ -141,12 +152,22 @@ class ResourceOperator implements ResourceOperatorInterface
 
         $event->setHard($event->getHard() || $hard);
 
-        $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
+        try {
+            $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
 
-        if (!$event->isPropagationStopped()) {
-            $this->persistResource($event);
+            if (!$event->isPropagationStopped()) {
+                $this->persistResource($event);
 
-            $this->dispatcher->dispatch($this->config->getEventName('post_update'), $event);
+                if (!$event->isPropagationStopped()) {
+                    $this->dispatcher->dispatch($this->config->getEventName('post_update'), $event);
+                }
+            }
+        } catch (ResourceExceptionInterface $e) {
+            if ($this->debug) {
+                throw $e;
+            }
+
+            $event->addMessage(new ResourceMessage($e->getMessage(), ResourceMessage::TYPE_ERROR));
         }
 
         return $event;
@@ -163,32 +184,42 @@ class ResourceOperator implements ResourceOperatorInterface
 
         $event->setHard($event->getHard() || $hard);
 
-        $this->dispatcher->dispatch($this->config->getEventName('pre_delete'), $event);
+        try {
+            $this->dispatcher->dispatch($this->config->getEventName('pre_delete'), $event);
 
-        if (!$event->isPropagationStopped()) {
-            $eventManager = $this->manager->getEventManager();
+            if (!$event->isPropagationStopped()) {
+                $eventManager = $this->manager->getEventManager();
 
-            $disabledListeners = [];
-            if ($event->getHard()) {
-                foreach ($eventManager->getListeners() as $eventName => $listeners) {
-                    foreach ($listeners as $listener) {
-                        if ($listener instanceof SoftDeleteableListener) {
-                            $eventManager->removeEventListener($eventName, $listener);
-                            $disabledListeners[$eventName] = $listener;
+                $disabledListeners = [];
+                if ($event->getHard()) {
+                    foreach ($eventManager->getListeners() as $eventName => $listeners) {
+                        foreach ($listeners as $listener) {
+                            if ($listener instanceof SoftDeleteableListener) {
+                                $eventManager->removeEventListener($eventName, $listener);
+                                $disabledListeners[$eventName] = $listener;
+                            }
                         }
                     }
                 }
-            }
 
-            $this->removeResource($event);
+                $this->removeResource($event);
 
-            if (!empty($disabledListeners)) {
-                foreach ($disabledListeners as $eventName => $listener) {
-                    $eventManager->addEventListener($eventName, $listener);
+                if (!empty($disabledListeners)) {
+                    foreach ($disabledListeners as $eventName => $listener) {
+                        $eventManager->addEventListener($eventName, $listener);
+                    }
+                }
+
+                if (!$event->isPropagationStopped()) {
+                    $this->dispatcher->dispatch($this->config->getEventName('post_delete'), $event);
                 }
             }
+        } catch (ResourceExceptionInterface $e) {
+            if ($this->debug) {
+                throw $e;
+            }
 
-            $this->dispatcher->dispatch($this->config->getEventName('post_delete'), $event);
+            $event->addMessage(new ResourceMessage($e->getMessage(), ResourceMessage::TYPE_ERROR));
         }
 
         return $event;
@@ -255,6 +286,7 @@ class ResourceOperator implements ResourceOperatorInterface
             if ($this->debug) {
                 throw $e;
             }
+
             if (null !== $previous = $e->getPrevious()) {
                 if ($previous instanceof \PDOException && $previous->getCode() == 23000) {
                     $event->addMessage(new ResourceMessage(

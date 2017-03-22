@@ -85,6 +85,13 @@ interface ConfigurationInterface
     public function getEventClass();
 
     /**
+     * Returns the resource event priority.
+     *
+     * @return int
+     */
+    public function getEventPriority();
+
+    /**
      * Returns the resource name.
      *
      * @param boolean $plural

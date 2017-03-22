@@ -74,7 +74,6 @@ class ConfigurationFactory
      */
     public function createConfiguration(array $config)
     {
-        // TODO configurable class '%ekyna_resource.configuration.class%'
         return new Configuration($this->getOptionsResolver()->resolve($config));
     }
 
@@ -85,17 +84,18 @@ class ConfigurationFactory
      */
     private function getOptionsResolver()
     {
-        // TODO use the ConfigurationBuilder option resolver
+        // TODO Use/Merge ConfigurationBuilder options resolver.
         if (!$this->optionsResolver) {
             $resolver = new OptionsResolver();
 
             $resolver
                 ->setRequired(['namespace', 'id', 'classes'])
                 ->setDefaults([
-                    'name' => function (Options $options) {
+                    'name'        => function (Options $options) {
                         return Inflector::camelize($options['id']);
                     },
                     'parent_id'   => null,
+                    'event'       => null,
                     'templates'   => null,
                     'translation' => null,
                 ])
@@ -104,6 +104,7 @@ class ConfigurationFactory
                 ->setAllowedTypes('name', 'string')
                 ->setAllowedTypes('parent_id', ['null', 'string'])
                 ->setAllowedTypes('classes', 'array')
+                ->setAllowedTypes('event', ['null', 'string', 'array'])
                 ->setAllowedTypes('templates', ['null', 'string', 'array'])
                 ->setAllowedTypes('translation', ['null', 'array']);
 
@@ -113,30 +114,12 @@ class ConfigurationFactory
             $classesResolver
                 ->setRequired(['entity'])
                 ->setDefaults([
-                    'form_type'  => null, // @TODO/WARNING no longer required, prior to resource behavior refactoring
+                    'form_type'  => null, // @TODO/WARNING no longer required (behavior refactoring)
                     'repository' => null,
-                    'event'      => null,
                 ])
                 ->setAllowedTypes('entity', 'string')
                 ->setAllowedTypes('repository', ['null', 'string'])
-                ->setAllowedTypes('event', ['null', 'string'])
-                ->setAllowedTypes('form_type', ['null', 'string']); // @TODO/WARNING no longer required, prior to resource behavior refactoring;
-                /*->setNormalizer('event', function (Options $options, $value) {
-                    if (null === $value) {
-                        return $this->defaultEventClass;
-                    }
-
-                    return $value;
-                })*/
-                /*->setAllowedValues('classes', function ($value) {
-                    foreach ($value as $class) {
-                        if ($class && !class_exists($class)) {
-                            throw new InvalidOptionsException(sprintf("Class '%s' does not exists.", $class));
-                        }
-                    }
-
-                    return true;
-                })*/
+                ->setAllowedTypes('form_type', ['null', 'string']); // @TODO/WARNING no longer required (behavior refactoring)
 
             $resolver
                 ->setNormalizer('classes', function (Options $options, $value) use ($classesResolver) {
@@ -177,17 +160,6 @@ class ConfigurationFactory
                         }
                     }
 
-                    $event = array_key_exists('event', $value) ? $value['event'] : null;
-                    if (null === $event) {
-                        $value['event'] = $this->defaultEventClass;
-                    } elseif (!is_subclass_of($event, ResourceEventInterface::class)) {
-                        throw new InvalidOptionsException(sprintf(
-                            "Class '%s' must implements '%s'.",
-                            $event,
-                            ResourceEventInterface::class
-                        ));
-                    }
-
                     return $classesResolver->resolve($value);
                 });
 
@@ -224,10 +196,42 @@ class ConfigurationFactory
 
                     return true;
                 });
+
             /** @noinspection PhpUnusedParameterInspection */
             $resolver->setNormalizer('translation', function (Options $options, $value) use ($translationResolver) {
                 if (is_array($value)) {
                     return $translationResolver->resolve($value);
+                }
+
+                return $value;
+            });
+
+
+            // Event option
+            $eventResolver = new OptionsResolver();
+            $eventResolver
+                ->setRequired(['class'])
+                ->setDefaults([
+                    'class'    => $this->defaultEventClass,
+                    'priority' => 0,
+                ])
+                ->setAllowedTypes('class', 'string')
+                ->setAllowedTypes('priority', 'int');
+
+            /** @noinspection PhpUnusedParameterInspection */
+            $resolver->setNormalizer('event', function (Options $options, $value) use ($eventResolver) {
+                if (is_string($value)) {
+                    $value = ['class' => $value];
+                }
+
+                $value = $eventResolver->resolve((array)$value);
+
+                if (!is_subclass_of($value['class'], ResourceEventInterface::class)) {
+                    throw new InvalidOptionsException(sprintf(
+                        "Class '%s' must implements '%s'.",
+                        $value['class'],
+                        ResourceEventInterface::class
+                    ));
                 }
 
                 return $value;
@@ -267,7 +271,7 @@ class ConfigurationFactory
                 $templatesList[$file] = $templateNamespace . ':' . $file;
             }
         }
-        // TODO add resources controller traits templates ? (like new_child.html)
+        // TODO add resource actions templates ? (behavior refactoring)
         if (is_array($templatesConfig)) {
             $templatesList = array_merge($templatesList, $templatesConfig);
         }

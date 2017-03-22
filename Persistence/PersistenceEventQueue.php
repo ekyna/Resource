@@ -2,6 +2,8 @@
 
 namespace Ekyna\Component\Resource\Persistence;
 
+use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
+use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Event\EventQueue;
 use Ekyna\Component\Resource\Exception\PersistenceEventException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
@@ -17,6 +19,45 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
     const UPDATE = 'update';
     const DELETE = 'delete';
 
+
+    /**
+     * @var PersistenceTrackerInterface
+     */
+    protected $tracker;
+
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct(
+        ConfigurationRegistry $registry,
+        ResourceEventDispatcherInterface $dispatcher,
+        PersistenceTrackerInterface $tracker
+    ) {
+        $this->tracker = $tracker;
+
+        parent::__construct($registry, $dispatcher);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function flush()
+    {
+        parent::flush();
+
+        $this->tracker->clear();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function clear()
+    {
+        $this->tracker->clearChangeSets();
+
+        return parent::clear();
+    }
 
     /**
      * @inheritdoc
@@ -76,9 +117,9 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
     {
         $suffix = $this->getEventSuffix($eventName);
 
-        if ($suffix === static::INSERT) {
+        if ($suffix === static::UPDATE) {
             return 9999;
-        } elseif ($suffix === static::UPDATE) {
+        } elseif ($suffix === static::INSERT) {
             return 9998;
         } elseif ($suffix === static::DELETE) {
             return 9997;

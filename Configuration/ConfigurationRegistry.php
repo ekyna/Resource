@@ -22,6 +22,11 @@ class ConfigurationRegistry
      */
     protected $parentMap;
 
+    /**
+     * @var array
+     */
+    protected $eventPriorityMap;
+
 
     /**
      * Constructor.
@@ -249,6 +254,20 @@ class ConfigurationRegistry
     }
 
     /**
+     * Returns the event priority map.
+     *
+     * @return array
+     */
+    public function getEventPriorityMap()
+    {
+        if (null !== $this->eventPriorityMap) {
+            return $this->eventPriorityMap;
+        }
+
+        return $this->eventPriorityMap = $this->buildEventPriorityMap();
+    }
+
+    /**
      * Builds the parent map.
      *
      * @return array
@@ -260,6 +279,26 @@ class ConfigurationRegistry
         foreach ($this->configurations as $configuration) {
             if (null !== $parentId = $configuration->getParentId()) {
                 $map[$configuration->getResourceId()] = $parentId;
+            }
+        }
+
+        ksort($map);
+
+        return $map;
+    }
+
+    /**
+     * Builds the event priority map.
+     *
+     * @return array
+     */
+    private function buildEventPriorityMap()
+    {
+        $map = [];
+
+        foreach ($this->configurations as $configuration) {
+            if (0 != $priority = $configuration->getEventPriority()) {
+                $map[$configuration->getResourceId()] = $priority;
             }
         }
 

@@ -95,6 +95,8 @@ trait ResourceEventDispatcherTrait
             return sprintf('%s.%s', $configuration->getResourceId(), $suffix);
         }
 
+        // TODO throw exception ?
+
         return null;
     }
 }

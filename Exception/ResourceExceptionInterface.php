@@ -9,5 +9,10 @@ namespace Ekyna\Component\Resource\Exception;
  */
 interface ResourceExceptionInterface
 {
-
+    /**
+     * Returns the message.
+     *
+     * @return string
+     */
+    public function getMessage();
 }

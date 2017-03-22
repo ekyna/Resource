@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
+use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
 /**
  * Class PersistenceHelper
@@ -16,9 +17,16 @@ class PersistenceHelper implements PersistenceHelperInterface
 {
     /**
      * // TODO use doctrine registry to get resource own manager (if not default)
+     * // TODO Retrieve the manager from tracker ?
+     *
      * @var EntityManagerInterface
      */
     protected $manager;
+
+    /**
+     * @var PersistenceTrackerInterface
+     */
+    protected $tracker;
 
     /**
      * @var PersistenceEventQueueInterface
@@ -30,11 +38,16 @@ class PersistenceHelper implements PersistenceHelperInterface
      * Constructor.
      *
      * @param EntityManagerInterface         $manager
+     * @param PersistenceTrackerInterface    $tracker
      * @param PersistenceEventQueueInterface $eventQueue
      */
-    public function __construct(EntityManagerInterface $manager, PersistenceEventQueueInterface $eventQueue)
-    {
+    public function __construct(
+        EntityManagerInterface $manager,
+        PersistenceTrackerInterface $tracker,
+        PersistenceEventQueueInterface $eventQueue
+    ) {
         $this->manager = $manager;
+        $this->tracker = $tracker;
         $this->eventQueue = $eventQueue;
     }
 
@@ -49,11 +62,9 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritdoc
      */
-    public function getChangeSet(ResourceInterface $resource)
+    public function getChangeSet(ResourceInterface $resource, $property = null)
     {
-        return $this
-            ->getUnitOfWork()
-            ->getEntityChangeSet($resource);
+        return $this->tracker->getChangeSet($resource, $property);
     }
 
     /**
@@ -66,7 +77,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         if (is_string($properties)) {
             return array_key_exists($properties, $changeSet);
         } elseif (is_array($properties)) {
-            return 0 < count(array_intersect($properties, array_keys($changeSet)));
+            return !empty(array_intersect($properties, array_keys($changeSet)));
         }
 
         throw new \InvalidArgumentException('Expected string or array.');
@@ -110,6 +121,9 @@ class PersistenceHelper implements PersistenceHelperInterface
             $this->manager->persist($resource);
         }
 
+        // TODO Remove ? The tracker may build the proper change set without pre-computation.
+        $this->tracker->computeChangeSet($resource);
+
         $metadata = $this->manager->getClassMetadata(get_class($resource));
         if ($uow->getEntityChangeSet($resource)) {
             $uow->recomputeSingleEntityChangeSet($metadata, $resource);
@@ -134,6 +148,9 @@ class PersistenceHelper implements PersistenceHelperInterface
         if (null !== $resource->getId()) {
             $this->manager->remove($resource);
         }
+
+        // TODO Remove ? The tracker may build the proper change set without pre-computation.
+        $this->tracker->computeChangeSet($resource);
 
         if ($schedule) {
             $this->eventQueue->scheduleDelete($resource);

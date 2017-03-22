@@ -23,10 +23,11 @@ interface PersistenceHelperInterface
      * Returns the entity change set.
      *
      * @param ResourceInterface $resource
+     * @param string            $property
      *
      * @return array
      */
-    public function getChangeSet(ResourceInterface $resource); // TODO property arg
+    public function getChangeSet(ResourceInterface $resource, $property = null);
 
     /**
      * Returns whether at least one one of the properties has changed.

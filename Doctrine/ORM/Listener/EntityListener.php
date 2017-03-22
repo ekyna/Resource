@@ -56,6 +56,7 @@ class EntityListener implements EventSubscriber
             }
         }
 
+        // TODO move collections before update ?
         foreach ($uow->getScheduledCollectionDeletions() as $col) {
             foreach ($col as $c) {
                 foreach ($c as $entity) {
@@ -65,7 +66,6 @@ class EntityListener implements EventSubscriber
                 }
             }
         }
-
         foreach ($uow->getScheduledCollectionUpdates() as $col) {
             foreach ($col as $c) {
                 foreach ($c as $entity) {
