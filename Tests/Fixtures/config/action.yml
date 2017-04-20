@@ -1,0 +1,7 @@
+actions:
+    foo_action:
+        class: Acme\Resource\Action\FooAction
+        route: foo_route
+        permission: foo_perm
+        options:
+            foo: bar

@@ -5,7 +5,7 @@
     "authors": [
         {
             "name": "Etienne Dauvergne",
-            "homepage": "http://ekyna.com"
+            "homepage": "https://ekyna.com"
         }
     ],
     "keywords": [
@@ -15,19 +15,38 @@
     "homepage": "https://github.com/ekyna/Resource",
     "license": "MIT",
     "require": {
-        "php": ">=7.0",
-        "symfony/event-dispatcher": "~2.7|~3.0",
-        "symfony/options-resolver": "~2.7|~3.0",
-        "symfony/property-access": "~2.7|~3.0",
-        "ruflin/elastica": "^6.1.1",
-        "doctrine/orm": "~2.5"
+        "php": ">=7.4",
+        "ext-json": "*",
+        "ext-decimal": "*",
+        "symfony/event-dispatcher": "^5.0",
+        "symfony/options-resolver": "^5.0",
+        "symfony/property-access": "^5.0",
+        "symfony/routing": "^5.0",
+        "symfony/dependency-injection": "^5.0",
+        "symfony/serializer": "^5.0",
+        "symfony/http-foundation": "^5.0",
+        "symfony/translation-contracts": "^5.0",
+        "symfony/uid": "^5.0",
+        "doctrine/dbal": "^2.13|^3.0",
+        "doctrine/common": "^2.7|^3.0",
+        "doctrine/inflector": "^2.0",
+        "paragonie/halite": "^4.7"
     },
     "require-dev": {
-        "phpunit/phpunit": "~5.2"
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "phpunit/phpunit": "^8.0",
+        "doctrine/orm": "^2.10",
+        "doctrine/data-fixtures": "^1.1",
+        "ruflin/elastica": "^7.0",
+        "ekyna/table": "0.8.x-dev",
+        "symfony/form": "^5.0",
+        "symfony/yaml": "^5.0"
     },
     "autoload": {
         "psr-4": {
-            "Ekyna\\Component\\Resource\\": ""
+            "Ekyna\\Component\\Resource\\": "",
+            "Acme\\Resource\\": "Tests/app/Acme/Resource/"
         }
     }
 }

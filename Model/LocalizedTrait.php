@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,10 +11,7 @@ namespace Ekyna\Component\Resource\Model;
  */
 trait LocalizedTrait
 {
-    /**
-     * @var string
-     */
-    protected $locale;
+    protected ?string $locale = null;
 
 
     /**
@@ -28,11 +27,11 @@ trait LocalizedTrait
     /**
      * Sets the locale.
      *
-     * @param string $locale
+     * @param string|null $locale
      *
      * @return $this|LocalizedInterface
      */
-    public function setLocale(string $locale = null): LocalizedInterface
+    public function setLocale(?string $locale): LocalizedInterface
     {
         $this->locale = $locale;
 

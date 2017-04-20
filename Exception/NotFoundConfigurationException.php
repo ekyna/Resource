@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Exception;
 
 /**
@@ -7,15 +9,17 @@ namespace Ekyna\Component\Resource\Exception;
  * @package Ekyna\Component\Resource\Exception
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class NotFoundConfigurationException extends \InvalidArgumentException implements ResourceExceptionInterface
+class NotFoundConfigurationException extends InvalidArgumentException
 {
     /**
-     * @param string $resource
+     * Constructor.
+     *
+     * @param object|string $resource
      */
     public function __construct($resource)
     {
         parent::__construct(sprintf(
-            'Unable to find configuration for resource "%s".',
+            'Unable to find configuration for "%s".',
             is_object($resource) ? get_class($resource) : $resource
         ));
     }

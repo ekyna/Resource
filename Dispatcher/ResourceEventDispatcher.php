@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Dispatcher;
 
 use Ekyna\Component\Resource\Dispatcher as RD;

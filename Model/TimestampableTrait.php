@@ -1,56 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
+
+use DateTime;
+use DateTimeInterface;
 
 /**
  * Trait TimestampableTrait
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 trait TimestampableTrait
 {
-    /**
-     * @var \DateTime
-     */
-    protected $createdAt;
+    protected DateTimeInterface  $createdAt;
+    protected ?DateTimeInterface $updatedAt = null;
 
-    /**
-     * @var \DateTime
-     */
-    protected $updatedAt;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setCreatedAt(\DateTime $createdAt)
+    protected function initializeTimestampable(): void
     {
-        $this->createdAt = $createdAt;
+        $this->createdAt = new DateTime();
+    }
+
+    /**
+     * @return $this|TimestampableInterface
+     */
+    public function setCreatedAt(DateTimeInterface $date): TimestampableInterface
+    {
+        $this->createdAt = $date;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getCreatedAt()
+    public function getCreatedAt(): DateTimeInterface
     {
         return $this->createdAt;
     }
 
     /**
-     * {@inheritdoc}
+     * @return $this|TimestampableInterface
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null)
+    public function setUpdatedAt(?DateTimeInterface $date): TimestampableInterface
     {
-        $this->updatedAt = $updatedAt;
+        $this->updatedAt = $date;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getUpdatedAt()
+    public function getUpdatedAt(): ?DateTimeInterface
     {
         return $this->updatedAt;
     }

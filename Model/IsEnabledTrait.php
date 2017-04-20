@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,10 +11,7 @@ namespace Ekyna\Component\Resource\Model;
  */
 trait IsEnabledTrait
 {
-    /**
-     * @var bool
-     */
-    protected $enabled = true;
+    protected bool $enabled = true;
 
 
     /**

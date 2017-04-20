@@ -1,114 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 
-use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Configuration;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
-use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\ORMException;
+use Ekyna\Component\Resource\Behavior\BehaviorExecutorInterface;
+use Ekyna\Component\Resource\Model\ResourceInterface;
+
+use function class_parents;
+use function in_array;
 
 /**
  * Class LoadMetadataListener
  * @package Ekyna\Component\Resource\Doctrine\ORM\Listener
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class LoadMetadataListener implements EventSubscriber
+class LoadMetadataListener
 {
-    /**
-     * @var array
-     */
-    protected $entities;
+    protected BehaviorExecutorInterface $behaviorExecutor;
+    /** @var array<int, string> */
+    protected array $classes;
 
-    /**
-     * @var array
-     */
-    protected $interfaces;
-
-
-    /**
-     * Constructor
-     *
-     * @param array $entities
-     * @param array $interfaces
-     */
-    public function __construct(array $entities, array $interfaces)
+    public function __construct(BehaviorExecutorInterface $behaviorExecutor, array $classes)
     {
-        /* Inheritance mapping = [
-         *     resource_id => [
-         *         'class' => Class ,
-         *         'repository' => Repository class ,
-         *     ]
-         * ] */
-        $this->entities   = $entities;
-
-        /* Target entities resolution = [
-         *     Interface => Class or class parameter
-         * ] */
-        $this->interfaces = $interfaces;
-    }
-
-    /**
-     * @return array
-     */
-    public function getSubscribedEvents()
-    {
-        return [Events::loadClassMetadata];
+        $this->behaviorExecutor = $behaviorExecutor;
+        $this->classes          = $classes;
     }
 
     /**
      * @param LoadClassMetadataEventArgs $eventArgs
+     *
+     * @throws ORMException
      */
-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs)
+    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadata $metadata */
         $metadata = $eventArgs->getClassMetadata();
-        $this->setCustomRepositoryClasses($metadata);
+
+        if (in_array($metadata->getName(), $this->classes, true)) {
+            $metadata->isMappedSuperclass = false;
+        }
+
         if (!$metadata->isMappedSuperclass) {
             $this->setAssociationMappings($metadata, $eventArgs->getEntityManager()->getConfiguration());
         } else {
             $this->unsetAssociationMappings($metadata);
         }
-    }
 
-    private function setCustomRepositoryClasses(ClassMetadataInfo $metadata)
-    {
-        foreach ($this->entities as $entity) {
-            if (array_key_exists('class', $entity) && $entity['class'] === $metadata->getName()) {
-                $metadata->isMappedSuperclass = false;
-                if (array_key_exists('repository', $entity)) {
-                    $metadata->setCustomRepositoryClass($entity['repository']);
-                }
-                return;
-            }
-        }
-        if (in_array($metadata->getName(), $this->interfaces)) {
-            $metadata->isMappedSuperclass = false;
+        if ($metadata->getReflectionClass()->implementsInterface(ResourceInterface::class)) {
+            $this->behaviorExecutor->metadata($metadata);
         }
     }
 
-    private function setAssociationMappings(ClassMetadataInfo $metadata, $configuration)
+    /**
+     * Moves associations mappings over entities class inheritance.
+     *
+     * @param ClassMetadataInfo $metadata
+     * @param Configuration     $configuration
+     *
+     * @throws ORMException
+     */
+    private function setAssociationMappings(ClassMetadataInfo $metadata, Configuration $configuration): void
     {
-        /** @var \Doctrine\ORM\Configuration $configuration */
         foreach (class_parents($metadata->getName()) as $parent) {
+            $driver = $configuration->getMetadataDriverImpl();
+
+            if (!in_array($parent, $driver->getAllClassNames())) {
+                continue;
+            }
+
             $parentMetadata = new ClassMetadata(
                 $parent,
                 $configuration->getNamingStrategy()
             );
-            if (in_array($parent, $configuration->getMetadataDriverImpl()->getAllClassNames())) {
-                $configuration->getMetadataDriverImpl()->loadMetadataForClass($parent, $parentMetadata);
-                if ($parentMetadata->isMappedSuperclass) {
-                    foreach ($parentMetadata->getAssociationMappings() as $key => $value) {
-                        if ($this->hasRelation($value['type'])) {
-                            $metadata->associationMappings[$key] = $value;
-                        }
-                    }
+
+            $driver->loadMetadataForClass($parent, $parentMetadata);
+
+            if (!$parentMetadata->isMappedSuperclass) {
+                continue;
+            }
+
+            foreach ($parentMetadata->getAssociationMappings() as $key => $value) {
+                if ($this->hasRelation($value['type'])) {
+                    $metadata->associationMappings[$key] = $value;
                 }
             }
         }
     }
 
-    private function unsetAssociationMappings(ClassMetadataInfo $metadata)
+    /**
+     * Clears associations mappings over entities class inheritance.
+     *
+     * @param ClassMetadataInfo $metadata
+     */
+    private function unsetAssociationMappings(ClassMetadataInfo $metadata): void
     {
         foreach ($metadata->getAssociationMappings() as $key => $value) {
             if ($this->hasRelation($value['type'])) {
@@ -117,16 +106,19 @@ class LoadMetadataListener implements EventSubscriber
         }
     }
 
-    private function hasRelation($type)
+    /**
+     * Returns whether the mapping type is an association.
+     *
+     * @param int $type
+     *
+     * @return bool
+     */
+    private function hasRelation(int $type): bool
     {
-        return in_array(
-            $type,
-            [
-                ClassMetadataInfo::MANY_TO_MANY,
-                ClassMetadataInfo::ONE_TO_MANY,
-                ClassMetadataInfo::ONE_TO_ONE,
-            ],
-            true
-        );
+        return in_array($type, [
+            ClassMetadataInfo::MANY_TO_MANY,
+            ClassMetadataInfo::ONE_TO_MANY,
+            ClassMetadataInfo::ONE_TO_ONE,
+        ], true);
     }
 }

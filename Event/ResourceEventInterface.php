@@ -1,26 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Psr\EventDispatcher\StoppableEventInterface;
 
 /**
  * Interface ResourceEventInterface
  * @package Ekyna\Component\Resource\Event
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-interface ResourceEventInterface
+interface ResourceEventInterface extends StoppableEventInterface
 {
-    /**
-     * Returns whether further event listeners should be triggered.
-     *
-     * @see Event::stopPropagation()
-     *
-     * @return bool Whether propagation was already stopped for this event.
-     */
-    public function isPropagationStopped();
-
     /**
      * Stops the propagation of the event to further event listeners.
      *
@@ -28,114 +22,79 @@ interface ResourceEventInterface
      * further event listener will be triggered once any trigger calls
      * stopPropagation().
      */
-    public function stopPropagation();
+    public function stopPropagation(): void;
 
-    /**
-     * Returns the resource.
-     *
-     * @return ResourceInterface
-     */
-    public function getResource();
+    public function getResource(): ?ResourceInterface;
 
-    /**
-     * Sets the resource.
-     *
-     * @param ResourceInterface $resource
-     */
-    public function setResource(ResourceInterface $resource);
+    public function setResource(ResourceInterface $resource): void;
 
     /**
      * Sets whether the operation must be performed "hardly" or not (for deletion).
-     *
-     * @param boolean $hard
-     * @return ResourceEventInterface|$this
      */
-    public function setHard($hard);
+    public function setHard(bool $hard): ResourceEventInterface;
 
     /**
      * Returns whether the operation must be performed "hardly" or not.
-     *
-     * @return boolean
      */
-    public function getHard();
+    public function getHard(): bool;
 
     /**
      * Adds the data.
      *
-     * @param string $key
      * @param mixed $value
-     * @return ResourceEventInterface|$this
+     *
+     * @return $this|ResourceEventInterface
      */
-    public function addData($key, $value);
+    public function addData(string $key, $value): ResourceEventInterface;
 
     /**
      * Returns whether there is a data for the given key or not.
      *
-     * @param $key
+     * @param string $key
+     *
      * @return bool
      */
-    public function hasData($key);
+    public function hasData(string $key): bool;
 
     /**
      * Returns the data by key.
      *
-     * @param string $key
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
-    public function getData($key);
+    public function getData(string $key);
 
     /**
      * Adds the messages.
-     *
-     * @param array $messages
-     * @return ResourceEventInterface|$this
      */
-    public function addMessages(array $messages);
+    public function addMessages(array $messages): ResourceEventInterface;
 
     /**
      * Adds the message.
-     *
-     * @param ResourceMessage $message
-     * @return ResourceEventInterface|$this
      */
-    public function addMessage(ResourceMessage $message);
+    public function addMessage(ResourceMessage $message): ResourceEventInterface;
 
     /**
      * Returns the messages, optionally filtered by type.
      *
-     * @param string $type
-     * @return array|ResourceMessage[]
+     * @return array<ResourceMessage>
      */
-    public function getMessages($type = null);
+    public function getMessages(string $type = null): array;
 
     /**
      * Returns whether the event has messages or not, optionally filtered by type.
-     *
-     * @param string $type
-     * @return bool
      */
-    public function hasMessages($type = null);
+    public function hasMessages(string $type = null): bool;
 
     /**
      * Returns whether the event has errors or not.
-     *
-     * @return bool
      */
-    public function hasErrors();
+    public function hasErrors(): bool;
 
     /**
      * Returns the error messages.
      *
-     * @return array|ResourceMessage[]
+     * @return array<ResourceMessage>
      */
-    public function getErrors();
-
-    /**
-     * Converts messages to flashes.
-     *
-     * @param FlashBagInterface $flashBag
-     * @todo REMOVE the flashbag dependency
-     */
-    public function toFlashes(FlashBagInterface $flashBag);
+    public function getErrors(): array;
 }

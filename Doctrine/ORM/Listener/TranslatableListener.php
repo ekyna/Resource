@@ -1,43 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
-use Doctrine\ORM\Event\PreFlushEventArgs;
-use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
-use Ekyna\Component\Resource\Model\TranslatableInterface;
+use Doctrine\ORM\Mapping\MappingException;
 use Ekyna\Component\Resource\Doctrine\AbstractTranslatableListener;
+use Ekyna\Component\Resource\Model\TranslatableInterface;
 use Ekyna\Component\Resource\Model\TranslationInterface;
+
+use function array_diff;
 
 /**
  * Class ORMTranslatableListener
  * @package Ekyna\Component\Resource\Doctrine\ORM\Listener
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class TranslatableListener extends AbstractTranslatableListener implements EventSubscriber
+class TranslatableListener extends AbstractTranslatableListener
 {
-    /**
-     * @inheritdoc
-     */
-    public function getSubscribedEvents()
-    {
-        return [
-            Events::loadClassMetadata,
-            Events::postLoad,
-        ];
-    }
-
     /**
      * Add mapping to translatable entities
      *
      * @param LoadClassMetadataEventArgs $eventArgs
+     *
+     * @throws MappingException
      */
-    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs)
+    public function loadClassMetadata(LoadClassMetadataEventArgs $eventArgs): void
     {
-        /** @var ClassMetadata $classMetadata */
         $classMetadata = $eventArgs->getClassMetadata();
         $reflection = $classMetadata->reflClass;
 
@@ -47,115 +39,13 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
 
         if ($reflection->implementsInterface(TranslatableInterface::class)) {
             $this->mapTranslatable($classMetadata);
+
+            return;
         }
 
         if ($reflection->implementsInterface(TranslationInterface::class)) {
             $this->mapTranslation($classMetadata);
         }
-    }
-
-    /**
-     * Add mapping data to a translatable entity.
-     *
-     * @param ClassMetadata $metadata
-     */
-    private function mapTranslatable(ClassMetadata $metadata)
-    {
-        // In the case A -> B -> TranslatableInterface, B might not have mapping defined
-        // as it is probably defined in A, so in that case, we just return.
-        if (!isset($this->configs[$metadata->name])) {
-            return;
-        }
-
-        $metadata->mapOneToMany([
-            'fieldName'     => 'translations',
-            'targetEntity'  => $this->configs[$metadata->name],
-            'mappedBy'      => 'translatable',
-            //'fetch'         => ClassMetadataInfo::FETCH_EXTRA_LAZY,
-            'indexBy'       => 'locale',
-            'cascade'       => ['persist', 'merge', 'refresh', 'remove', 'detach'],
-            'orphanRemoval' => true,
-        ]);
-
-        $metadata->addEntityListener('preFlush', self::class, 'onTranslatablePreFlush');
-    }
-
-    /**
-     * Add mapping data to a translation entity.
-     *
-     * @param ClassMetadata $metadata
-     */
-    private function mapTranslation(ClassMetadata $metadata)
-    {
-        // In the case A -> B -> TranslationInterface, B might not have mapping defined as it
-        // is probably defined in A, so in that case, we just return.
-        if (!isset($this->configs[$metadata->name])) {
-            return;
-        }
-
-        $metadata->mapManyToOne([
-            'fieldName'    => 'translatable',
-            'targetEntity' => $this->configs[$metadata->name],
-            'inversedBy'   => 'translations',
-            'joinColumns'  => [[
-                'name'                 => 'translatable_id',
-                'referencedColumnName' => 'id',
-                'onDelete'             => 'CASCADE',
-                'nullable'             => false,
-            ]],
-        ]);
-
-        if (!$metadata->hasField('locale')) {
-            $metadata->mapField([
-                'fieldName' => 'locale',
-                'type'      => 'string',
-                'nullable'  => false,
-            ]);
-        }
-
-        // Map unique index.
-        $columns = [
-            $metadata->getSingleAssociationJoinColumnName('translatable'),
-            'locale',
-        ];
-
-        if (!$this->hasUniqueConstraint($metadata, $columns)) {
-            $constraints = isset($metadata->table['uniqueConstraints']) ? $metadata->table['uniqueConstraints'] : [];
-
-            $constraints[$metadata->getTableName() . '_uniq_trans'] = [
-                'columns' => $columns,
-            ];
-
-            $metadata->setPrimaryTable([
-                'uniqueConstraints' => $constraints,
-            ]);
-        }
-
-        // TODO Replace this : the goal is to trigger a cache invalidation on the translatable.
-        //$metadata->addEntityListener('preFlush', TranslationListener::class, 'preFlush');
-    }
-
-    /**
-     * Check if an unique constraint has been defined.
-     *
-     * @param ClassMetadata $metadata
-     * @param array         $columns
-     *
-     * @return bool
-     */
-    private function hasUniqueConstraint(ClassMetadata $metadata, array $columns)
-    {
-        if (!isset($metadata->table['uniqueConstraints'])) {
-            return false;
-        }
-
-        foreach ($metadata->table['uniqueConstraints'] as $constraint) {
-            if (!array_diff($constraint['columns'], $columns)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -165,7 +55,7 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
      *
      * @param LifecycleEventArgs $args
      */
-    public function postLoad(LifecycleEventArgs $args)
+    public function postLoad(LifecycleEventArgs $args): void
     {
         $entity = $args->getEntity();
 
@@ -184,11 +74,10 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
      * Removes translations when all 'content' fields are set to null.
      *
      * @param TranslatableInterface $translatable
-     * @param PreFlushEventArgs     $event
      */
-    public function onTranslatablePreFlush(TranslatableInterface $translatable, PreFlushEventArgs $event)
+    public function onTranslatablePreFlush(TranslatableInterface $translatable): void
     {
-        if (null === $config = $this->registry->findConfiguration($translatable, false)) {
+        if (null === $config = $this->registry->find($translatable, false)) {
             return;
         }
 
@@ -203,5 +92,117 @@ class TranslatableListener extends AbstractTranslatableListener implements Event
 
             $translatable->removeTranslation($translation);
         }
+    }
+
+    /**
+     * Add mapping data to a translatable entity.
+     *
+     * @param ClassMetadata $metadata
+     *
+     * @throws MappingException
+     */
+    private function mapTranslatable(ClassMetadata $metadata): void
+    {
+        // In the case A -> B -> TranslatableInterface, B might not have mapping defined
+        // as it is probably defined in A, so in that case, we just return.
+        if (!isset($this->translations[$metadata->name])) {
+            return;
+        }
+
+        $metadata->mapOneToMany([
+            'fieldName'     => 'translations',
+            'targetEntity'  => $this->translations[$metadata->name],
+            'mappedBy'      => 'translatable',
+            //'fetch'         => ClassMetadataInfo::FETCH_EXTRA_LAZY,
+            'indexBy'       => 'locale',
+            'cascade'       => ['persist', 'merge', 'refresh', 'remove', 'detach'],
+            'orphanRemoval' => true,
+        ]);
+
+        /** @see TranslatableListener::onTranslatablePreFlush() */
+        $metadata->addEntityListener('preFlush', self::class, 'onTranslatablePreFlush');
+    }
+
+    /**
+     * Add mapping data to a translation entity.
+     *
+     * @param ClassMetadata $metadata
+     *
+     * @throws MappingException
+     */
+    private function mapTranslation(ClassMetadata $metadata): void
+    {
+        // In the case A -> B -> TranslationInterface, B might not have mapping defined as it
+        // is probably defined in A, so in that case, we just return.
+        if (!isset($this->translations[$metadata->name])) {
+            return;
+        }
+
+        $metadata->mapManyToOne([
+            'fieldName'    => 'translatable',
+            'targetEntity' => $this->translations[$metadata->name],
+            'inversedBy'   => 'translations',
+            'joinColumns'  => [
+                [
+                    'name'                 => 'translatable_id',
+                    'referencedColumnName' => 'id',
+                    'onDelete'             => 'CASCADE',
+                    'nullable'             => false,
+                ],
+            ],
+        ]);
+
+        if (!$metadata->hasField('locale')) {
+            $metadata->mapField([
+                'fieldName' => 'locale',
+                'type'      => 'string',
+                'nullable'  => false,
+            ]);
+        }
+
+        // Map unique index.
+        $columns = [
+            $metadata->getSingleAssociationJoinColumnName('translatable'),
+            'locale',
+        ];
+
+        if (!$this->hasUniqueConstraint($metadata, $columns)) {
+            $constraints = $metadata->table['uniqueConstraints'] ?? [];
+
+            $constraints[$metadata->getTableName() . '_uniq_trans'] = [
+                'columns' => $columns,
+            ];
+
+            $metadata->setPrimaryTable([
+                'uniqueConstraints' => $constraints,
+            ]);
+        }
+
+        // TODO Replace this : the goal is to trigger a cache invalidation on the translatable.
+        /** @see TranslationListener::preFlush() */
+        //$metadata->addEntityListener('preFlush', TranslationListener::class, 'preFlush');
+    }
+
+    /**
+     * Check if an unique constraint has been defined.
+     *
+     * @param ClassMetadata $metadata
+     * @param array         $columns
+     *
+     * @return bool
+     */
+    private function hasUniqueConstraint(ClassMetadata $metadata, array $columns): bool
+    {
+        if (!isset($metadata->table['uniqueConstraints'])) {
+            return false;
+        }
+
+        foreach ($metadata->table['uniqueConstraints'] as $constraint) {
+            if (!array_diff($constraint['columns'], $columns)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

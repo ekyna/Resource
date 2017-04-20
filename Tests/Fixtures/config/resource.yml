@@ -1,0 +1,6 @@
+resources:
+    acme:
+        post:
+            entity:
+                interface: Acme\Resource\Entity\PostInterface
+                class: Acme\Resource\Entity\Post

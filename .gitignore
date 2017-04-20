@@ -1,4 +1,8 @@
+/.phpunit.result.cache
+/app/cache/
+/bin
 /db.sqlite
 /db.sqlite-journal
-/bin
 /vendor
+/composer.lock
+/Tests/app/cache

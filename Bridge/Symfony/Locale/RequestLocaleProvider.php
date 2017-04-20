@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Bridge\Symfony\Locale;
 
 use Ekyna\Component\Resource\Locale\LocaleProvider;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -15,16 +17,13 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class RequestLocaleProvider extends LocaleProvider implements EventSubscriberInterface
 {
-    /**
-     * @var Request
-     */
-    private $request;
+    private ?Request $request = null;
 
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             // IMPORTANT to keep priority 34.
@@ -33,17 +32,17 @@ class RequestLocaleProvider extends LocaleProvider implements EventSubscriberInt
     }
 
     /**
-     * @param GetResponseEvent $event
+     * @param RequestEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
         $this->request = $event->getRequest();
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCurrentLocale()
+    public function getCurrentLocale(): string
     {
         if ($this->currentLocale) {
             return $this->currentLocale;

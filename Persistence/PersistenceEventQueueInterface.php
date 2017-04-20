@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Persistence;
 
 use Ekyna\Component\Resource\Event\EventQueueInterface;
@@ -14,22 +16,16 @@ interface PersistenceEventQueueInterface extends EventQueueInterface
 {
     /**
      * Schedules the insert resource event.
-     *
-     * @param ResourceInterface $resource
      */
-    public function scheduleInsert(ResourceInterface $resource);
+    public function scheduleInsert(ResourceInterface $resource): void;
 
     /**
      * Schedules the update resource event.
-     *
-     * @param ResourceInterface $resource
      */
-    public function scheduleUpdate(ResourceInterface $resource);
+    public function scheduleUpdate(ResourceInterface $resource): void;
 
     /**
      * Schedules the delete resource event.
-     *
-     * @param ResourceInterface $resource
      */
-    public function scheduleDelete(ResourceInterface $resource);
+    public function scheduleDelete(ResourceInterface $resource): void;
 }

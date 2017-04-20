@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,31 +11,20 @@ namespace Ekyna\Component\Resource\Model;
  */
 trait SortableTrait
 {
-    /**
-     * @var integer
-     */
-    protected $position;
+    protected int $position = 0;
 
 
     /**
-     * Sets the position.
-     *
-     * @param integer $position
      * @return SortableInterface|$this
      */
-    public function setPosition($position)
+    public function setPosition(int $position): SortableInterface
     {
         $this->position = $position;
 
         return $this;
     }
 
-    /**
-     * Returns the position.
-     *
-     * @return integer
-     */
-    public function getPosition()
+    public function getPosition(): int
     {
         return $this->position;
     }
@@ -45,8 +36,8 @@ trait SortableTrait
      */
     public function compareTo($other)
     {
-        /** @var SortableInterface $other */
-        if (is_a($other, get_class($this))) {
+        if (get_class($other) === static::class) {
+            /** @var SortableInterface $other */
             return $this->position - $other->getPosition();
         }
 

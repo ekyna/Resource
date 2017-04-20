@@ -1,0 +1,7 @@
+behaviors:
+    foo_behavior:
+        class: Acme\Resource\Behavior\FooBehavior
+        interface: Acme\Resource\Behavior\FooInterface
+        operations: [onInsert]
+        options:
+            foo: bar

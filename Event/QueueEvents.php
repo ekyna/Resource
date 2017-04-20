@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
 /**
@@ -9,8 +11,8 @@ namespace Ekyna\Component\Resource\Event;
  */
 final class QueueEvents
 {
-    const QUEUE_OPEN  = 'ekyna_resource.event_queue_open';
-    const QUEUE_CLOSE = 'ekyna_resource.event_queue_close';
+    public const QUEUE_OPEN  = 'ekyna_resource.event_queue_open';
+    public const QUEUE_CLOSE = 'ekyna_resource.event_queue_close';
 
 
     /**

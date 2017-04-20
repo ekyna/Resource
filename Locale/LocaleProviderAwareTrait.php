@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Locale;
 
 /**
@@ -9,17 +11,14 @@ namespace Ekyna\Component\Resource\Locale;
  */
 trait LocaleProviderAwareTrait
 {
-    /**
-     * @var LocaleProviderInterface
-     */
-    protected $localeProvider;
+    protected ?LocaleProviderInterface $localeProvider;
 
     /**
      * Returns the locale provider.
      *
      * @return LocaleProviderInterface
      */
-    public function getLocaleProvider()
+    public function getLocaleProvider(): LocaleProviderInterface
     {
         return $this->localeProvider;
     }
@@ -29,7 +28,7 @@ trait LocaleProviderAwareTrait
      *
      * @param LocaleProviderInterface $localeProvider
      */
-    public function setLocaleProvider(LocaleProviderInterface $localeProvider)
+    public function setLocaleProvider(LocaleProviderInterface $localeProvider): void
     {
         $this->localeProvider = $localeProvider;
     }

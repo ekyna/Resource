@@ -1,0 +1,3 @@
+resources:
+    foo:
+        bar: baz

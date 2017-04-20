@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
@@ -12,18 +14,14 @@ use Ekyna\Component\Resource\Exception\RuntimeException;
  */
 trait TrackAssociationTrait
 {
-    /**
-     * Associated entities ids.
-     *
-     * @var array
-     */
-    protected $snapshot;
+    /** Associated entities ids. */
+    protected array $snapshot;
 
 
     /**
      * Backup associated entities ids.
      */
-    public function takeSnapshot()
+    public function takeSnapshot(): void
     {
         $this->snapshot = [];
 
@@ -44,10 +42,10 @@ trait TrackAssociationTrait
      *
      * @return array
      */
-    public function getInsertedIds($association)
+    public function getInsertedIds(string $association): array
     {
         if (is_null($this->snapshot)) {
-            throw new RuntimeException("You must take a snapshot first.");
+            throw new RuntimeException('You must take a snapshot first.');
         }
 
         $current = [];
@@ -66,10 +64,10 @@ trait TrackAssociationTrait
      *
      * @return array
      */
-    public function getRemovedIds($association)
+    public function getRemovedIds(string $association): array
     {
         if (is_null($this->snapshot)) {
-            throw new RuntimeException("You must take a snapshot first.");
+            throw new RuntimeException('You must take a snapshot first.');
         }
 
         $current = [];
@@ -86,7 +84,7 @@ trait TrackAssociationTrait
      *
      * @return string[]
      */
-    abstract public static function getAssociationsProperties();
+    abstract public static function getAssociationsProperties(): array;
 
     /**
      * Returns the associated entities ids for the given association.
@@ -95,7 +93,7 @@ trait TrackAssociationTrait
      *
      * @return array
      */
-    protected function getAssociationIds($association)
+    protected function getAssociationIds(string $association): array
     {
         $ids = [];
         /** @var ResourceInterface $entity */
@@ -111,10 +109,12 @@ trait TrackAssociationTrait
      *
      * @param string $association
      */
-    protected function assertAssociation($association)
+    protected function assertAssociation(string $association): void
     {
-        if (!in_array($association, static::getAssociationsProperties(), true)) {
-            throw new InvalidArgumentException("Unknown association '$association'.");
+        if (in_array($association, static::getAssociationsProperties(), true)) {
+            return;
         }
+
+        throw new InvalidArgumentException("Unknown association '$association'.");
     }
 }

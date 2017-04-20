@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -11,10 +13,7 @@ abstract class AbstractTranslation implements TranslationInterface
 {
     use TranslationTrait;
 
-    /**
-     * @var int
-     */
-    protected $id;
+    protected ?int $id = null;
 
 
     /**
@@ -27,7 +26,7 @@ abstract class AbstractTranslation implements TranslationInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
     public function getId(): ?int
     {

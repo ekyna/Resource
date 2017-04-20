@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine;
 
+use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Locale\LocaleProviderInterface;
-use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
 use Symfony\Component\PropertyAccess as PA;
 
 /**
@@ -13,47 +15,33 @@ use Symfony\Component\PropertyAccess as PA;
  */
 abstract class AbstractTranslatableListener
 {
-    /**
-     * @var ConfigurationRegistry
-     */
-    protected $registry;
-
-    /**
-     * @var LocaleProviderInterface
-     */
-    protected $localeProvider;
-
+    protected ResourceRegistryInterface $registry;
+    protected LocaleProviderInterface   $localeProvider;
     /**
      * Translation mapping = [
      *     Translatable class => Translation class,
      *     Translation class  => Translatable class,
      * ]
-     *
-     * @var array
      */
-    protected $configs;
+    protected array $translations;
 
-    /**
-     * @var PA\PropertyAccessor
-     */
-    private $propertyAccessor;
-
+    private ?PA\PropertyAccessor $propertyAccessor = null;
 
     /**
      * Constructor.
      *
-     * @param ConfigurationRegistry   $registry
-     * @param LocaleProviderInterface $localeProvider
-     * @param array                   $configs
+     * @param ResourceRegistryInterface $registry
+     * @param LocaleProviderInterface   $localeProvider
+     * @param array                     $translations
      */
     public function __construct(
-        ConfigurationRegistry $registry,
+        ResourceRegistryInterface $registry,
         LocaleProviderInterface $localeProvider,
-        array $configs
+        array $translations
     ) {
         $this->registry = $registry;
         $this->localeProvider = $localeProvider;
-        $this->configs = $configs;
+        $this->translations = $translations;
     }
 
     /**
@@ -61,7 +49,7 @@ abstract class AbstractTranslatableListener
      *
      * @return PA\PropertyAccessor
      */
-    protected function getPropertyAccessor()
+    protected function getPropertyAccessor(): PA\PropertyAccessor
     {
         if (null !== $this->propertyAccessor) {
             return $this->propertyAccessor;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -12,7 +14,7 @@ interface TrackAssociationInterface
     /**
      * Backup associated entities ids.
      */
-    public function takeSnapshot();
+    public function takeSnapshot(): void;
 
     /**
      * Returns the ids of entities added to the given association.
@@ -21,7 +23,7 @@ interface TrackAssociationInterface
      *
      * @return array
      */
-    public function getInsertedIds($association);
+    public function getInsertedIds(string $association): array;
 
     /**
      * Returns the ids of entities removed from the given association.
@@ -30,5 +32,5 @@ interface TrackAssociationInterface
      *
      * @return array
      */
-    public function getRemovedIds($association);
+    public function getRemovedIds(string $association): array;
 }

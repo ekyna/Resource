@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 use Doctrine\Common\Comparable;
@@ -14,16 +16,16 @@ interface SortableInterface extends Comparable
     /**
      * Sets the position.
      *
-     * @param integer $position
+     * @param int $position
      *
      * @return SortableInterface|$this
      */
-    public function setPosition($position);
+    public function setPosition(int $position): SortableInterface;
 
     /**
      * Returns the position.
      *
-     * @return integer
+     * @return int
      */
-    public function getPosition();
+    public function getPosition(): int;
 }

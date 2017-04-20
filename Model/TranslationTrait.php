@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,15 +11,8 @@ namespace Ekyna\Component\Resource\Model;
  */
 trait TranslationTrait
 {
-    /**
-     * @var TranslatableInterface
-     */
-    protected $translatable;
-
-    /**
-     * @var string
-     */
-    protected $locale;
+    protected ?TranslatableInterface $translatable = null;
+    protected string $locale;
 
 
     /**
@@ -37,7 +32,7 @@ trait TranslationTrait
      *
      * @return $this|TranslationInterface
      */
-    public function setTranslatable(TranslatableInterface $translatable = null): TranslationInterface
+    public function setTranslatable(?TranslatableInterface $translatable): TranslationInterface
     {
         if ($translatable === $this->translatable) {
             return $this;
@@ -61,9 +56,9 @@ trait TranslationTrait
     /**
      * Returns the locale.
      *
-     * @return string|null
+     * @return string
      */
-    public function getLocale(): ?string
+    public function getLocale(): string
     {
         return $this->locale;
     }

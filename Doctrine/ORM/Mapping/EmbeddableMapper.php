@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Mapping;
 
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,17 +16,13 @@ class EmbeddableMapper
 {
     /**
      * The embeddable metadata.
-     *
-     * @var ClassMetadata
      */
-    private $embeddableMetadata;
+    private ClassMetadata $embeddableMetadata;
 
     /**
      * Stores the processed classes names.
-     *
-     * @var array
      */
-    private $processedClasses;
+    private array $processedClasses;
 
 
     /**
@@ -33,7 +31,7 @@ class EmbeddableMapper
      * @param EntityManagerInterface $em
      * @param string                 $embeddableClass
      */
-    public function __construct(EntityManagerInterface $em, $embeddableClass)
+    public function __construct(EntityManagerInterface $em, string $embeddableClass)
     {
         $this->embeddableMetadata = $em->getClassMetadata($embeddableClass);
         $this->processedClasses = [];
@@ -44,14 +42,17 @@ class EmbeddableMapper
      *
      * @param ClassMetadata $metadata
      * @param string        $property
-     * @param string        $prefix
+     * @param string|null   $prefix
+     *
+     * @noinspection PhpDocMissingThrowsInspection
      */
-    public function processClassMetadata(ClassMetadata $metadata, string $property, string $prefix = null)
+    public function processClassMetadata(ClassMetadata $metadata, string $property, string $prefix = null): void
     {
         if (in_array($metadata->getName(), $this->processedClasses)) {
             return;
         }
 
+        /** @noinspection PhpUnhandledExceptionInspection */
         $metadata->mapEmbedded([
             'fieldName'    => $property,
             'class'        => $this->embeddableMetadata->getName(),

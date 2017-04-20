@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -13,25 +15,11 @@ use Ekyna\Component\Resource\Exception\RuntimeException;
  */
 trait TranslatableTrait
 {
-    /**
-     * @var string
-     */
-    protected $currentLocale;
-
-    /**
-     * @var string
-     */
-    protected $fallbackLocale;
-
-    /**
-     * @var TranslationInterface
-     */
-    protected $currentTranslation;
-
-    /**
-     * @var Collection|TranslationInterface[]
-     */
-    protected $translations;
+    protected string                $currentLocale;
+    protected string                $fallbackLocale;
+    protected ?TranslationInterface $currentTranslation = null;
+    /**@var Collection|TranslationInterface[]|null */
+    protected ?Collection $translations = null;
 
 
     /**
@@ -58,7 +46,7 @@ trait TranslatableTrait
      * Returns the translation regarding to the current or fallback locale.
      *
      * @param string|null $locale
-     * @param bool $create
+     * @param bool        $create
      *
      * @return TranslationInterface
      * @throws RuntimeException
@@ -106,7 +94,7 @@ trait TranslatableTrait
      *
      * @return string
      */
-    public function getCurrentLocale(): ?string
+    public function getCurrentLocale(): string
     {
         return $this->currentLocale;
     }
@@ -130,7 +118,7 @@ trait TranslatableTrait
      *
      * @return string
      */
-    public function getFallbackLocale(): ?string
+    public function getFallbackLocale(): string
     {
         return $this->fallbackLocale;
     }
@@ -210,7 +198,7 @@ trait TranslatableTrait
     /**
      * Returns the translations.
      *
-     * @return Collection|TranslationInterface[]
+     * @return Collection<TranslationInterface>
      */
     public function getTranslations(): Collection
     {

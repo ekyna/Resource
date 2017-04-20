@@ -1,12 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
-use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
+use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
+use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
+
+use Symfony\Contracts\EventDispatcher\Event;
+
+use function spl_object_hash;
+use function uksort;
 
 /**
  * Class EventQueue
@@ -15,37 +23,15 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 class EventQueue implements EventQueueInterface
 {
-    /**
-     * @var ConfigurationRegistry
-     */
-    protected $registry;
+    protected ResourceRegistryInterface $registry;
+    protected ResourceEventDispatcherInterface $dispatcher;
 
-    /**
-     * @var ResourceEventDispatcherInterface
-     */
-    protected $dispatcher;
-
-    /**
-     * @var array
-     */
-    protected $queue;
-
-    /**
-     * @var bool
-     */
-    protected $opened = false;
+    protected array $queue = [];
+    protected bool $opened = false;
 
 
-    /**
-     * Constructor.
-     *
-     * @param ConfigurationRegistry            $registry
-     * @param ResourceEventDispatcherInterface $dispatcher
-     */
-    public function __construct(
-        ConfigurationRegistry $registry,
-        ResourceEventDispatcherInterface $dispatcher
-    ) {
+    public function __construct(ResourceRegistryInterface $registry, ResourceEventDispatcherInterface $dispatcher)
+    {
         $this->registry = $registry;
         $this->dispatcher = $dispatcher;
 
@@ -54,51 +40,37 @@ class EventQueue implements EventQueueInterface
         $this->clear();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setOpened($opened)
+    public function setOpened(bool $opened): void
     {
-        $this->opened = (bool)$opened;
-
-        if ($opened) {
-            $this->dispatcher->dispatch(QueueEvents::QUEUE_OPEN);
+        if ($this->opened = $opened) {
+            $this->dispatcher->dispatch(new Event(), QueueEvents::QUEUE_OPEN);
         } else {
-            $this->dispatcher->dispatch(QueueEvents::QUEUE_CLOSE);
+            $this->dispatcher->dispatch(new Event(), QueueEvents::QUEUE_CLOSE);
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function isOpened()
+    public function isOpened(): bool
     {
         return $this->opened;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scheduleEvent($eventName, $resourceOrEvent)
+    public function scheduleEvent(object $resourceOrEvent, string $eventName): void
     {
-        $this->enqueue($eventName, $resourceOrEvent);
+        $this->enqueue($resourceOrEvent, $eventName);
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function flush()
+    public function flush(): void
     {
         while (!empty($queue = $this->clear())) {
             $queue = $this->sortQueue($queue);
 
             foreach ($queue as $eventName => $resources) {
-                foreach ($resources as $oid => $resourceOrEvent) {
+                foreach ($resources as $resourceOrEvent) {
                     if (!$resourceOrEvent instanceof ResourceEventInterface) {
                         $resourceOrEvent = $this->dispatcher->createResourceEvent($resourceOrEvent);
                     }
 
-                    $this->dispatcher->dispatch($eventName, $resourceOrEvent);
+                    $this->dispatcher->dispatch($resourceOrEvent, $eventName);
                 }
             }
         }
@@ -107,15 +79,12 @@ class EventQueue implements EventQueueInterface
     /**
      * Schedules a resource event of the given type.
      *
-     * @param string                                   $eventName
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
-     *
-     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
      */
-    protected function enqueue($eventName, $resourceOrEvent)
+    protected function enqueue(object $resourceOrEvent, string $eventName): void
     {
         if (!$this->isOpened()) {
-            throw new RuntimeException("The event queue is closed.");
+            throw new RuntimeException('The event queue is closed.');
         }
 
         if (!preg_match('~^[a-z_]+\.[a-z_]+\.[a-z_]+$~', $eventName)) {
@@ -127,7 +96,10 @@ class EventQueue implements EventQueueInterface
         } elseif ($resourceOrEvent instanceof ResourceEventInterface) {
             $resource = $resourceOrEvent->getResource();
         } else {
-            throw new InvalidArgumentException("Expected instanceof ResourceInterface or ResourceEventInterface");
+            throw new UnexpectedTypeException($resourceOrEvent, [
+                ResourceInterface::class,
+                ResourceEventInterface::class
+            ]);
         }
 
         $oid = spl_object_hash($resource);
@@ -153,14 +125,12 @@ class EventQueue implements EventQueueInterface
     /**
      * Sorts the event queue by resource hierarchy and event priority.
      *
-     * @param array $queue
-     *
      * @return array The sorted queue.
      */
-    protected function sortQueue(array $queue)
+    protected function sortQueue(array $queue): array
     {
-        if (!@uksort($queue, $this->getQueueSortingCallback())) {
-            throw new RuntimeException("Failed to sort the event queue.");
+        if (!uksort($queue, $this->getQueueSortingCallback())) {
+            throw new RuntimeException('Failed to sort the event queue.');
         }
 
         return $queue;
@@ -168,32 +138,28 @@ class EventQueue implements EventQueueInterface
 
     /**
      * Throws an exception on en event conflict case.
-     *
-     * @param string $eventName
-     * @param string $oid
-     *
-     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
      */
-    protected function preventEventConflict($eventName, $oid)
+    protected function preventEventConflict(string $eventName, string $oid): void
     {
 
     }
 
     /**
      * Returns the queue sorting callback.
-     *
-     * @return \Closure
      */
-    protected function getQueueSortingCallback()
+    protected function getQueueSortingCallback(): callable
     {
         // [$resourceId => $parentId]
         $parentMap = $this->registry->getParentMap();
+
+        // [$resourceId => $parentId]
+        $depthMap = $this->registry->getDepthMap();
 
         // [$resourceId => $priority]
         $priorityMap = $this->registry->getEventPriorityMap();
 
         /**
-         * Returns whether or not $a is a child of $b.
+         * Returns whether $a is a child of $b.
          *
          * @param string $a
          * @param string $b
@@ -202,7 +168,7 @@ class EventQueue implements EventQueueInterface
          *
          * @todo Move in resource registry
          */
-        $isChildOf = function($a, $b) use ($parentMap) {
+        $isChildOf = function (string $a, string $b) use ($parentMap) {
             while (isset($parentMap[$a])) {
                 $parentId = $parentMap[$a];
                 if ($parentId === $b) {
@@ -210,16 +176,17 @@ class EventQueue implements EventQueueInterface
                 }
                 $a = $parentId;
             }
+
             return false;
         };
 
-        return function ($a, $b) use ($isChildOf, $priorityMap) {
+        return function ($a, $b) use ($isChildOf, $depthMap, $priorityMap) {
             $aId = $this->getEventPrefix($a);
             $bId = $this->getEventPrefix($b);
 
             // By prefix (resource id) priority
-            $aPriority = isset($priorityMap[$aId]) ? $priorityMap[$aId] : 0;
-            $bPriority = isset($priorityMap[$bId]) ? $priorityMap[$bId] : 0;
+            $aPriority = $priorityMap[$aId] ?? 0;
+            $bPriority = $priorityMap[$bId] ?? 0;
 
             if ($aPriority > $bPriority) {
                 return -1;
@@ -230,10 +197,20 @@ class EventQueue implements EventQueueInterface
             // By resource hierarchy (children first)
             if ($isChildOf($aId, $bId)) {
                 // B is a parent of A
-                return -1;
+                return 1;
             } elseif ($isChildOf($bId, $aId)) {
                 // A is a parent of B
+                return -1;
+            }
+
+            // By resource depth (children first)
+            $aDepth = $depthMap[$aId] ?? 0;
+            $bDepth = $depthMap[$bId] ?? 0;
+
+            if ($aDepth > $bDepth) {
                 return 1;
+            } elseif ($bDepth > $aDepth) {
+                return -1;
             }
 
             // By suffix priority
@@ -246,7 +223,7 @@ class EventQueue implements EventQueueInterface
                 return 1;
             }
 
-            return 0;
+            return $aPriority <=> $bPriority;
         };
     }
 
@@ -258,7 +235,7 @@ class EventQueue implements EventQueueInterface
      * @return int
      * @deprecated
      */
-    protected function getEventPriority($eventName)
+    protected function getEventPriority(string $eventName): int
     {
         // TODO We could use the resource configuration to get the custom event's priority
 
@@ -266,25 +243,17 @@ class EventQueue implements EventQueueInterface
     }
 
     /**
-     * Returns the event prefix (resource id).
-     *
-     * @param string $eventName
-     *
-     * @return string
+     * Returns the event prefix (ie the resource id).
      */
-    protected function getEventPrefix($eventName)
+    protected function getEventPrefix(string $eventName): string
     {
         return substr($eventName, 0, strrpos($eventName, '.'));
     }
 
     /**
      * Returns the event suffix (action).
-     *
-     * @param string $eventName
-     *
-     * @return string
      */
-    protected function getEventSuffix($eventName)
+    protected function getEventSuffix(string $eventName): string
     {
         return substr($eventName, strrpos($eventName, '.') + 1);
     }
@@ -294,7 +263,7 @@ class EventQueue implements EventQueueInterface
      *
      * @return array The copy of the event queue
      */
-    protected function clear()
+    protected function clear(): array
     {
         $queue = $this->queue;
 

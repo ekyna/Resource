@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
+use Ekyna\Component\Resource\Exception\ResourceExceptionInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
@@ -16,27 +19,27 @@ interface EventQueueInterface
      *
      * @param bool $opened
      */
-    public function setOpened($opened);
+    public function setOpened(bool $opened): void;
 
     /**
      * Returns whether or not the queue is opened.
      *
      * @return bool
      */
-    public function isOpened();
+    public function isOpened(): bool;
 
     /**
      * Schedules the resource event.
      *
-     * @param string                                   $eventName
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     * @param string                                   $eventName
      *
-     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     * @throws ResourceExceptionInterface
      */
-    public function scheduleEvent($eventName, $resourceOrEvent);
+    public function scheduleEvent(object $resourceOrEvent, string $eventName): void;
 
     /**
      * Flushes the event queue.
      */
-    public function flush();
+    public function flush(): void;
 }

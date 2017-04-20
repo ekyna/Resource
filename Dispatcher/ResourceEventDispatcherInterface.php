@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Dispatcher;
 
 use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Exception\ResourceExceptionInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -16,30 +19,22 @@ interface ResourceEventDispatcherInterface extends EventDispatcherInterface
     /**
      * Schedule the resource event to be dispatched during the persistence phase (onFlush).
      *
-     * @param string                                   $eventName
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      *
-     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     * @throws ResourceExceptionInterface
      */
-    public function scheduleEvent($eventName, $resourceOrEvent);
+    public function scheduleEvent(object $resourceOrEvent, string $eventName): void;
 
     /**
      * Creates the resource event.
-     *
-     * @param ResourceInterface $resource
-     * @param bool              $throwException
-     *
-     * @return ResourceEventInterface|null
      */
-    public function createResourceEvent(ResourceInterface $resource, $throwException = true);
+    public function createResourceEvent(
+        ResourceInterface $resource,
+        bool $throwException = true
+    ): ?ResourceEventInterface;
 
     /**
      * Returns the resource event name.
-     *
-     * @param ResourceInterface $resource
-     * @param string            $suffix
-     *
-     * @return string|null
      */
-    public function getResourceEventName(ResourceInterface $resource, $suffix);
+    public function getResourceEventName(ResourceInterface $resource, string $suffix): ?string;
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Search;
 
 /**
@@ -7,56 +9,16 @@ namespace Ekyna\Component\Resource\Search;
  * @package Ekyna\Bundle\CmsBundle\Search\Wide
  * @author  ekyna
  */
-class Result
+final class Result
 {
-    /**
-     * @var string
-     */
-    private $title;
+    private ?string $title       = null;
+    private ?string $action      = null;
+    private ?string $route       = null;
+    private array   $parameters  = [];
+    private ?string $icon        = null;
+    private ?string $description = null;
+    private float   $score       = 0;
 
-    /**
-     * @var string
-     */
-    private $route;
-
-    /**
-     * @var array
-     */
-    private $parameters = [];
-
-    /**
-     * @var string
-     */
-    private $icon;
-
-    /**
-     * @var string
-     */
-    private $description;
-
-    /**
-     * @var float
-     */
-    private $score;
-
-
-    /**
-     * Returns the title.
-     *
-     * @return string
-     */
-    public function getTitle(): ?string
-    {
-        return $this->title;
-    }
-
-    /**
-     * Sets the title.
-     *
-     * @param string $title
-     *
-     * @return Result
-     */
     public function setTitle(string $title): self
     {
         $this->title = $title;
@@ -64,47 +26,35 @@ class Result
         return $this;
     }
 
-    /**
-     * Returns the route.
-     *
-     * @return string
-     */
-    public function getRoute(): ?string
+    public function getTitle(): ?string
     {
-        return $this->route;
+        return $this->title;
     }
 
-    /**
-     * Sets the route.
-     *
-     * @param string $route
-     *
-     * @return Result
-     */
-    public function setRoute(string $route): self
+    public function getAction(): ?string
+    {
+        return $this->action;
+    }
+
+    public function setAction(?string $action): self
+    {
+        $this->action = $action;
+
+        return $this;
+    }
+
+    public function setRoute(?string $route): self
     {
         $this->route = $route;
 
         return $this;
     }
 
-    /**
-     * Returns the parameters.
-     *
-     * @return array
-     */
-    public function getParameters(): array
+    public function getRoute(): ?string
     {
-        return $this->parameters;
+        return $this->route;
     }
 
-    /**
-     * Sets the parameters.
-     *
-     * @param array $parameters
-     *
-     * @return Result
-     */
     public function setParameters(array $parameters): self
     {
         $this->parameters = $parameters;
@@ -112,75 +62,44 @@ class Result
         return $this;
     }
 
-    /**
-     * Returns the icon.
-     *
-     * @return string
-     */
-    public function getIcon(): ?string
+    public function getParameters(): array
     {
-        return $this->icon;
+        return $this->parameters;
     }
 
-    /**
-     * Sets the icon.
-     *
-     * @param string $icon
-     *
-     * @return Result
-     */
-    public function setIcon(string $icon = null): self
+    public function setIcon(?string $icon): self
     {
         $this->icon = $icon;
 
         return $this;
     }
 
-    /**
-     * Returns the description.
-     *
-     * @return string
-     */
-    public function getDescription(): ?string
+    public function getIcon(): ?string
     {
-        return $this->description;
+        return $this->icon;
     }
 
-    /**
-     * Sets the description.
-     *
-     * @param string $description
-     *
-     * @return Result
-     */
-    public function setDescription(string $description = null): self
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
 
         return $this;
     }
 
-    /**
-     * Returns the score.
-     *
-     * @return float
-     */
-    public function getScore(): float
+    public function getDescription(): ?string
     {
-        return $this->score;
+        return $this->description;
     }
 
-    /**
-     * Sets the score.
-     *
-     * @param float $score
-     *
-     * @return Result
-     */
     public function setScore(float $score): self
     {
         $this->score = $score;
 
         return $this;
+    }
+
+    public function getScore(): float
+    {
+        return $this->score;
     }
 }

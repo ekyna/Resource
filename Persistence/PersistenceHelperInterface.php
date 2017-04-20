@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Persistence;
 
 use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Exception\ResourceExceptionInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
@@ -15,64 +18,68 @@ interface PersistenceHelperInterface
     /**
      * Returns the manager.
      *
+     * @param string|null $entityClass
+     *
      * @return \Doctrine\ORM\EntityManagerInterface
+     *
+     * @deprecated Use manager service directly
+     * @TODO Remove / Break doctrine dependency
      */
-    public function getManager();
+    public function getManager(string $entityClass = null);
 
     /**
      * Returns the persistence event queue.
      *
      * @return PersistenceEventQueueInterface
      */
-    public function getEventQueue();
+    public function getEventQueue(): PersistenceEventQueueInterface;
 
     /**
      * Returns the entity change set.
      *
      * @param ResourceInterface $resource
-     * @param string            $property
+     * @param string|null       $property
      *
      * @return array
      */
-    public function getChangeSet(ResourceInterface $resource, $property = null);
+    public function getChangeSet(ResourceInterface $resource, string $property = null): array;
 
     /**
      * Returns whether at least one of the given properties has changed.
-     *
      *
      * @param ResourceInterface $resource
      * @param string|array      $properties
      *
      * @return bool
      */
-    public function isChanged(ResourceInterface $resource, $properties);
+    public function isChanged(ResourceInterface $resource, $properties): bool;
 
     /**
-     * Returns whether or not the resource is scheduled for insert.
+     * Returns whether the resource is scheduled for insert.
      *
      * @param ResourceInterface $resource
      *
      * @return bool
      */
-    public function isScheduledForInsert(ResourceInterface $resource);
+    public function isScheduledForInsert(ResourceInterface $resource): bool;
 
     /**
-     * Returns whether or not the resource is scheduled for update.
+     * Returns whether the resource is scheduled for update.
      *
      * @param ResourceInterface $resource
      *
      * @return bool
      */
-    public function isScheduledForUpdate(ResourceInterface $resource);
+    public function isScheduledForUpdate(ResourceInterface $resource): bool;
 
     /**
-     * Returns whether or not the resource is scheduled for remove.
+     * Returns whether the resource is scheduled for remove.
      *
      * @param ResourceInterface $resource
      *
      * @return bool
      */
-    public function isScheduledForRemove(ResourceInterface $resource);
+    public function isScheduledForRemove(ResourceInterface $resource): bool;
 
     /**
      * Persists and recompute the given resource.
@@ -80,7 +87,7 @@ interface PersistenceHelperInterface
      * @param ResourceInterface $resource
      * @param bool              $schedule
      */
-    public function persistAndRecompute(ResourceInterface $resource, $schedule = false);
+    public function persistAndRecompute(ResourceInterface $resource, bool $schedule = false): void;
 
     /**
      * Removes the given resource.
@@ -88,15 +95,15 @@ interface PersistenceHelperInterface
      * @param ResourceInterface $resource
      * @param bool              $schedule
      */
-    public function remove(ResourceInterface $resource, $schedule = false);
+    public function remove(ResourceInterface $resource, bool $schedule = false): void;
 
     /**
      * Schedule the resource event to be dispatched during the persistence phase (onFlush).
      *
-     * @param string                                   $eventName
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     * @param string                                   $eventName
      *
-     * @throws \Ekyna\Component\Resource\Exception\ResourceExceptionInterface
+     * @throws ResourceExceptionInterface
      */
-    public function scheduleEvent($eventName, $resourceOrEvent);
+    public function scheduleEvent(object $resourceOrEvent, string $eventName): void;
 }

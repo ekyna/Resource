@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Persistence;
+
+use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**
  * Interface PersistenceTrackerInterface
@@ -10,31 +14,31 @@ namespace Ekyna\Component\Resource\Persistence;
 interface PersistenceTrackerInterface
 {
     /**
-     * Computes the entity change set.
+     * Computes the resource change set.
      *
-     * @param object $entity
+     * @param ResourceInterface $resource
      */
-    public function computeChangeSet($entity);
+    public function computeChangeSet(ResourceInterface $resource): void;
 
     /**
      * Returns the entity change set, optionally for the given property.
      *
-     * @param object $entity
-     * @param string $property
+     * @param ResourceInterface $entity
+     * @param string|null       $property
      *
      * @return array
      */
-    public function getChangeSet($entity, $property = null);
+    public function getChangeSet(ResourceInterface $entity, string $property = null): array;
 
     /**
      * Clears the change sets.
      */
-    public function clearChangeSets();
+    public function clearChangeSets(): void;
 
     /**
      * Clears the change sets and the original data.
      *
      * Must be called at the end of flush (queue / doctrine event).
      */
-    public function clear();
+    public function clear(): void;
 }

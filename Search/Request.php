@@ -1,76 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Search;
 
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
+
+use function array_map;
+use function in_array;
 
 /**
  * Class Request
  * @package Ekyna\Bundle\ResourceBundle\Service\Search
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-class Request
+final class Request
 {
     public const RESOURCE = 'resource';
     public const RESULT   = 'result';
     public const RAW      = 'raw';
 
-    /**
-     * @var string
-     */
-    private $type;
-
-    /**
-     * @var string
-     */
-    private $expression;
-
-    /**
-     * @var string[]
-     */
-    private $resources;
-
-    /**
-     * @var string[]
-     */
-    private $fields;
-
-    /**
-     * @var array
-     */
-    private $parameters;
-
-    /**
-     * @var bool
-     */
-    private $private;
-
-    /**
-     * @var int
-     */
-    private $limit;
-
-    /**
-     * @var int
-     */
-    private $offset;
+    private string  $type;
+    private ?string $expression;
+    private array   $resources;
+    private array   $fields;
+    private array   $parameters;
+    private bool    $private;
+    private int     $limit;
+    private int     $offset;
 
 
     /**
      * Constructor.
      *
-     * @param string $expression
+     * @param string|null $expression
      */
     public function __construct(string $expression = null)
     {
-        $this->type       = self::RESULT;
+        $this->type = self::RESULT;
         $this->expression = $expression;
-        $this->resources  = [];
-        $this->fields     = [];
+        $this->resources = [];
+        $this->fields = [];
         $this->parameters = [];
-        $this->private    = false;
-        $this->limit      = 10;
-        $this->offset     = 0;
+        $this->private = false;
+        $this->limit = 10;
+        $this->offset = 0;
     }
 
     /**
@@ -93,7 +67,7 @@ class Request
     public function setType(string $type): self
     {
         if (!in_array($type, [self::RESOURCE, self::RESULT, self::RAW], true)) {
-            throw new InvalidArgumentException("Unexpected request type.");
+            throw new InvalidArgumentException('Unexpected request type.');
         }
 
         $this->type = $type;
@@ -114,7 +88,7 @@ class Request
     /**
      * Sets the expression.
      *
-     * @param string $expression
+     * @param string|null $expression
      *
      * @return Request
      */
@@ -142,7 +116,7 @@ class Request
      *
      * @return Request
      */
-    public function setResources(array $resources): Request
+    public function setResources(array $resources): self
     {
         $this->resources = array_map(function ($resource) {
             return (string)$resource;
@@ -168,7 +142,7 @@ class Request
      *
      * @return Request
      */
-    public function setFields(array $fields): Request
+    public function setFields(array $fields): self
     {
         $this->fields = array_map(function ($field) {
             return (string)$field;
@@ -202,8 +176,8 @@ class Request
     /**
      * Returns the parameter value.
      *
-     * @param string     $key
-     * @param mixed|null $default
+     * @param string $key
+     * @param mixed  $default
      *
      * @return mixed|null
      */

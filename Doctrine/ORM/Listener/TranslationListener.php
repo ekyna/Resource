@@ -1,9 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 
+use DateTime;
 use Doctrine\ORM\Event\PreFlushEventArgs;
 use Ekyna\Component\Resource\Model\TranslationInterface;
+
+use function call_user_func;
+use function get_class;
+use function method_exists;
 
 /**
  * Class TranslationListener
@@ -22,7 +29,7 @@ class TranslationListener
     {
         if (null !== $translatable = $translation->getTranslatable()) {
             if (method_exists($translatable, 'setUpdatedAt')) {
-                call_user_func([$translatable, 'setUpdatedAt'], new \DateTime());
+                call_user_func([$translatable, 'setUpdatedAt'], new DateTime());
 
                 $em = $event->getEntityManager();
                 $uow = $em->getUnitOfWork();

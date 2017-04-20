@@ -1,32 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
+
+use function in_array;
 
 /**
  * Class ResourceEvents
  * @package Ekyna\Component\Resource\Event
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-class ResourceEvents
+final class ResourceEvents
 {
     // Persistence
-    const INSERT      = 'insert';
-    const UPDATE      = 'update';
-    const DELETE      = 'delete';
+    public const INSERT = 'insert';
+    public const UPDATE = 'update';
+    public const DELETE = 'delete';
 
     // Domain
-    const INITIALIZE  = 'initialize';
+    public const INITIALIZE = 'initialize';
 
-    const PRE_CREATE  = 'pre_create';
-    const POST_CREATE = 'post_create';
+    public const PRE_CREATE  = 'pre_create';
+    public const POST_CREATE = 'post_create';
 
-    const PRE_UPDATE  = 'pre_update';
-    const POST_UPDATE = 'post_update';
+    public const PRE_UPDATE  = 'pre_update';
+    public const POST_UPDATE = 'post_update';
 
-    const PRE_DELETE  = 'pre_delete';
-    const POST_DELETE = 'post_delete';
+    public const PRE_DELETE  = 'pre_delete';
+    public const POST_DELETE = 'post_delete';
 
 
     /**
@@ -34,23 +38,21 @@ class ResourceEvents
      *
      * @return array
      */
-    static public function getNames()
+    public static function getNames(): array
     {
         return [
-            static::INSERT,
-            static::UPDATE,
-            static::DELETE,
+            self::INSERT,
+            self::UPDATE,
+            self::DELETE,
 
-            static::INITIALIZE,
+            self::PRE_CREATE,
+            self::POST_CREATE,
 
-            static::PRE_CREATE,
-            static::POST_CREATE,
+            self::PRE_UPDATE,
+            self::POST_UPDATE,
 
-            static::PRE_UPDATE,
-            static::POST_UPDATE,
-
-            static::PRE_DELETE,
-            static::POST_DELETE,
+            self::PRE_DELETE,
+            self::POST_DELETE,
         ];
     }
 
@@ -58,13 +60,13 @@ class ResourceEvents
      * Checks whether or not the given event name is valid.
      *
      * @param string $name
-     * @param bool $throwException
+     * @param bool   $throwException
      *
      * @return bool
      */
-    static public function isValid($name, $throwException = true)
+    public static function isValid(string $name, bool $throwException = true): bool
     {
-        if (in_array($name, static::getNames(), true)) {
+        if (in_array($name, self::getNames(), true)) {
             return true;
         }
 
@@ -73,5 +75,12 @@ class ResourceEvents
         }
 
         return false;
+    }
+
+    /**
+     * Disabled constructor.
+     */
+    private function __construct()
+    {
     }
 }

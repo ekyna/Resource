@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\UnitOfWork;
+use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
+use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
@@ -15,70 +20,40 @@ use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
  */
 class PersistenceHelper implements PersistenceHelperInterface
 {
-    /**
-     * // TODO use doctrine registry to get resource own manager (if not default)
-     * // TODO Retrieve the manager from tracker ?
-     *
-     * @var EntityManagerInterface
-     */
-    protected $manager;
+    protected ManagerRegistry $registry;
+    protected PersistenceTrackerInterface $tracker;
+    protected PersistenceEventQueueInterface $eventQueue;
 
-    /**
-     * @var PersistenceTrackerInterface
-     */
-    protected $tracker;
-
-    /**
-     * @var PersistenceEventQueueInterface
-     */
-    protected $eventQueue;
-
-
-    /**
-     * Constructor.
-     *
-     * @param EntityManagerInterface         $manager
-     * @param PersistenceTrackerInterface    $tracker
-     * @param PersistenceEventQueueInterface $eventQueue
-     */
     public function __construct(
-        EntityManagerInterface $manager,
+        ManagerRegistry $registry,
         PersistenceTrackerInterface $tracker,
         PersistenceEventQueueInterface $eventQueue
     ) {
-        $this->manager = $manager;
+        $this->registry = $registry;
         $this->tracker = $tracker;
         $this->eventQueue = $eventQueue;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getManager()
-    {
-        return $this->manager;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getEventQueue()
+    public function getEventQueue(): PersistenceEventQueueInterface
     {
         return $this->eventQueue;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getChangeSet(ResourceInterface $resource, $property = null)
+    public function getChangeSet(ResourceInterface $resource, string $property = null): array
     {
         return $this->tracker->getChangeSet($resource, $property);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isChanged(ResourceInterface $resource, $properties)
+    public function isChanged(ResourceInterface $resource, $properties): bool
     {
         $changeSet = $this->getChangeSet($resource);
 
@@ -88,57 +63,58 @@ class PersistenceHelper implements PersistenceHelperInterface
             return !empty(array_intersect($properties, array_keys($changeSet)));
         }
 
-        throw new \InvalidArgumentException('Expected string or array.');
+        throw new UnexpectedTypeException($properties, ['string', 'array']);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isScheduledForInsert(ResourceInterface $resource)
+    public function isScheduledForInsert(ResourceInterface $resource): bool
     {
         // TODO Check event queue ?
-        return $this->getUnitOfWork()->isScheduledForInsert($resource);
+        return $this->getUnitOfWork(get_class($resource))->isScheduledForInsert($resource);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isScheduledForUpdate(ResourceInterface $resource)
+    public function isScheduledForUpdate(ResourceInterface $resource): bool
     {
         // TODO Check event queue ?
-        return $this->getUnitOfWork()->isScheduledForUpdate($resource);
+        return $this->getUnitOfWork(get_class($resource))->isScheduledForUpdate($resource);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function isScheduledForRemove(ResourceInterface $resource)
+    public function isScheduledForRemove(ResourceInterface $resource): bool
     {
         // TODO Check event queue ?
-        return $this->getUnitOfWork()->isScheduledForDelete($resource);
+        return $this->getUnitOfWork(get_class($resource))->isScheduledForDelete($resource);
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function persistAndRecompute(ResourceInterface $resource, $schedule = false)
+    public function persistAndRecompute(ResourceInterface $resource, bool $schedule = false): void
     {
-        $uow = $this->getUnitOfWork();
+        $manager = $this->getManager(get_class($resource));
 
         if (!$this->eventQueue->isOpened()) {
-            $this->manager->persist($resource);
+            $manager->persist($resource);
 
             return;
         }
 
+        $uow = $manager->getUnitOfWork();
         if (!($uow->isScheduledForInsert($resource) || $uow->isScheduledForUpdate($resource))) {
-            $this->manager->persist($resource);
+            $manager->persist($resource);
         }
 
         // TODO Remove ? The tracker should build the proper change set without pre-computation.
         $this->tracker->computeChangeSet($resource);
 
-        $metadata = $this->manager->getClassMetadata(get_class($resource));
+        $metadata = $manager->getClassMetadata(get_class($resource));
         if ($uow->getEntityChangeSet($resource)) {
             $uow->recomputeSingleEntityChangeSet($metadata, $resource);
         } else {
@@ -155,12 +131,14 @@ class PersistenceHelper implements PersistenceHelperInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function remove(ResourceInterface $resource, $schedule = false)
+    public function remove(ResourceInterface $resource, bool $schedule = false): void
     {
+        $manager = $this->getManager(get_class($resource));
+
         if (!is_null($resource->getId()) || $this->isScheduledForInsert($resource)) {
-            $this->manager->remove($resource);
+            $manager->remove($resource);
         }
 
         if (!$this->eventQueue->isOpened()) {
@@ -176,20 +154,39 @@ class PersistenceHelper implements PersistenceHelperInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function scheduleEvent($eventName, $resourceOrEvent)
+    public function scheduleEvent(object $resourceOrEvent, string $eventName): void
     {
-        $this->eventQueue->scheduleEvent($eventName, $resourceOrEvent);
+        $this->eventQueue->scheduleEvent($resourceOrEvent, $eventName);
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @TODO Make protected
+     */
+    public function getManager(string $entityClass = null): EntityManagerInterface
+    {
+        if ($entityClass) {
+            // TODO Performance issue ?
+            /** @noinspection PhpIncompatibleReturnTypeInspection */
+            return $this->registry->getManagerForClass($entityClass);
+        }
+
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->registry->getManager();
     }
 
     /**
      * Returns the unit of work.
      *
-     * @return \Doctrine\ORM\UnitOfWork
+     * @param string $class
+     *
+     * @return UnitOfWork
      */
-    private function getUnitOfWork()
+    private function getUnitOfWork(string $class): UnitOfWork
     {
-        return $this->manager->getUnitOfWork();
+        return $this->getManager($class)->getUnitOfWork();
     }
 }

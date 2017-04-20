@@ -1,0 +1,48 @@
+#actions:
+#    admin_list:
+#        class: Ekyna\Bundle\AdminBundle\Action\ListAction
+#    admin_read:
+#        class: Ekyna\Bundle\AdminBundle\Action\ReadAction
+#    admin_create:
+#        class: Ekyna\Bundle\AdminBundle\Action\CreateAction
+#    admin_update:
+#        class: Ekyna\Bundle\AdminBundle\Action\UpdateAction
+#    admin_delete:
+#        class: Ekyna\Bundle\AdminBundle\Action\DeleteAction
+#    admin_crud:
+#        class: Ekyna\Bundle\AdminBundle\Action\CrudAction
+
+namespaces:
+    acme:
+        prefix: /acme
+
+resources:
+    acme:
+        category:
+            entity:
+                class: Acme\Resource\Entity\Category
+        post:
+            entity:
+                interface: Acme\Resource\Entity\PostInterface
+                class: Acme\Resource\Entity\Post
+            repository:
+                interface: Acme\Resource\Repository\PostRepositoryInterface
+                class: Acme\Resource\Repository\PostRepository
+            manager:
+                interface: Acme\Resource\Manager\PostManagerInterface
+                class: Acme\Resource\Manager\PostManager
+            factory:
+                interface: Acme\Resource\Factory\PostFactoryInterface
+                class: Acme\Resource\Factory\PostFactory
+            translation:
+                interface: Acme\Resource\Entity\PostTranslationInterface
+                class: Acme\Resource\Entity\PostTranslation
+                fields: [content, title]
+            parent: acme.category
+        comment:
+            entity:
+                interface: Acme\Resource\Entity\CommentInterface
+                class: Acme\Resource\Entity\Comment
+            repository:
+                class: Acme\Resource\Repository\CommentRepository
+            parent: acme.post

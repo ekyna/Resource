@@ -1,0 +1,5 @@
+resources:
+    acme:
+        comment:
+            entity:
+                class: Acme\Resource\Entity\Comment

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Locale;
 
 /**
@@ -14,5 +16,5 @@ interface LocaleProviderAwareInterface
      *
      * @param LocaleProviderInterface $provider
      */
-    public function setLocaleProvider(LocaleProviderInterface $provider);
+    public function setLocaleProvider(LocaleProviderInterface $provider): void;
 }

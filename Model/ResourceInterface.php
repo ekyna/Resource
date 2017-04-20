@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,10 +11,5 @@ namespace Ekyna\Component\Resource\Model;
  */
 interface ResourceInterface
 {
-    /**
-     * Returns the id.
-     *
-     * @return int|null
-     */
-    public function getId();
+    public function getId(): ?int;
 }

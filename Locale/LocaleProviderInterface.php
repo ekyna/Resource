@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Locale;
 
 /**
@@ -14,19 +16,19 @@ interface LocaleProviderInterface
      *
      * @return string
      */
-    public function getCurrentLocale();
+    public function getCurrentLocale(): string;
 
     /**
      * Returns the fallback locale.
      *
      * @return string
      */
-    public function getFallbackLocale();
+    public function getFallbackLocale(): string;
 
     /**
      * Returns the available locales.
      *
      * @return array
      */
-    public function getAvailableLocales();
+    public function getAvailableLocales(): array;
 }

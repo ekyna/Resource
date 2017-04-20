@@ -1,65 +1,108 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Search;
 
+use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
+use Psr\Cache\CacheItemPoolInterface;
+
+use function array_filter;
+use function array_key_exists;
+use function array_keys;
+use function array_merge;
+use function array_slice;
+use function in_array;
+use function usort;
 
 /**
  * Class Search
  * @package Ekyna\Bundle\CmsBundle\Search\Wide
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-class Search
+final class Search
 {
-    /**
-     * @var ResourceRepositoryInterface[]
-     */
-    private $repositories = [];
+    private const CACHE_KEY = 'search_choices.';
+
+    private ResourceRegistryInterface        $registry;
+    private SearchRepositoryFactoryInterface $factory;
+    private array                            $resources;
+    private ?CacheItemPoolInterface          $cache;
 
 
-    /**
-     * Adds the repository.
-     *
-     * @param string                      $name
-     * @param ResourceRepositoryInterface $repository
-     *
-     * @return Search
-     */
-    public function addRepository(string $name, ResourceRepositoryInterface $repository): self
-    {
-        if (array_key_exists($name, $this->repositories)) {
-            throw new InvalidArgumentException("Search repository '$name' is already registered.");
-        }
-
-        $this->repositories[$name] = $repository;
-
-        return $this;
+    public function __construct(
+        ResourceRegistryInterface $registry,
+        SearchRepositoryFactoryInterface $factory,
+        array $resources,
+        ?CacheItemPoolInterface $cache
+    ) {
+        $this->registry = $registry;
+        $this->factory = $factory;
+        $this->resources = $resources;
+        $this->cache = $cache;
     }
 
     /**
-     * Returns the repositories.
-     *
-     * @return ResourceRepositoryInterface[]
+     * Returns whether a repository is registered for the given resource name.
      */
-    public function getRepositories(): array
+    public function hasRepository(string $name): bool
     {
-        return $this->repositories;
+        $name = $this->registry->find($name)->getEntityClass();
+
+        return array_key_exists($name, $this->resources);
     }
 
     /**
      * Returns the repository for the given name.
-     *
-     * @param string $name
-     *
-     * @return ResourceRepositoryInterface
      */
-    public function getRepository(string $name): ResourceRepositoryInterface
+    public function getRepository(string $name): SearchRepositoryInterface
     {
-        if (!isset($this->repositories[$name])) {
-            throw new InvalidArgumentException("No repository registerd for name '$name'.");
+        if (!$this->hasRepository($name)) {
+            throw new InvalidArgumentException("No repository registered for name '$name'.");
         }
 
-        return $this->repositories[$name];
+        return $this->factory->getRepository($name);
+    }
+
+    /**
+     * Returns the searchable resources ids.
+     *
+     * @param bool $global
+     *
+     * @return string[]
+     */
+    public function getChoices(bool $global = false): array
+    {
+        $key = self::CACHE_KEY . ($global ? 'global' : 'default');
+        if ($this->cache && $this->cache->hasItem($key)) {
+            $item = $this->cache->getItem($key);
+            if ($item->isHit()) {
+                return $item->get();
+            }
+        }
+
+        if ($global) {
+            $resources = array_keys(array_filter($this->resources, function ($global) {
+                return $global;
+            }));
+        } else {
+            $resources = array_keys($this->resources);
+        }
+
+        $choices = [];
+        foreach ($resources as $class) {
+            $config = $this->registry->find($class);
+            $choices[$config->getId()] = [$config->getResourceLabel(true), $config->getTransDomain()];
+        }
+
+        if ($this->cache) {
+            $item = $this->cache->getItem($key);
+            $item->set($choices);
+            $this->cache->save($item);
+        }
+
+        return $choices;
     }
 
     /**
@@ -79,10 +122,16 @@ class Search
 
         $results = [];
 
-        foreach ($this->repositories as $name => $repository) {
-            if ($filter && !in_array($name, $resources, true)) {
+        foreach ($this->resources as $resource => $global) {
+            if (!$global) {
                 continue;
             }
+
+            if ($filter && !in_array($resource, $resources, true)) {
+                continue;
+            }
+
+            $repository = $this->getRepository($resource);
 
             if (!$repository->supports($request)) {
                 continue;

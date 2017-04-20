@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Locale;
 
 /**
@@ -9,30 +11,19 @@ namespace Ekyna\Component\Resource\Locale;
  */
 class LocaleProvider implements LocaleProviderInterface
 {
-    /**
-     * @var array
-     */
-    protected $availableLocales;
-
-    /**
-     * @var string
-     */
-    protected $fallbackLocale;
-
-    /**
-     * @var string
-     */
-    protected $currentLocale;
+    protected array   $availableLocales;
+    protected string  $fallbackLocale;
+    protected ?string $currentLocale = null;
 
 
     /**
      * Constructor.
      *
-     * @param array  $availableLocales
-     * @param string $fallbackLocale
-     * @param string $currentLocale
+     * @param array       $availableLocales
+     * @param string      $fallbackLocale
+     * @param string|null $currentLocale
      */
-    public function __construct(array $availableLocales, $fallbackLocale, $currentLocale = null)
+    public function __construct(array $availableLocales, string $fallbackLocale, string $currentLocale = null)
     {
         $this->availableLocales = $availableLocales;
         $this->fallbackLocale = $fallbackLocale;
@@ -40,9 +31,9 @@ class LocaleProvider implements LocaleProviderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getCurrentLocale()
+    public function getCurrentLocale(): string
     {
         if ($this->currentLocale) {
             return $this->currentLocale;
@@ -52,17 +43,17 @@ class LocaleProvider implements LocaleProviderInterface
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getFallbackLocale()
+    public function getFallbackLocale(): string
     {
         return $this->fallbackLocale;
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
      */
-    public function getAvailableLocales()
+    public function getAvailableLocales(): array
     {
         return $this->availableLocales;
     }

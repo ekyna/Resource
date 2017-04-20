@@ -1,10 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Event;
 
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
-use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Contracts\EventDispatcher\Event;
+
+use function array_key_exists;
+use function count;
 
 /**
  * Class ResourceEvent
@@ -13,95 +18,63 @@ use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
  */
 class ResourceEvent extends Event implements ResourceEventInterface
 {
-    /**
-     * @var ResourceInterface
-     */
-    protected $resource;
-
-    /**
-     * @var bool
-     */
-    protected $hard = false;
-
-    /**
-     * @var array
-     */
-    protected $data = [];
-
-    /**
-     * @var array|ResourceMessage[]
-     */
-    protected $messages = [];
+    protected ?ResourceInterface $resource = null;
+    protected bool               $hard     = false;
+    protected array              $data     = [];
+    /** @var ResourceMessage[] */
+    protected array $messages = [];
 
 
-    /**
-     * @inheritdoc
-     */
-    public function getResource()
+    public function getResource(): ?ResourceInterface
     {
         return $this->resource;
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function setResource(ResourceInterface $resource)
+    public function setResource(ResourceInterface $resource): void
     {
         $this->resource = $resource;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setHard($hard)
+    public function setHard(bool $hard): ResourceEventInterface
     {
-        $this->hard = (bool)$hard;
+        $this->hard = $hard;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getHard()
+    public function getHard(): bool
     {
         return $this->hard;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function addData($key, $value)
+    public function addData(string $key, $value): ResourceEventInterface
     {
         $this->data[$key] = $value;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasData($key)
+    public function hasData(string $key): bool
     {
         return array_key_exists($key, $this->data);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritDoc
      */
-    public function getData($key)
+    public function getData(string $key)
     {
         if ($this->hasData($key)) {
             return $this->data[$key];
         }
 
-        throw new \InvalidArgumentException("Undefined '$key' data.");
+        throw new InvalidArgumentException("Undefined '$key' data.");
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function addMessages(array $messages)
+    public function addMessages(array $messages): ResourceEventInterface
     {
         foreach ($messages as $message) {
             $this->addMessage($message);
@@ -110,85 +83,47 @@ class ResourceEvent extends Event implements ResourceEventInterface
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function addMessage(ResourceMessage $message)
+    public function addMessage(ResourceMessage $message): ResourceEventInterface
     {
         if ($message->getType() === ResourceMessage::TYPE_ERROR) {
             $this->stopPropagation();
         }
 
-        array_push($this->messages, $message);
+        $this->messages[] = $message;
 
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getMessages($type = null)
+    public function getMessages(string $type = null): array
     {
-        if (null !== $type) {
-            ResourceMessage::validateType($type);
-
-            $messages = [];
-            foreach ($this->messages as $message) {
-                if ($message->getType() === $type) {
-                    $messages[] = $message;
-                }
-            }
-
-            return $messages;
+        if (null === $type) {
+            return $this->messages;
         }
 
-        return $this->messages;
-    }
+        ResourceMessage::validateType($type);
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasMessages($type = null)
-    {
-        if (null !== $type) {
-            ResourceMessage::validateType($type);
-
-            foreach ($this->messages as $message) {
-                if ($message->getType() === $type) {
-                    return true;
-                }
+        $messages = [];
+        foreach ($this->messages as $message) {
+            if ($message->getType() === $type) {
+                $messages[] = $message;
             }
-
-            return false;
         }
 
-        return 0 < count($this->messages);
+        return $messages;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function hasErrors()
+    public function hasMessages(string $type = null): bool
+    {
+        return 0 < count($this->getMessages($type));
+    }
+
+    public function hasErrors(): bool
     {
         return $this->hasMessages(ResourceMessage::TYPE_ERROR);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getErrors()
+    public function getErrors(): array
     {
         return $this->getMessages(ResourceMessage::TYPE_ERROR);
-    }
-
-    /**
-     * {@inheritdoc}
-     * @todo REMOVE
-     */
-    public function toFlashes(FlashBagInterface $flashBag)
-    {
-        foreach ($this->messages as $message) {
-            $flashBag->add($message->getType(), $message->getMessage());
-        }
     }
 }

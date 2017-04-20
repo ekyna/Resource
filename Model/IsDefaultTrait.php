@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -9,10 +11,7 @@ namespace Ekyna\Component\Resource\Model;
  */
 trait IsDefaultTrait
 {
-    /**
-     * @var bool
-     */
-    protected $default = false;
+    protected bool $default = false;
 
 
     /**

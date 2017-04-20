@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -17,7 +19,7 @@ trait TaggedEntityTrait
      * @throws \RuntimeException
      * @return string
      */
-    public function getEntityTag()
+    public function getEntityTag(): string
     {
         if (null === $this->getId()) {
             throw new \RuntimeException('Unable to generate entity tag, as the id property is undefined.');
@@ -31,7 +33,7 @@ trait TaggedEntityTrait
      *
      * @return array
      */
-    public function getEntityTags()
+    public function getEntityTags(): array
     {
         return [$this->getEntityTag()];
     }
@@ -41,7 +43,7 @@ trait TaggedEntityTrait
      *
      * @return string
      */
-    public static function getEntityTagPrefix()
+    public static function getEntityTagPrefix(): string
     {
         // TODO return null by default and get the prefix from the resource configuration.
         throw new \BadMethodCallException('Must be implemented');

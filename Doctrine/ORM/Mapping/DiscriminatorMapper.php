@@ -1,66 +1,73 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Mapping;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\Mapping\Driver\MappingDriver;
+use Ekyna\Component\Resource\Exception\RuntimeException;
+use ReflectionClass;
+
+use function array_flip;
+use function array_key_exists;
+use function end;
+use function in_array;
+use function is_subclass_of;
+use function preg_match;
+use function preg_match_all;
+use function strtolower;
 
 /**
  * Class DiscriminatorMapper
  * @package Ekyna\Component\Resource\Doctrine\ORM\Mapping
  * @author  Etienne Dauvergne <contact@ekyna.com>
- * @see https://medium.com/@jasperkuperus/defining-discriminator-maps-at-child-level-in-doctrine-2-1cd2ded95ffb#.zgi5ccx32
+ * @see     https://medium.com/@jasperkuperus/defining-discriminator-maps-at-child-level-in-doctrine-2-1cd2ded95ffb#.zgi5ccx32
  */
 class DiscriminatorMapper
 {
     /**
+     * The driver of Doctrine, can be used to find all loaded classes.
+     */
+    private MappingDriver $driver;
+
+    /**
      * The top-level class of the inheritance tree.
-     *
-     * @var string
      */
-    private $baseClass;
+    private string $baseClass;
 
     /**
-     * The driver of Doctrine, can be used to find all loaded classes
-     *
-     * @var \Doctrine\Common\Persistence\Mapping\Driver\MappingDriver|null
+     * The cached map, this holds the results after a computation, also for other classes.
      */
-    private $driver;
+    private array $cachedMap;
 
     /**
-     * The cached map, this holds the results after a computation, also for other classes
+     * The *temporary* map used for one run, when computing everything.
      *
      * @var array
      */
-    private $cachedMap;
-
-    /**
-     * The *temporary* map used for one run, when computing everything
-     *
-     * @var array
-     */
-    private $map;
+    private array $map;
 
 
     /**
      * Constructor.
      *
-     * @param EntityManagerInterface $em
-     * @param string                 $baseClass
+     * @param MappingDriver $driver
+     * @param string        $baseClass
      */
-    public function __construct(EntityManagerInterface $em, $baseClass)
+    public function __construct(MappingDriver $driver, string $baseClass)
     {
         // TODO option to exclude top level class from maps.
 
+        $this->driver = $driver;
         $this->baseClass = $baseClass;
-        $this->driver = $em->getConfiguration()->getMetadataDriverImpl();
         $this->cachedMap = [];
     }
 
     /**
      * @param ClassMetadata $metadata
      */
-    public function processClassMetadata(ClassMetadata $metadata)
+    public function processClassMetadata(ClassMetadata $metadata): void
     {
         // Reset the temporary calculation map and get the classname
         $this->map = [];
@@ -75,9 +82,7 @@ class DiscriminatorMapper
         }
 
         // Do we have to process this class?
-        if (($class === $this->baseClass || count($metadata->discriminatorMap) === 0)
-            && $this->extractEntry($class)
-        ) {
+        if (($class === $this->baseClass || empty($metadata->discriminatorMap)) && $this->extractEntry($class)) {
             // Now build the whole map
             $this->checkFamily($class);
         } else {
@@ -99,7 +104,7 @@ class DiscriminatorMapper
     /**
      * @param ClassMetadata $metadata
      */
-    private function overrideMetadata(ClassMetadata $metadata)
+    private function overrideMetadata(ClassMetadata $metadata): void
     {
         $class = $metadata->name;
 
@@ -117,11 +122,16 @@ class DiscriminatorMapper
     }
 
     /**
-     * @param $class
+     * Checks the class's children recursively.
+     *
+     * @param string $class
+     *
+     * @noinspection PhpDocMissingThrowsInspection
      */
-    private function checkFamily($class)
+    private function checkFamily(string $class): void
     {
-        $rc = new \ReflectionClass($class);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $rc = new ReflectionClass($class);
 
         if ($parent = $rc->getParentClass()) {
             // Also check all the children of our parent
@@ -135,73 +145,57 @@ class DiscriminatorMapper
     }
 
     /**
-     * @param $class
+     * Checks the class's children recursively.
+     *
+     * @param string $class
+     *
+     * @noinspection PhpDocMissingThrowsInspection
      */
-    private function checkChildren($class)
+    private function checkChildren(string $class): void
     {
         foreach ($this->driver->getAllClassNames() as $name) {
-            $cRc = new \ReflectionClass($name);
-            if (!$cParent = $cRc->getParentClass()) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $rc = new ReflectionClass($name);
+            if (!$parentRc = $rc->getParentClass()) {
                 continue;
             }
 
-            // Haven't done this class yet? Go for it.
-            if (!array_key_exists($name, $this->map) && $cParent->name == $class && $this->extractEntry($name)) {
+            if (array_key_exists($name, $this->map)) {
+                continue;
+            }
+
+            if ($parentRc->name !== $class) {
+                continue;
+            }
+
+            if ($this->extractEntry($name)) {
                 $this->checkChildren($name);
             }
         }
     }
 
     /**
-     * @param $class
-     *
-     * @return bool
-     * @throws \Exception
-     */
-    /*private function extractEntry($class)
-    {
-        $annotations = \Namespace\To\Annotation::getAnnotationForClass($class);
-        $success = false;
-
-        if (array_key_exists(self::ENTRY_ANNOTATION, $annotations['class'])) {
-            $value = $annotations['class'][self::ENTRY_ANNOTATION]->value;
-
-            if (in_array($value, $this->map)) {
-                throw new \Exception("Found duplicate discriminator map entry '" . $value . "' in " . $class);
-            }
-
-            $this->map[$class] = $value;
-            $success = true;
-        }
-
-        return $success;
-    }*/
-
-    /**
      * Extracts the discriminator name from the given class.
      *
      * @param string $class
      *
-     * @return string
-     *
      * @return bool
-     * @throws \Exception
      */
-    private function extractEntry($class)
+    private function extractEntry(string $class): bool
     {
         if ($class != $this->baseClass && !is_subclass_of($class, $this->baseClass)) {
             return false;
         }
 
         if (!preg_match_all('~/?([a-zA-Z0-9]+)~', $class, $namespaces)) {
-            throw new \Exception("Unexpected class {$class}.");
+            throw new RuntimeException("Unexpected class {$class}.");
         }
 
         $prefix = $suffix = null;
         $parts = $namespaces[0];
 
         foreach ($parts as $index => $namespace) {
-            if ($namespace == 'Component') {
+            if ($namespace === 'Component') {
                 $prefix = strtolower($parts[$index + 1]);
                 break;
             } elseif (preg_match('~([a-zA-Z0-9]+)Bundle~', $namespace, $matches)) {
@@ -213,15 +207,13 @@ class DiscriminatorMapper
         $suffix = strtolower(end($parts));
 
         if (empty($prefix) || empty($suffix)) {
-            throw new \Exception(
-                "Failed to extract discriminator value from class '{$class}'."
-            );
+            throw new RuntimeException("Failed to extract discriminator value from class '{$class}'.");
         }
 
         $value = $prefix . '_' . $suffix;
 
         if (in_array($value, $this->map)) {
-            throw new \Exception("Found duplicate discriminator map entry '{$value}' in {$class}");
+            throw new RuntimeException("Found duplicate discriminator map entry '{$value}' in {$class}");
         }
 
         $this->map[$class] = $value;

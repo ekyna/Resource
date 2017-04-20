@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
 
 /**
@@ -23,14 +25,14 @@ interface TranslationInterface extends ResourceInterface
      *
      * @return $this|TranslationInterface
      */
-    public function setTranslatable(TranslatableInterface $translatable = null): TranslationInterface;
+    public function setTranslatable(?TranslatableInterface $translatable): TranslationInterface;
 
     /**
      * Get the locale.
      *
-     * @return string|null
+     * @return string
      */
-    public function getLocale(): ?string;
+    public function getLocale(): string;
 
     /**
      * Set the locale.

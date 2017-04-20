@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Persistence;
 
-use Ekyna\Component\Resource\Configuration\ConfigurationRegistry;
+use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Event\EventQueue;
 use Ekyna\Component\Resource\Exception\PersistenceEventException;
@@ -13,24 +15,16 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  * @package Ekyna\Component\Resource\Persistence
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueInterface
+final class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueInterface
 {
-    const INSERT = 'insert';
-    const UPDATE = 'update';
-    const DELETE = 'delete';
+    public const INSERT = 'insert';
+    public const UPDATE = 'update';
+    public const DELETE = 'delete';
 
+    protected PersistenceTrackerInterface $tracker;
 
-    /**
-     * @var PersistenceTrackerInterface
-     */
-    protected $tracker;
-
-
-    /**
-     * @inheritDoc
-     */
     public function __construct(
-        ConfigurationRegistry $registry,
+        ResourceRegistryInterface $registry,
         ResourceEventDispatcherInterface $dispatcher,
         PersistenceTrackerInterface $tracker
     ) {
@@ -39,60 +33,38 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
         parent::__construct($registry, $dispatcher);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function flush()
-    {
-        parent::flush();
-
-        $this->tracker->clear();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function clear()
+    protected function clear(): array
     {
         $this->tracker->clearChangeSets();
 
         return parent::clear();
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scheduleInsert(ResourceInterface $resource)
+    public function scheduleInsert(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, static::INSERT)) {
-            $this->enqueue($eventName, $resource);
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::INSERT)) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->enqueue($resource, $eventName);
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scheduleUpdate(ResourceInterface $resource)
+    public function scheduleUpdate(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, static::UPDATE)) {
-            $this->enqueue($eventName, $resource);
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::UPDATE)) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->enqueue($resource, $eventName);
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function scheduleDelete(ResourceInterface $resource)
+    public function scheduleDelete(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, static::DELETE)) {
-            $this->enqueue($eventName, $resource);
+        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::DELETE)) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->enqueue($resource, $eventName);
         }
     }
 
-    /**
-     * @inheritdoc
-     */
-    protected function preventEventConflict($eventName, $oid)
+    protected function preventEventConflict(string $eventName, string $oid): void
     {
         parent::preventEventConflict($eventName, $oid);
 
@@ -113,20 +85,16 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
 
     /**
      * Returns the event priority.
-     *
-     * @param string $eventName
-     *
-     * @return int
      */
-    protected function getEventPriority($eventName)
+    protected function getEventPriority(string $eventName): int
     {
         $suffix = $this->getEventSuffix($eventName);
 
-        if ($suffix === static::UPDATE) {
+        if ($suffix === self::UPDATE) {
             return 9999;
-        } elseif ($suffix === static::INSERT) {
+        } elseif ($suffix === self::INSERT) {
             return 9998;
-        } elseif ($suffix === static::DELETE) {
+        } elseif ($suffix === self::DELETE) {
             return 9997;
         }
 
@@ -135,11 +103,9 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
 
     /**
      * Returns the persistence events suffixes.
-     *
-     * @return array
      */
-    private function getPersistenceSuffixes()
+    private function getPersistenceSuffixes(): array
     {
-        return [static::INSERT, static::UPDATE, static::DELETE];
+        return [self::INSERT, self::UPDATE, self::DELETE];
     }
 }

@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Doctrine\ORM\Listener;
 
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Events;
+use Ekyna\Component\Resource\Behavior\BehaviorExecutorInterface;
+use Ekyna\Component\Resource\Behavior\Behaviors;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 
@@ -13,22 +15,15 @@ use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
  * @package Ekyna\Component\Resource\Doctrine\ORM\Listener
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-class EntityListener implements EventSubscriber
+class EntityListener
 {
-    /**
-     * @var PersistenceEventQueueInterface
-     */
-    protected $eventQueue;
+    protected PersistenceEventQueueInterface $eventQueue;
+    protected BehaviorExecutorInterface $behaviorExecutor;
 
-
-    /**
-     * Constructor.
-     *
-     * @param PersistenceEventQueueInterface $eventQueue
-     */
-    public function __construct(PersistenceEventQueueInterface $eventQueue)
+    public function __construct(PersistenceEventQueueInterface $eventQueue, BehaviorExecutorInterface $behaviorExecutor)
     {
         $this->eventQueue = $eventQueue;
+        $this->behaviorExecutor = $behaviorExecutor;
     }
 
     /**
@@ -38,7 +33,7 @@ class EntityListener implements EventSubscriber
      *
      * @see \Doctrine\ORM\UniOfWork::commit
      */
-    public function onFlush(OnFlushEventArgs $eventArgs)
+    public function onFlush(OnFlushEventArgs $eventArgs): void
     {
         $this->eventQueue->setOpened(true);
 
@@ -46,33 +41,38 @@ class EntityListener implements EventSubscriber
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
             if ($entity instanceof ResourceInterface) {
+                $this->behaviorExecutor->execute($entity, Behaviors::INSERT);
                 $this->eventQueue->scheduleInsert($entity);
             }
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
             if ($entity instanceof ResourceInterface) {
+                $this->behaviorExecutor->execute($entity, Behaviors::UPDATE);
                 $this->eventQueue->scheduleUpdate($entity);
             }
         }
 
         // TODO move collections before update ?
-        foreach ($uow->getScheduledCollectionDeletions() as $col) {
-            foreach ($col as $c) {
-                foreach ($c as $entity) {
+        foreach ($uow->getScheduledCollectionDeletions() as $collections) {
+            foreach ($collections as $collection) {
+                foreach ($collection as $entity) {
                     if ($entity instanceof ResourceInterface) {
+                        $this->behaviorExecutor->execute($entity, Behaviors::DELETE);
                         $this->eventQueue->scheduleDelete($entity);
                     }
                 }
             }
         }
-        foreach ($uow->getScheduledCollectionUpdates() as $col) {
-            foreach ($col as $c) {
-                foreach ($c as $entity) {
+        foreach ($uow->getScheduledCollectionUpdates() as $collections) {
+            foreach ($collections as $collection) {
+                foreach ($collection as $entity) {
                     if ($entity instanceof ResourceInterface) {
                         if ($entity->getId()) {
+                            $this->behaviorExecutor->execute($entity, Behaviors::UPDATE);
                             $this->eventQueue->scheduleUpdate($entity);
                         } else {
+                            $this->behaviorExecutor->execute($entity, Behaviors::INSERT);
                             $this->eventQueue->scheduleInsert($entity);
                         }
                     }
@@ -82,6 +82,7 @@ class EntityListener implements EventSubscriber
 
         foreach ($uow->getScheduledEntityDeletions() as $entity) {
             if ($entity instanceof ResourceInterface) {
+                $this->behaviorExecutor->execute($entity, Behaviors::DELETE);
                 $this->eventQueue->scheduleDelete($entity);
             }
         }
@@ -89,15 +90,5 @@ class EntityListener implements EventSubscriber
         $this->eventQueue->flush();
 
         $this->eventQueue->setOpened(false);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getSubscribedEvents()
-    {
-        return [
-            Events::onFlush,
-        ];
     }
 }

@@ -1,41 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Ekyna\Component\Resource\Model;
+
+use DateTimeInterface;
 
 /**
  * Interface TimestampableInterface
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 interface TimestampableInterface
 {
     /**
-     * Sets the created at datetime.
-     *
-     * @param \DateTime $createdAt
-     * @return TimestampableInterface|$this
+     * Sets the 'created at' date.
      */
-    public function setCreatedAt(\DateTime $createdAt);
+    public function setCreatedAt(DateTimeInterface $date): TimestampableInterface;
 
     /**
-     * Returns the created at datetime.
-     *
-     * @return \DateTime
+     * Returns the 'created at' date.
      */
-    public function getCreatedAt();
+    public function getCreatedAt(): DateTimeInterface;
 
     /**
-     * Set the updated at datetime.
-     *
-     * @param \DateTime $updatedAt
-     * @return TimestampableInterface|$this
+     * Set the 'updated at' date.
      */
-    public function setUpdatedAt(\DateTime $updatedAt = null);
+    public function setUpdatedAt(?DateTimeInterface $date): TimestampableInterface;
 
     /**
-     * Returns the updated at datetime.
-     *
-     * @return \DateTime
+     * Returns the 'updated at' date.
      */
-    public function getUpdatedAt();
+    public function getUpdatedAt(): ?DateTimeInterface;
 }
