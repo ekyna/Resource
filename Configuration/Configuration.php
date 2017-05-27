@@ -189,7 +189,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getTableType()
     {
-        return sprintf('%s_%s', $this->getNamespace(), $this->getId());
+        return $this->getClass('table_type');
     }
 
     /**

@@ -114,12 +114,14 @@ class ConfigurationFactory
             $classesResolver
                 ->setRequired(['entity'])
                 ->setDefaults([
+                    'table_type'  => null, // @TODO/WARNING no longer required (behavior refactoring)
                     'form_type'  => null, // @TODO/WARNING no longer required (behavior refactoring)
                     'repository' => null,
                 ])
                 ->setAllowedTypes('entity', 'string')
                 ->setAllowedTypes('repository', ['null', 'string'])
-                ->setAllowedTypes('form_type', ['null', 'string']); // @TODO/WARNING no longer required (behavior refactoring)
+                ->setAllowedTypes('form_type', ['null', 'string'])
+                ->setAllowedTypes('table_type', ['null', 'string']); // @TODO/WARNING no longer required (behavior refactoring)
 
             $resolver
                 ->setNormalizer('classes', function (Options $options, $value) use ($classesResolver) {
