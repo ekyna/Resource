@@ -12,12 +12,10 @@
         "php",
         "resource"
     ],
-    "homepage" : "https://github.com/ekyna/Resource",
-    "license": [
-        "MIT"
-    ],
+    "homepage": "https://github.com/ekyna/Resource",
+    "license": "MIT",
     "require": {
-        "php": ">=5.4",
+        "php": ">=7.0",
         "symfony/event-dispatcher": "~2.7|~3.0",
         "symfony/options-resolver": "~2.7|~3.0",
         "symfony/property-access": "~2.7|~3.0",
