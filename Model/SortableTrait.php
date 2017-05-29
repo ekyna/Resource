@@ -12,7 +12,7 @@ trait SortableTrait
     /**
      * @var integer
      */
-    protected $position = 0;
+    protected $position;
 
 
     /**
@@ -23,7 +23,7 @@ trait SortableTrait
      */
     public function setPosition($position)
     {
-        $this->position = abs(intval($position));
+        $this->position = $position;
 
         return $this;
     }

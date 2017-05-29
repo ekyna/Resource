@@ -4,6 +4,7 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Util;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Model\TaggedEntityInterface;
 use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
@@ -152,7 +153,7 @@ trait ResourceRepositoryTrait
     {
         $limit = intval($limit);
         if ($limit <= 1) {
-            throw new \InvalidArgumentException('Please use `findRandomOneBy()` for single result.');
+            throw new InvalidArgumentException('Please use `findRandomOneBy()` for single result.');
         }
 
         $queryBuilder = $this->getCollectionQueryBuilder();
