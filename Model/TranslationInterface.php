@@ -7,15 +7,8 @@ namespace Ekyna\Component\Resource\Model;
  * @package Ekyna\Component\Resource\Model
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-interface TranslationInterface
+interface TranslationInterface extends ResourceInterface
 {
-    /**
-     * Returns the id.
-     *
-     * @return int
-     */
-    public function getId();
-
     /**
      * Get the translatable object.
      *
