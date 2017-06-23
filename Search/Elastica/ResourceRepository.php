@@ -59,6 +59,6 @@ class ResourceRepository extends Repository implements SearchRepositoryInterface
      */
     protected function getDefaultMatchFields()
     {
-        return ['choice_label'];
+        return ['text'];
     }
 }

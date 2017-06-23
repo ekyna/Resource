@@ -74,8 +74,8 @@ abstract class AbstractResourceNormalizer implements NormalizerInterface, Denorm
     {
         /** @var Model\ResourceInterface $resource */
         $data = [
-            'id'           => $resource->getId(),
-            'choice_label' => (string)$resource,
+            'id'   => $resource->getId(),
+            'text' => (string)$resource, // 'text' Required for Select2
         ];
 
         return $data;

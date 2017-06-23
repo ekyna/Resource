@@ -3,11 +3,6 @@
 namespace Ekyna\Component\Resource\Serializer;
 
 use Ekyna\Component\Resource\Model;
-use Symfony\Component\Serializer\Exception\LogicException;
-use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Symfony\Component\Serializer\SerializerAwareInterface;
-use Symfony\Component\Serializer\SerializerAwareTrait;
 
 /**
  * Class AbstractTranslatableNormalizer
@@ -21,6 +16,7 @@ abstract class AbstractTranslatableNormalizer extends AbstractResourceNormalizer
      */
     public function normalize($resource, $format = null, array $context = [])
     {
+        /** @var Model\TranslatableInterface $resource */
         return array_replace(
             parent::normalize($resource, $format, $context),
             $this->normalizeTranslations($resource, $format, $context)
@@ -42,22 +38,37 @@ abstract class AbstractTranslatableNormalizer extends AbstractResourceNormalizer
 
         $groups = isset($context['groups']) ? (array)$context['groups'] : [];
 
-        /*if (in_array('Default', $groups)) {
-            if ($translatable instanceof Model\TranslatableInterface) {
-                $data['translations'] = array_map(function (Model\TranslationInterface $t) use ($format, $context) {
-                    return $t->getId();
-                }, $translatable->getTranslations()->toArray());
-            }
-        }*/
         if (in_array('Search', $groups)) {
             if ($translatable instanceof Model\TranslatableInterface) {
-                $data['translations'] = array_map(function (Model\TranslationInterface $t) use ($format, $context) {
-                    return $this->normalizeObject($t, $format, $context);
-                }, $translatable->getTranslations()->toArray());
+                $translations = [];
+
+                /** @var Model\TranslationInterface $translation */
+                foreach ($translatable->getTranslations()->toArray() as $translation) {
+                    if ($this->filterTranslation($translation)) {
+                        $translations[$translation->getLocale()] =
+                            $this->normalizeObject($translation, $format, $context);
+                    }
+                }
+
+                if (!empty($translations)) {
+                    $data['translations'] = $translations;
+                }
             }
         }
 
         return $data;
+    }
+
+    /**
+     * Returns whether to index the translation.
+     *
+     * @param Model\TranslationInterface $translation
+     *
+     * @return bool
+     */
+    protected function filterTranslation(Model\TranslationInterface $translation)
+    {
+        return true;
     }
 
     /**
