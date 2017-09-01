@@ -60,6 +60,12 @@ class EventQueue implements EventQueueInterface
     public function setOpened($opened)
     {
         $this->opened = (bool)$opened;
+
+        if ($opened) {
+            $this->dispatcher->dispatch(static::QUEUE_OPEN);
+        } else {
+            $this->dispatcher->dispatch(static::QUEUE_CLOSE);
+        }
     }
 
     /**
