@@ -6,6 +6,7 @@ use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Event\ResourceEventInterface;
+use Ekyna\Component\Resource\Event\ResourceEvents;
 use Ekyna\Component\Resource\Event\ResourceMessage;
 use Ekyna\Component\Resource\Configuration\ConfigurationInterface;
 use Ekyna\Component\Resource\Exception\ResourceExceptionInterface;
@@ -114,6 +115,28 @@ class ResourceOperator implements ResourceOperatorInterface
     /**
      * {@inheritdoc}
      */
+    public function initialize($resourceOrEvent)
+    {
+        $event = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent
+            : $this->createResourceEvent($resourceOrEvent);
+
+        try {
+            $this->dispatchResourceEvent(ResourceEvents::INITIALIZE, $event);
+        } catch (ResourceExceptionInterface $e) {
+            if ($this->debug) {
+                throw $e;
+            }
+
+            $event->addMessage(new ResourceMessage($e->getMessage(), ResourceMessage::TYPE_ERROR));
+        }
+
+        return $event;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function create($resourceOrEvent)
     {
         $event = $resourceOrEvent instanceof ResourceEventInterface
@@ -121,13 +144,13 @@ class ResourceOperator implements ResourceOperatorInterface
             : $this->createResourceEvent($resourceOrEvent);
 
         try {
-            $this->dispatcher->dispatch($this->config->getEventName('pre_create'), $event);
+            $this->dispatchResourceEvent(ResourceEvents::PRE_CREATE, $event);
 
             if (!$event->isPropagationStopped()) {
                 $this->persistResource($event);
 
                 if (!$event->isPropagationStopped()) {
-                    $this->dispatcher->dispatch($this->config->getEventName('post_create'), $event);
+                    $this->dispatchResourceEvent(ResourceEvents::POST_CREATE, $event);
                 }
             }
         } catch (ResourceExceptionInterface $e) {
@@ -153,13 +176,13 @@ class ResourceOperator implements ResourceOperatorInterface
         $event->setHard($event->getHard() || $hard);
 
         try {
-            $this->dispatcher->dispatch($this->config->getEventName('pre_update'), $event);
+            $this->dispatchResourceEvent(ResourceEvents::PRE_UPDATE, $event);
 
             if (!$event->isPropagationStopped()) {
                 $this->persistResource($event);
 
                 if (!$event->isPropagationStopped()) {
-                    $this->dispatcher->dispatch($this->config->getEventName('post_update'), $event);
+                    $this->dispatchResourceEvent(ResourceEvents::POST_UPDATE, $event);
                 }
             }
         } catch (ResourceExceptionInterface $e) {
@@ -185,7 +208,7 @@ class ResourceOperator implements ResourceOperatorInterface
         $event->setHard($event->getHard() || $hard);
 
         try {
-            $this->dispatcher->dispatch($this->config->getEventName('pre_delete'), $event);
+            $this->dispatchResourceEvent(ResourceEvents::PRE_DELETE, $event);
 
             if (!$event->isPropagationStopped()) {
                 $eventManager = $this->manager->getEventManager();
@@ -211,7 +234,7 @@ class ResourceOperator implements ResourceOperatorInterface
                 }
 
                 if (!$event->isPropagationStopped()) {
-                    $this->dispatcher->dispatch($this->config->getEventName('post_delete'), $event);
+                    $this->dispatchResourceEvent(ResourceEvents::POST_DELETE, $event);
                 }
             }
         } catch (ResourceExceptionInterface $e) {
@@ -226,9 +249,31 @@ class ResourceOperator implements ResourceOperatorInterface
     }
 
     /**
+     * Dispatches the resource event.
+     *
+     * @param string                                   $name
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     *
+     * @return \Symfony\Component\EventDispatcher\Event
+     */
+    protected function dispatchResourceEvent($name, $resourceOrEvent)
+    {
+        ResourceEvents::isValid($name);
+
+        $name = $this->config->getEventName($name);
+
+        $event = $resourceOrEvent instanceof ResourceEventInterface
+            ? $resourceOrEvent
+            : $this->createResourceEvent($resourceOrEvent);
+
+
+        return $this->dispatcher->dispatch($name, $event);
+    }
+
+    /**
      * @inheritdoc
      */
-    public function createResourceEvent($resource)
+    public function createResourceEvent(ResourceInterface $resource)
     {
         return $this->dispatcher->createResourceEvent($resource);
     }

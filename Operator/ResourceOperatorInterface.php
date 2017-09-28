@@ -8,7 +8,7 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 /**
  * Interface ResourceOperatorInterface
  * @package Ekyna\Component\Resource\Doctrine\ORM
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 interface ResourceOperatorInterface
 {
@@ -48,6 +48,15 @@ interface ResourceOperatorInterface
     public function clear();
 
     /**
+     * Initializes the resource.
+     *
+     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
+     *
+     * @return ResourceEventInterface
+     */
+    public function initialize($resourceOrEvent);
+
+    /**
      * Creates the resource.
      *
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
@@ -69,7 +78,7 @@ interface ResourceOperatorInterface
      * Deletes the resource.
      *
      * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
-     * @param boolean $hard Whether or not to bypass deletion prevention.
+     * @param boolean                                  $hard Whether or not to bypass deletion prevention.
      *
      * @return ResourceEventInterface
      */
@@ -82,5 +91,5 @@ interface ResourceOperatorInterface
      *
      * @return ResourceEventInterface
      */
-    public function createResourceEvent($resource);
+    public function createResourceEvent(ResourceInterface $resource);
 }
