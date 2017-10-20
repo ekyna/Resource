@@ -73,7 +73,11 @@ class Configuration implements ConfigurationInterface
      */
     public function getParentControllerId()
     {
-        return sprintf('%s.controller', $this->getParentId());
+        if (!empty($this->getParentId())) {
+            return sprintf('%s.controller', $this->getParentId());
+        }
+
+        return null;
     }
 
     /**
@@ -81,7 +85,11 @@ class Configuration implements ConfigurationInterface
      */
     public function getParentConfigurationId()
     {
-        return sprintf('%s.configuration', $this->getParentId());
+        if (!empty($this->getParentId())) {
+            return sprintf('%s.configuration', $this->getParentId());
+        }
+
+        return null;
     }
 
     /**

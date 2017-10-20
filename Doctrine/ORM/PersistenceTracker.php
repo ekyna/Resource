@@ -73,7 +73,10 @@ class PersistenceTracker implements PersistenceTrackerInterface
                     }
                 }
             }
-            // Entity has been fetched from database, we can trust the UOW
+            // Entity has been fetched from database, build original data by
+            // overriding the UOW original data with the UOW change set.
+            // TODO Only overridden data will be correct (i.e. really the original one),
+            // we may use a postLoad event ...
             else {
                 $originalData = $uow->getOriginalEntityData($entity);
                 $changeSet = $uow->getEntityChangeSet($entity);

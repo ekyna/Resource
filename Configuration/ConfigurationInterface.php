@@ -45,14 +45,14 @@ interface ConfigurationInterface
     /**
      * Returns the parent controller identifier.
      *
-     * @return string
+     * @return string|null
      */
     public function getParentControllerId();
 
     /**
      * Returns the parent configuration identifier.
      *
-     * @return string
+     * @return string|null
      */
     public function getParentConfigurationId();
 

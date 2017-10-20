@@ -33,6 +33,8 @@ interface PersistenceTrackerInterface
 
     /**
      * Clears the change sets and the original data.
+     *
+     * Must be called at the end of flush (queue / doctrine event).
      */
     public function clear();
 }

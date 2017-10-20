@@ -75,7 +75,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource);
 
         if (is_string($properties)) {
-            return array_key_exists($properties, $changeSet);
+            return isset($changeSet[$properties]) ||array_key_exists($properties, $changeSet);
         } elseif (is_array($properties)) {
             return !empty(array_intersect($properties, array_keys($changeSet)));
         }
@@ -121,7 +121,7 @@ class PersistenceHelper implements PersistenceHelperInterface
             $this->manager->persist($resource);
         }
 
-        // TODO Remove ? The tracker may build the proper change set without pre-computation.
+        // TODO Remove ? The tracker should build the proper change set without pre-computation.
         $this->tracker->computeChangeSet($resource);
 
         $metadata = $this->manager->getClassMetadata(get_class($resource));
@@ -149,7 +149,7 @@ class PersistenceHelper implements PersistenceHelperInterface
             $this->manager->remove($resource);
         }
 
-        // TODO Remove ? The tracker may build the proper change set without pre-computation.
+        // TODO Remove ? The tracker should build the proper change set without pre-computation.
         $this->tracker->computeChangeSet($resource);
 
         if ($schedule) {
