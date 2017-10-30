@@ -117,7 +117,7 @@ abstract class AbstractResourceNormalizer implements NormalizerInterface, Denorm
      * @param string $format
      * @param array  $context
      *
-     * @return object|void
+     * @return object
      */
     protected function denormalizeObject($data, $class, $format, array $context)
     {

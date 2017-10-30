@@ -211,10 +211,15 @@ class ResourceOperator implements ResourceOperatorInterface
             $this->dispatchResourceEvent(ResourceEvents::PRE_DELETE, $event);
 
             if (!$event->isPropagationStopped()) {
+                $filters = $this->manager->getFilters();
                 $eventManager = $this->manager->getEventManager();
-
                 $disabledListeners = [];
+
                 if ($event->getHard()) {
+                    if ($filters->has('softdeleteable')) {
+                        $filters->disable('softdeleteable');
+                    }
+
                     foreach ($eventManager->getListeners() as $eventName => $listeners) {
                         foreach ($listeners as $listener) {
                             if ($listener instanceof SoftDeleteableListener) {
@@ -227,9 +232,15 @@ class ResourceOperator implements ResourceOperatorInterface
 
                 $this->removeResource($event);
 
-                if (!empty($disabledListeners)) {
-                    foreach ($disabledListeners as $eventName => $listener) {
-                        $eventManager->addEventListener($eventName, $listener);
+                if ($event->getHard()) {
+                    if (!empty($disabledListeners)) {
+                        foreach ($disabledListeners as $eventName => $listener) {
+                            $eventManager->addEventListener($eventName, $listener);
+                        }
+                    }
+
+                    if ($filters->has('softdeleteable')) {
+                        $filters->enable('softdeleteable');
                     }
                 }
 
