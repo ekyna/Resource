@@ -3,6 +3,7 @@
 namespace Ekyna\Component\Resource\Doctrine\ORM;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
 /**
@@ -12,7 +13,7 @@ use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
  *
  * This is a workaround for https://github.com/doctrine/doctrine2/issues/5198
  *
- * @TODO Use resource interface
+ * @TODO    Use resource interface
  */
 class PersistenceTracker implements PersistenceTrackerInterface
 {
@@ -63,12 +64,9 @@ class PersistenceTracker implements PersistenceTrackerInterface
             // For new entities, the original data returned by the doctrine UOW
             // reflects the persisted values and not the true original data.
             // Overrides the original data with null values.
-            if ($uow->isScheduledForInsert($entity)) { // TODO ResourceInterface::getId() ?
+            if ($uow->isScheduledForInsert($entity)) {
                 foreach ($class->reflFields as $name => $refProp) {
-                    if ((!$class->isIdentifier($name) || !$class->isIdGeneratorIdentity())
-                        && ($name !== $class->versionField)
-                        && !$class->isCollectionValuedAssociation($name)
-                    ) {
+                    if ($this->isBasicOrSingleAssociation($name, $class)) {
                         $originalData[$name] = null;
                     }
                 }
@@ -76,12 +74,12 @@ class PersistenceTracker implements PersistenceTrackerInterface
             // Entity has been fetched from database, build original data by
             // overriding the UOW original data with the UOW change set.
             // TODO Only overridden data will be correct (i.e. really the original one),
-            // we may use a postLoad event ...
+            // we may use a postLoad event but we don't want to store all entities original data :s ...
             else {
                 $originalData = $uow->getOriginalEntityData($entity);
                 $changeSet = $uow->getEntityChangeSet($entity);
-                foreach ($changeSet as $field => $data) {
-                    $originalData[$field] = $data[0];
+                foreach ($changeSet as $name => $data) {
+                    $originalData[$name] = $this->normalizeData($data[0], $name, $class);
                 }
             }
 
@@ -93,25 +91,55 @@ class PersistenceTracker implements PersistenceTrackerInterface
         $actualData = [];
 
         foreach ($class->reflFields as $name => $refProp) {
-            if ((!$class->isIdentifier($name) || !$class->isIdGeneratorIdentity())
-                && ($name !== $class->versionField)
-                && !$class->isCollectionValuedAssociation($name)
-            ) {
+            if ($this->isBasicOrSingleAssociation($name, $class)) {
                 $actualData[$name] = $refProp->getValue($entity);
             }
         }
 
         $changeSet = [];
 
-        foreach ($actualData as $propName => $actualValue) {
-            $orgValue = isset($originalData[$propName]) ? $originalData[$propName] : null;
+        foreach ($actualData as $name => $actualValue) {
+            $orgValue = isset($originalData[$name]) ? $originalData[$name] : null;
 
             if ($orgValue !== $actualValue) {
-                $changeSet[$propName] = [$orgValue, $actualValue];
+                $changeSet[$name] = [$orgValue, $actualValue];
             }
         }
 
         $this->changeSets[$oid] = $changeSet;
+    }
+
+    /**
+     * Returns whether the field is mapped as a basic or single association type.
+     *
+     * @param string        $field
+     * @param ClassMetadata $class
+     *
+     * @return bool
+     */
+    private function isBasicOrSingleAssociation($field, ClassMetadata $class)
+    {
+        return (!$class->isIdentifier($field) || !$class->isIdGeneratorIdentity())
+            && ($field !== $class->versionField)
+            && !$class->isCollectionValuedAssociation($field);
+    }
+
+    /**
+     * Normalizes the data.
+     *
+     * @param mixed         $data
+     * @param string        $field
+     * @param ClassMetadata $class
+     *
+     * @return mixed
+     */
+    private function normalizeData($data, $field, ClassMetadata $class)
+    {
+        if (isset($class->fieldMappings[$field]) && $class->fieldMappings[$field]['type'] === 'decimal') {
+            return round((float)$data, $class->fieldMappings[$field]['scale']);
+        }
+
+        return $data;
     }
 
     /**
