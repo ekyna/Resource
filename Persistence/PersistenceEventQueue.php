@@ -96,9 +96,14 @@ class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueI
     {
         parent::preventEventConflict($eventName, $oid);
 
+        // Skip non persistence suffix
+        $suffix = $this->getEventSuffix($eventName);
+        if (!in_array($suffix, $this->getPersistenceSuffixes(), true)) {
+            return;
+        }
+
         // Watch for persistence event conflict
         $prefix = $this->getEventPrefix($eventName);
-        $suffix = $this->getEventSuffix($eventName);
         foreach (array_diff($this->getPersistenceSuffixes(), [$suffix]) as $other) {
             if (isset($this->queue[$prefix . '.' . $other]) && isset($this->queue[$prefix . '.' . $other][$oid])) {
                 throw new PersistenceEventException("Already scheduled for action '$other'.");
