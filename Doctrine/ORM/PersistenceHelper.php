@@ -75,7 +75,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource);
 
         if (is_string($properties)) {
-            return isset($changeSet[$properties]) ||array_key_exists($properties, $changeSet);
+            return isset($changeSet[$properties]) || array_key_exists($properties, $changeSet);
         } elseif (is_array($properties)) {
             return !empty(array_intersect($properties, array_keys($changeSet)));
         }

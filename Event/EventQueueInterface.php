@@ -16,11 +16,18 @@ interface EventQueueInterface
 
 
     /**
-     * Sets whether the queue is opened or not.
+     * Sets whether or not the queue is opened.
      *
-     * @param boolean $opened
+     * @param bool $opened
      */
     public function setOpened($opened);
+
+    /**
+     * Returns whether or not the queue is opened.
+     *
+     * @return bool
+     */
+    public function isOpened();
 
     /**
      * Schedules the resource event.

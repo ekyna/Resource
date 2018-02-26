@@ -13,7 +13,8 @@ use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
  *
  * This is a workaround for https://github.com/doctrine/doctrine2/issues/5198
  *
- * @TODO    Use resource interface
+ * @TODO Use resource interface
+ * @TODO Check Doctrine\Common\PropertyChangedListener
  */
 class PersistenceTracker implements PersistenceTrackerInterface
 {
@@ -77,6 +78,23 @@ class PersistenceTracker implements PersistenceTrackerInterface
             // we may use a postLoad event but we don't want to store all entities original data :s ...
             else {
                 $originalData = $uow->getOriginalEntityData($entity);
+                foreach ($class->reflFields as $name => $refProp) {
+                    // Retrieve original object for cleared *ToOne association.
+                    if ($this->isSingleAssociation($name, $class) && !isset($originalData[$name])) {
+                        //$mapping = $class->getAssociationMapping($name);
+                        $column = $class->getSingleAssociationJoinColumnName($name);
+                        if (isset($originalData[$column])) {
+                            $object = $uow->tryGetById(
+                                $originalData[$column],
+                                $class->getAssociationTargetClass($name)
+                            );
+                            if (false !== $object) {
+                                $originalData[$name] = $object;
+                            }
+                        }
+                    }
+                }
+                // Override with uow change set.
                 $changeSet = $uow->getEntityChangeSet($entity);
                 foreach ($changeSet as $name => $data) {
                     $originalData[$name] = $this->normalizeData($data[0], $name, $class);
@@ -99,6 +117,11 @@ class PersistenceTracker implements PersistenceTrackerInterface
         $changeSet = [];
 
         foreach ($actualData as $name => $actualValue) {
+            // Skip embedded entities: changes are stored under keys in the form <name>.<embeddedProperty>.
+            if (array_key_exists($name, $class->embeddedClasses)) {
+                continue;
+            }
+
             $orgValue = isset($originalData[$name]) ? $originalData[$name] : null;
 
             if ($orgValue !== $actualValue) {
@@ -122,6 +145,20 @@ class PersistenceTracker implements PersistenceTrackerInterface
         return (!$class->isIdentifier($field) || !$class->isIdGeneratorIdentity())
             && ($field !== $class->versionField)
             && !$class->isCollectionValuedAssociation($field);
+    }
+
+    /**
+     * Returns whether the field is mapped as a basic or single association type.
+     *
+     * @param string        $field
+     * @param ClassMetadata $class
+     *
+     * @return bool
+     */
+    private function isSingleAssociation($field, ClassMetadata $class)
+    {
+        return $class->isSingleValuedAssociation($field)
+            && $class->isAssociationWithSingleJoinColumn($field);
     }
 
     /**

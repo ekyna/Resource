@@ -71,6 +71,14 @@ class EventQueue implements EventQueueInterface
     /**
      * @inheritdoc
      */
+    public function isOpened()
+    {
+        return $this->opened;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function scheduleEvent($eventName, $resourceOrEvent)
     {
         $this->enqueue($eventName, $resourceOrEvent);
@@ -94,16 +102,6 @@ class EventQueue implements EventQueueInterface
                 }
             }
         }
-    }
-
-    /**
-     * Returns whether the queue is opened or not.
-     *
-     * @return boolean
-     */
-    protected function isOpened()
-    {
-        return $this->opened;
     }
 
     /**
