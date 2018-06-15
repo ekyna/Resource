@@ -24,6 +24,7 @@ trait ResourceRepositoryTrait
      */
     private $cachePrefix;
 
+
     /**
      * Creates a new resource.
      *
@@ -38,18 +39,29 @@ trait ResourceRepositoryTrait
     /**
      * Finds the resource by his ID.
      *
-     * @param int $id
+     * @param mixed    $id
+     * @param int|null $lockMode
+     * @param int|null $lockVersion
      *
      * @return null|object
      */
-    public function find($id)
+    public function find($id, $lockMode = null, $lockVersion = null)
     {
-        return $this
+        if ($lockVersion && $this->_em) {
+            /** @noinspection PhpUndefinedMethodInspection */
+            return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
+        }
+
+        $query =  $this
             ->getQueryBuilder()
             ->andWhere($this->getAlias().'.id = '.intval($id))
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getQuery();
+
+        if ($lockMode) {
+            $query->setLockMode($lockMode);
+        }
+
+        return $query->getOneOrNullResult();
     }
 
     /**
@@ -70,14 +82,26 @@ trait ResourceRepositoryTrait
      * Finds one resource by criteria and sorting.
      *
      * @param array $criteria
+     * @param array $orderBy
+     * @param int   $limit
+     * @param int   $offset
      *
      * @return null|object
      */
-    public function findOneBy(array $criteria = [])
+    public function findOneBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
         $queryBuilder = $this->getQueryBuilder();
 
         $this->applyCriteria($queryBuilder, $criteria);
+        $this->applySorting($queryBuilder, $orderBy);
+
+        if (null !== $limit) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        if (null !== $offset) {
+            $queryBuilder->setFirstResult($offset);
+        }
 
         return $queryBuilder
             ->getQuery()
@@ -89,18 +113,18 @@ trait ResourceRepositoryTrait
      * Finds resources by criteria, sorting, limit and offset.
      *
      * @param array $criteria
-     * @param array $sorting
+     * @param array $orderBy
      * @param int   $limit
      * @param int   $offset
      *
      * @return array|\Doctrine\ORM\Tools\Pagination\Paginator
      */
-    public function findBy(array $criteria, array $sorting = null, $limit = null, $offset = null)
+    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
         $queryBuilder = $this->getCollectionQueryBuilder();
 
         $this->applyCriteria($queryBuilder, $criteria);
-        $this->applySorting($queryBuilder, (array) $sorting);
+        $this->applySorting($queryBuilder, $orderBy);
 
         if (null !== $limit) {
             $queryBuilder->setMaxResults($limit);
@@ -178,7 +202,7 @@ trait ResourceRepositoryTrait
      *
      * @return Pagerfanta
      */
-    public function createPager(array $criteria = [], array $sorting = [])
+    public function createPager(array $criteria = [], array $sorting = null)
     {
         $queryBuilder = $this->getCollectionQueryBuilder();
 
@@ -289,6 +313,10 @@ trait ResourceRepositoryTrait
      */
     protected function applySorting(QueryBuilder $queryBuilder, array $sorting = null)
     {
+        if (empty($sorting)) {
+            return;
+        }
+
         foreach ($sorting as $property => $order) {
             if (!empty($order)) {
                 $queryBuilder->addOrderBy($this->getPropertyName($property), $order);

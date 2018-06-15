@@ -30,7 +30,7 @@ interface PersistenceHelperInterface
     public function getChangeSet(ResourceInterface $resource, $property = null);
 
     /**
-     * Returns whether at least one one of the properties has changed.
+     * Returns whether at least one of the given properties has changed.
      *
      *
      * @param ResourceInterface $resource
