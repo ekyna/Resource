@@ -7,7 +7,7 @@ namespace Ekyna\Component\Resource\Model;
  * @package Ekyna\Component\Resource\Model
  * @author  Etienne Dauvergne <contact@ekyna.com>
  */
-interface IsEnabledInterface extends ResourceInterface
+interface IsEnabledInterface
 {
     /**
      * Sets whether the resource is enabled or not.

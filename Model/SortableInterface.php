@@ -5,7 +5,7 @@ namespace Ekyna\Component\Resource\Model;
 /**
  * Interface SortableInterface
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 interface SortableInterface
 {
@@ -13,6 +13,7 @@ interface SortableInterface
      * Sets the position.
      *
      * @param integer $position
+     *
      * @return SortableInterface|$this
      */
     public function setPosition($position);
