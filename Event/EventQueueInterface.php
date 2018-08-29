@@ -11,10 +11,6 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 interface EventQueueInterface
 {
-    const QUEUE_OPEN  = 'ekyna_resource.event_queue_open';
-    const QUEUE_CLOSE = 'ekyna_resource.event_queue_close';
-
-
     /**
      * Sets whether or not the queue is opened.
      *
