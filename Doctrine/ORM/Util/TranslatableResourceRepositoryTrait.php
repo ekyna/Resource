@@ -72,7 +72,12 @@ trait TranslatableResourceRepositoryTrait
 
         return $qb
             ->addSelect('translation')
-            ->leftJoin($alias . '.translations', 'translation');
+            ->leftJoin(
+                $alias . '.translations',
+                'translation',
+                Query\Expr\Join::WITH,
+                $this->getLocaleCondition('translation')
+            );
     }
 
     /**
