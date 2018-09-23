@@ -48,12 +48,7 @@ trait TranslatableResourceRepositoryTrait
 
         return $qb
             ->addSelect('translation')
-            ->leftJoin(
-                $alias . '.translations',
-                'translation',
-                Query\Expr\Join::WITH,
-                $this->getLocaleCondition('translation')
-            );
+            ->leftJoin($alias . '.translations', 'translation');
     }
 
     /**
@@ -72,12 +67,7 @@ trait TranslatableResourceRepositoryTrait
 
         return $qb
             ->addSelect('translation')
-            ->leftJoin(
-                $alias . '.translations',
-                'translation',
-                Query\Expr\Join::WITH,
-                $this->getLocaleCondition('translation')
-            );
+            ->leftJoin($alias . '.translations', 'translation');
     }
 
     /**
@@ -138,6 +128,10 @@ trait TranslatableResourceRepositoryTrait
      */
     public function getLocaleCondition($alias = 'translation')
     {
+        if (!$this->localeProvider) {
+            return null;
+        }
+
         $expr = new Query\Expr();
 
         // TODO This may change between master/sub requests
