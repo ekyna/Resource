@@ -98,6 +98,7 @@ class ConfigurationFactory
                     'event'       => null,
                     'templates'   => null,
                     'translation' => null,
+                    'trans_prefix' => null,
                 ])
                 ->setAllowedTypes('namespace', 'string')
                 ->setAllowedTypes('id', 'string')
@@ -106,7 +107,8 @@ class ConfigurationFactory
                 ->setAllowedTypes('classes', 'array')
                 ->setAllowedTypes('event', ['null', 'string', 'array'])
                 ->setAllowedTypes('templates', ['null', 'string', 'array'])
-                ->setAllowedTypes('translation', ['null', 'array']);
+                ->setAllowedTypes('translation', ['null', 'array'])
+                ->setAllowedTypes('trans_prefix', ['null', 'string']);
 
 
             // Classes option
@@ -208,6 +210,14 @@ class ConfigurationFactory
                 return $value;
             });
 
+            /** @noinspection PhpUnusedParameterInspection */
+            $resolver->setNormalizer('trans_prefix', function (Options $options, $value) use ($translationResolver) {
+                if (empty($value)) {
+                    return sprintf('%s.%s', $options['namespace'], $options['id']);
+                }
+
+                return $value;
+            });
 
             // Event option
             $eventResolver = new OptionsResolver();

@@ -103,6 +103,14 @@ class Configuration implements ConfigurationInterface
     /**
      * @inheritdoc
      */
+    public function getTranslationPrefix()
+    {
+        return $this->config['trans_prefix'] ?: $this->getResourceId();
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getTranslationClass()
     {
         return $this->getTranslation('entity'); // TODO rename key to 'class' (and in builder / config tree)
@@ -145,7 +153,7 @@ class Configuration implements ConfigurationInterface
      */
     public function getResourceLabel($plural = false)
     {
-        return sprintf('%s.%s.label.%s', $this->getNamespace(), $this->getId(), $plural ? 'plural' : 'singular');
+        return sprintf('%s.label.%s', $this->getTranslationPrefix(), $plural ? 'plural' : 'singular');
     }
 
     /**
