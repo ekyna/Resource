@@ -167,13 +167,6 @@ interface ConfigurationInterface
     public function getServiceKey($service);
 
     /**
-     * Returns the object (resource) identify.
-     *
-     * @return \Symfony\Component\Security\Acl\Domain\ObjectIdentity
-     */
-    public function getObjectIdentity();
-
-    /**
      * Returns whether this configuration is relevant for the given object.
      *
      * @param object $object

@@ -2,6 +2,7 @@
 
 namespace Ekyna\Component\Resource\Configuration;
 
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
 use Ekyna\Component\Resource\Model\TranslationInterface;
 
@@ -79,6 +80,10 @@ class ConfigurationRegistry
                 }
             }
         } elseif (is_string($resource)) {
+            // By Alias
+            if ($config = $this->findByName($resource, false)) {
+                return $config;
+            }
             // By class
             if (class_exists($resource, false)) {
                 foreach ($this->configurations as $config) {
@@ -87,15 +92,9 @@ class ConfigurationRegistry
                     }
                 }
             }
-            // By Alias
-            if ($this->has($resource)) {
-                return $this->get($resource);
-            }
             // By Id
-            foreach ($this->configurations as $config) {
-                if ($resource == $config->getResourceId()) {
-                    return $config;
-                }
+            if ($config = $this->findById($resource, false)) {
+                return $config;
             }
         }
 
@@ -138,33 +137,51 @@ class ConfigurationRegistry
     }
 
     /**
-     * Returns whether a configuration exists or not for the given identifier.
+     * Returns the configuration for the given name.
      *
-     * @param string $id
+     * @param string $alias
+     * @param bool   $throwException
      *
-     * @return boolean
-     */
-    public function has($id)
-    {
-        return array_key_exists($id, $this->configurations);
-    }
-
-    /**
-     * Returns the configuration for the given identifier.
-     *
-     * @param string $id
-     *
-     * @throws \InvalidArgumentException
+     * @throws NotFoundConfigurationException
      *
      * @return ConfigurationInterface
      */
-    public function get($id)
+    public function findByName($alias, $throwException = true)
     {
-        if (!$this->has($id)) {
-            throw new \InvalidArgumentException(sprintf('Configuration "%s" not found.', $id));
+        if (array_key_exists($alias, $this->configurations)) {
+            return $this->configurations[$alias];
         }
 
-        return $this->configurations[$id];
+        if ($throwException) {
+            throw new NotFoundConfigurationException($alias);
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the configuration for the given id.
+     *
+     * @param string $id
+     * @param bool   $throwException
+     *
+     * @throws NotFoundConfigurationException
+     *
+     * @return ConfigurationInterface
+     */
+    public function findById($id, $throwException = true)
+    {
+        foreach ($this->configurations as $config) {
+            if ($id == $config->getResourceId()) {
+                return $config;
+            }
+        }
+
+        if ($throwException) {
+            throw new InvalidArgumentException(sprintf('No configuration found for id "%s".', $id));
+        }
+
+        return null;
     }
 
     /**
@@ -219,24 +236,6 @@ class ConfigurationRegistry
     public function getConfigurations()
     {
         return $this->configurations;
-    }
-
-    /**
-     * Returns the object identity.
-     *
-     * @param object $object
-     *
-     * @return \Symfony\Component\Security\Acl\Domain\ObjectIdentity|null
-     */
-    public function getObjectIdentity($object)
-    {
-        foreach ($this->configurations as $config) {
-            if ($config->isRelevant($object)) {
-                return $config->getObjectIdentity();
-            }
-        }
-
-        return null;
     }
 
     /**

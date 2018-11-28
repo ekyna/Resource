@@ -59,7 +59,7 @@ class ConfigurationFactory
      */
     public function __construct(
         $defaultEventClass = ResourceEvent::class,
-        $defaultTemplates = 'EkynaAdminBundle:Entity/Default'
+        $defaultTemplates = '@EkynaAdmin/Entity/Default'
     ) {
         $this->defaultEventClass = $defaultEventClass;
         $this->defaultTemplates = $defaultTemplates;
@@ -266,28 +266,32 @@ class ConfigurationFactory
     /**
      * Builds the templates list.
      *
-     * @param mixed $templatesConfig
+     * @param mixed $config
      *
      * @return array
      */
-    private function buildTemplateList($templatesConfig)
+    private function buildTemplateList($config)
     {
-        $templateNamespace = $this->defaultTemplates;
-        if (is_string($templatesConfig)) {
-            $templateNamespace = $templatesConfig;
+        $namespace = $this->defaultTemplates;
+        if (is_string($config)) {
+            $namespace = $config;
         }
-        $templatesList = [];
+
+        $separator = 0 === strpos($namespace, '@') ? '/' : ':';
+
+        $list = [];
         foreach (self::$templates as $name => $extensions) {
             foreach ($extensions as $extension) {
                 $file = $name . '.' . $extension;
-                $templatesList[$file] = $templateNamespace . ':' . $file;
+                $list[$file] = $namespace . $separator . $file;
             }
         }
+
         // TODO add resource actions templates ? (behavior refactoring)
-        if (is_array($templatesConfig)) {
-            $templatesList = array_merge($templatesList, $templatesConfig);
+        if (is_array($config)) {
+            $list = array_merge($list, $config);
         }
 
-        return $templatesList;
+        return $list;
     }
 }

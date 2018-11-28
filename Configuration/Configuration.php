@@ -3,7 +3,6 @@
 namespace Ekyna\Component\Resource\Configuration;
 
 use Doctrine\Common\Inflector\Inflector;
-use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 
 /**
  * Class Configuration
@@ -214,14 +213,6 @@ class Configuration implements ConfigurationInterface
     public function getServiceKey($service)
     {
         return sprintf('%s.%s.%s', $this->getNamespace(), $this->getId(), $service);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function getObjectIdentity()
-    {
-        return new ObjectIdentity($this->getAlias(), $this->getResourceClass());
     }
 
     /**
