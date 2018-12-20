@@ -37,4 +37,19 @@ trait SortableTrait
     {
         return $this->position;
     }
+
+    /**
+     * @inheritDoc
+     *
+     * @see https://github.com/Atlantic18/DoctrineExtensions/issues/1726
+     */
+    public function compareTo($other)
+    {
+        /** @var SortableInterface $other */
+        if (is_a($other, get_class($this))) {
+            return $this->position - $other->getPosition();
+        }
+
+        return 0;
+    }
 }

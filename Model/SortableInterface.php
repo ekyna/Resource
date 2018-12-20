@@ -2,12 +2,14 @@
 
 namespace Ekyna\Component\Resource\Model;
 
+use Doctrine\Common\Comparable;
+
 /**
  * Interface SortableInterface
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-interface SortableInterface
+interface SortableInterface extends Comparable
 {
     /**
      * Sets the position.
