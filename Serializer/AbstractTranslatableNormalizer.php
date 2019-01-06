@@ -76,7 +76,7 @@ abstract class AbstractTranslatableNormalizer extends AbstractResourceNormalizer
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
-        $resource = parent::denormalize($data, $class, $format, $context);
+        //$resource = parent::denormalize($data, $class, $format, $context);
 
         throw new \Exception('Not yet implemented');
     }

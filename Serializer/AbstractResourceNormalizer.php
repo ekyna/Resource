@@ -69,16 +69,15 @@ abstract class AbstractResourceNormalizer implements NormalizerInterface, Denorm
 
     /**
      * @inheritdoc
+     *
+     * @param Model\ResourceInterface $resource
      */
     public function normalize($resource, $format = null, array $context = [])
     {
-        /** @var Model\ResourceInterface $resource */
-        $data = [
+        return [
             'id'   => $resource->getId(),
             'text' => (string)$resource, // 'text' Required for Select2
         ];
-
-        return $data;
     }
 
     /**
@@ -149,6 +148,37 @@ abstract class AbstractResourceNormalizer implements NormalizerInterface, Denorm
     {
         if (class_exists($type) && is_subclass_of($type, Model\ResourceInterface::class)) {
             return null !== $this->configurationRegistry->findConfiguration($type);
+        }
+
+        return false;
+    }
+
+    /**
+     * Returns whether the given groups are configured in the serialization context.
+     *
+     * @param string|string[] $search  The group(s) to test
+     * @param array           $context The serialization context
+     *
+     * @return bool
+     */
+    protected function contextHasGroup($search, array $context)
+    {
+        $groups = isset($context['groups']) ? (array)$context['groups'] : [];
+
+        if (empty($groups)) {
+            return false;
+        }
+
+        if (is_string($search)) {
+            return in_array($search, $groups, true);
+        }
+
+        if (is_array($search)) {
+            foreach ($search as $s) {
+                if (in_array($s, $groups, true)) {
+                    return true;
+                }
+            }
         }
 
         return false;

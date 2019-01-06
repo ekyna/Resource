@@ -64,6 +64,13 @@ interface ConfigurationInterface
     public function getResourceClass();
 
     /**
+     * Returns the translation prefix.
+     *
+     * @return string
+     */
+    public function getTranslationPrefix();
+
+    /**
      * Returns the translation class.
      *
      * @return string|null
