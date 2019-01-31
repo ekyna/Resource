@@ -4,7 +4,6 @@ namespace Ekyna\Component\Resource\Doctrine\ORM\Util;
 
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Ekyna\Component\Resource\Locale\LocaleProviderInterface;
 use Ekyna\Component\Resource\Model\TranslatableInterface;
 
 /**
@@ -14,17 +13,13 @@ use Ekyna\Component\Resource\Model\TranslatableInterface;
  */
 trait TranslatableResourceRepositoryTrait
 {
+    use LocaleAwareRepositoryTrait;
     use ResourceRepositoryTrait {
         createNew as traitCreateNew;
         getQueryBuilder as traitGetQueryBuilder;
         getCollectionQueryBuilder as traitGetCollectionQueryBuilder;
         getPropertyName as traitGetPropertyName;
     }
-
-    /**
-     * @var LocaleProviderInterface
-     */
-    protected $localeProvider;
 
     /**
      * @var array
@@ -92,20 +87,6 @@ trait TranslatableResourceRepositoryTrait
     }
 
     /**
-     * Sets the locale provider.
-     *
-     * @param LocaleProviderInterface $provider
-     *
-     * @return $this
-     */
-    public function setLocaleProvider(LocaleProviderInterface $provider)
-    {
-        $this->localeProvider = $provider;
-
-        return $this;
-    }
-
-    /**
      * Sets the translatable fields.
      *
      * @param array $translatableFields
@@ -117,35 +98,6 @@ trait TranslatableResourceRepositoryTrait
         $this->translatableFields = $translatableFields;
 
         return $this;
-    }
-
-    /**
-     * Returns the current/fallback locale condition.
-     *
-     * @param string $alias
-     *
-     * @return Query\Expr\Base|Query\Expr\Comparison
-     */
-    public function getLocaleCondition($alias = 'translation')
-    {
-        if (!$this->localeProvider) {
-            return null;
-        }
-
-        $expr = new Query\Expr();
-
-        // TODO This may change between master/sub requests
-        $current = $this->localeProvider->getCurrentLocale();
-        $fallback = $this->localeProvider->getFallbackLocale();
-
-        if ($current != $fallback) {
-            return $expr->orX(
-                $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getCurrentLocale())),
-                $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getFallbackLocale()))
-            );
-        }
-
-        return $expr->eq($alias . '.locale', $expr->literal($this->localeProvider->getCurrentLocale()));
     }
 
     /**
