@@ -62,6 +62,14 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritdoc
      */
+    public function getEventQueue()
+    {
+        return $this->eventQueue;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function getChangeSet(ResourceInterface $resource, $property = null)
     {
         return $this->tracker->getChangeSet($resource, $property);
@@ -117,6 +125,12 @@ class PersistenceHelper implements PersistenceHelperInterface
     {
         $uow = $this->getUnitOfWork();
 
+        if (!$this->eventQueue->isOpened()) {
+            $this->manager->persist($resource);
+
+            return;
+        }
+
         if (!($uow->isScheduledForInsert($resource) || $uow->isScheduledForUpdate($resource))) {
             $this->manager->persist($resource);
         }
@@ -145,8 +159,14 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     public function remove(ResourceInterface $resource, $schedule = false)
     {
+        // TODO if scheduled for insert -> remove
+
         if (null !== $resource->getId()) {
             $this->manager->remove($resource);
+        }
+
+        if (!$this->eventQueue->isOpened()) {
+            return;
         }
 
         // TODO Remove ? The tracker should build the proper change set without pre-computation.

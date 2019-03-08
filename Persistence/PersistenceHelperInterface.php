@@ -20,6 +20,13 @@ interface PersistenceHelperInterface
     public function getManager();
 
     /**
+     * Returns the persistence event queue.
+     *
+     * @return PersistenceEventQueueInterface
+     */
+    public function getEventQueue();
+
+    /**
      * Returns the entity change set.
      *
      * @param ResourceInterface $resource
