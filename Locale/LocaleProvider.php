@@ -10,45 +10,49 @@ namespace Ekyna\Component\Resource\Locale;
 class LocaleProvider implements LocaleProviderInterface
 {
     /**
-     * @var string
-     */
-    private $currentLocale;
-
-    /**
-     * @var string
-     */
-    private $fallbackLocale;
-
-    /**
      * @var array
      */
-    private $availableLocales;
+    protected $availableLocales;
+
+    /**
+     * @var string
+     */
+    protected $fallbackLocale;
+
+    /**
+     * @var string
+     */
+    protected $currentLocale;
 
 
     /**
      * Constructor.
      *
-     * @param string $currentLocale
-     * @param string $fallbackLocale
      * @param array  $availableLocales
+     * @param string $fallbackLocale
+     * @param string $currentLocale
      */
-    public function __construct($currentLocale, $fallbackLocale, array $availableLocales)
+    public function __construct(array $availableLocales, $fallbackLocale, $currentLocale = null)
     {
-        $this->currentLocale = $currentLocale;
-        $this->fallbackLocale = $fallbackLocale;
         $this->availableLocales = $availableLocales;
+        $this->fallbackLocale = $fallbackLocale;
+        $this->currentLocale = $currentLocale;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getCurrentLocale()
     {
-        return $this->currentLocale;
+        if ($this->currentLocale) {
+            return $this->currentLocale;
+        }
+
+        return $this->getFallbackLocale();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getFallbackLocale()
     {
@@ -56,7 +60,7 @@ class LocaleProvider implements LocaleProviderInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAvailableLocales()
     {

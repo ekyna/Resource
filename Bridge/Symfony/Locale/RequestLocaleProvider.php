@@ -2,7 +2,7 @@
 
 namespace Ekyna\Component\Resource\Bridge\Symfony\Locale;
 
-use Ekyna\Component\Resource\Locale\LocaleProviderInterface;
+use Ekyna\Component\Resource\Locale\LocaleProvider;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -13,38 +13,16 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * @package Ekyna\Bundle\CoreBundle\Locale
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class RequestLocaleProvider implements LocaleProviderInterface, EventSubscriberInterface
+class RequestLocaleProvider extends LocaleProvider implements EventSubscriberInterface
 {
     /**
      * @var Request
      */
     private $request;
 
-    /**
-     * @var string
-     */
-    private $defaultLocale;
 
     /**
-     * @var array
-     */
-    private $availableLocales;
-
-
-    /**
-     * Constructor.
-     *
-     * @param string $defaultLocale
-     * @param array  $availableLocales
-     */
-    public function __construct($defaultLocale, array $availableLocales)
-    {
-        $this->defaultLocale = $defaultLocale;
-        $this->availableLocales = $availableLocales;
-    }
-
-    /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getSubscribedEvents()
     {
@@ -63,29 +41,18 @@ class RequestLocaleProvider implements LocaleProviderInterface, EventSubscriberI
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getCurrentLocale()
     {
-        if (null === $this->request) {
-            return $this->getFallbackLocale();
+        if ($this->currentLocale) {
+            return $this->currentLocale;
         }
-        return $this->request->getLocale();
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getFallbackLocale()
-    {
-        return $this->defaultLocale;
-    }
+        if ($this->request) {
+            return $this->currentLocale = $this->request->getLocale();
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAvailableLocales()
-    {
-        return $this->availableLocales;
+        return $this->getFallbackLocale();
     }
 }
