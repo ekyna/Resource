@@ -12,7 +12,7 @@ trait IsDefaultTrait
     /**
      * @var bool
      */
-    protected $default;
+    protected $default = false;
 
 
     /**
@@ -22,9 +22,9 @@ trait IsDefaultTrait
      *
      * @return $this|IsDefaultInterface
      */
-    public function setDefault($default)
+    public function setDefault(bool $default): IsDefaultInterface
     {
-        $this->default = (bool) $default;
+        $this->default = $default;
 
         return $this;
     }
@@ -34,7 +34,7 @@ trait IsDefaultTrait
      *
      * @return bool
      */
-    public function isDefault()
+    public function isDefault(): bool
     {
         return $this->default;
     }

@@ -16,12 +16,12 @@ interface IsDefaultInterface extends ResourceInterface
      *
      * @return $this|IsDefaultInterface
      */
-    public function setDefault($default);
+    public function setDefault(bool $default): IsDefaultInterface;
 
     /**
      * Returns whether the resource is default or not.
      *
      * @return bool
      */
-    public function isDefault();
+    public function isDefault() : bool;
 }

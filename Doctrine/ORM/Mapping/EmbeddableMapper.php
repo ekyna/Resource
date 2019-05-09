@@ -46,7 +46,7 @@ class EmbeddableMapper
      * @param string        $property
      * @param string        $prefix
      */
-    public function processClassMetadata(ClassMetadata $metadata, $property, $prefix)
+    public function processClassMetadata(ClassMetadata $metadata, string $property, string $prefix = null)
     {
         if (in_array($metadata->getName(), $this->processedClasses)) {
             return;
@@ -55,7 +55,7 @@ class EmbeddableMapper
         $metadata->mapEmbedded([
             'fieldName'    => $property,
             'class'        => $this->embeddableMetadata->getName(),
-            'columnPrefix' => empty($prefix) ? false : $prefix,
+            'columnPrefix' => is_null($prefix) ? false : $prefix,
         ]);
 
         $metadata->inlineEmbeddable($property, $this->embeddableMetadata);
