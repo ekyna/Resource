@@ -14,30 +14,25 @@ use FOS\ElasticaBundle\Repository;
 class ResourceRepository extends Repository implements SearchRepositoryInterface
 {
     /**
-     * Search resources by expression.
-     *
-     * @param string  $expression
-     * @param integer $limit
-     *
-     * @return \Ekyna\Bundle\ProductBundle\Model\ProductInterface[]
+     * @inheritDoc
      */
-    public function defaultSearch($expression, $limit = 10)
+    public function defaultSearch(string $expression, int $limit = 10, int $page = 0): array
     {
-        return $this->find($this->createMatchQuery($expression), $limit);
+        $query = $this
+            ->createMatchQuery($expression)
+            ->setFrom($limit * $page)
+            ->setSize($limit);
+
+        return $this->find($query);
     }
 
     /**
-     * Creates the match query.
-     *
-     * @param string $expression
-     * @param array  $fields
-     *
-     * @return Query\AbstractQuery
+     * @inheritDoc
      */
-    protected function createMatchQuery($expression, array $fields = [])
+    public function createMatchQuery(string $expression, array $fields = []): Query
     {
         if (0 == strlen($expression)) {
-            return new Query\MatchAll();
+            return Query::create(new Query\MatchAll());
         }
 
         if (empty($fields)) {
@@ -49,7 +44,11 @@ class ResourceRepository extends Repository implements SearchRepositoryInterface
             ->setQuery($expression)
             ->setFields($fields);
 
-        return $query;
+        if (0 < count($fields)) {
+            $query->setType(Query\MultiMatch::TYPE_CROSS_FIELDS);
+        }
+
+        return Query::create($query);
     }
 
     /**
@@ -57,7 +56,7 @@ class ResourceRepository extends Repository implements SearchRepositoryInterface
      *
      * @return array
      */
-    protected function getDefaultMatchFields()
+    protected function getDefaultMatchFields(): array
     {
         return ['text'];
     }

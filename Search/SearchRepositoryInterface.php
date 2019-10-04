@@ -2,6 +2,8 @@
 
 namespace Ekyna\Component\Resource\Search;
 
+use Elastica\Query;
+
 /**
  * Interface SearchRepositoryInterface
  * @package Ekyna\Bundle\AdminBundle\Search
@@ -12,10 +14,21 @@ interface SearchRepositoryInterface
     /**
      * Default text search.
      *
-     * @param string  $expression
-     * @param integer $limit
+     * @param string $expression
+     * @param int    $limit
+     * @param int    $page
      *
-     * @return array
+     * @return \Ekyna\Component\Resource\Model\ResourceInterface[]
      */
-    public function defaultSearch($expression, $limit = 10);
+    public function defaultSearch(string $expression, int $limit = 10, int $page = 0): array;
+
+    /**
+     * Creates the match query.
+     *
+     * @param string $expression
+     * @param array  $fields
+     *
+     * @return Query
+     */
+    public function createMatchQuery(string $expression, array $fields = []): Query;
 }
