@@ -31,7 +31,7 @@ trait TrackAssociationTrait
             $this->snapshot[$association] = [];
 
             foreach ($this->{$association} as $entity) {
-                /** @var \Ekyna\Component\Resource\Model\ResourceInterface $entity */
+                /** @var ResourceInterface $entity */
                 $this->snapshot[$association][] = $entity->getId();
             }
         }
@@ -51,7 +51,7 @@ trait TrackAssociationTrait
         }
 
         $current = [];
-        /** @var \Ekyna\Component\Resource\Model\ResourceInterface $entity */
+        /** @var ResourceInterface $entity */
         foreach ($this->{$association} as $entity) {
             $current[] = $entity->getId();
         }
@@ -73,7 +73,7 @@ trait TrackAssociationTrait
         }
 
         $current = [];
-        /** @var \Ekyna\Component\Resource\Model\ResourceInterface $entity */
+        /** @var ResourceInterface $entity */
         foreach ($this->{$association} as $entity) {
             $current[] = $entity->getId();
         }
@@ -98,7 +98,7 @@ trait TrackAssociationTrait
     protected function getAssociationIds($association)
     {
         $ids = [];
-        /** @var \Ekyna\Component\Resource\Model\ResourceInterface $entity */
+        /** @var ResourceInterface $entity */
         foreach ($this->{$association} as $entity) {
             $ids[] = $entity->getId();
         }

@@ -3,7 +3,7 @@
 namespace Ekyna\Component\Resource\Doctrine\ORM;
 
 use Doctrine\Common\Collections\Selectable;
-use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\Persistence\ObjectRepository;
 
 /**
  * Interface ResourceRepositoryInterface
