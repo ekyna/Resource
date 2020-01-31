@@ -22,12 +22,12 @@ class ResourceRepository implements ResourceRepositoryInterface
     /**
      * @var SearchableInterface
      */
-    private $searchable;
+    protected $searchable;
 
     /**
      * @var ElasticaToModelTransformerInterface
      */
-    private $transformer;
+    protected $transformer;
 
 
     /**
