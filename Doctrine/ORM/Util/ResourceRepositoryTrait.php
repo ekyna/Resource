@@ -88,10 +88,7 @@ trait ResourceRepositoryTrait
      */
     public function findOneBy(array $criteria, array $orderBy = null)
     {
-        $qb = $this
-            ->getQueryBuilder()
-            ->setMaxResults(1)
-            ->setFirstResult(0);
+        $qb = $this->getQueryBuilder();
 
         $this->applyCriteria($qb, $criteria);
         $this->applySorting($qb, $orderBy);
