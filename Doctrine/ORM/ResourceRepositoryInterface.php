@@ -39,10 +39,11 @@ interface ResourceRepositoryInterface extends ObjectRepository, Selectable
      * Finds one resource by criteria and sorting.
      *
      * @param array $criteria
+     * @param array $sorting
      *
      * @return null|object
      */
-    public function findOneBy(array $criteria);
+    public function findOneBy(array $criteria, array $sorting = null);
 
     /**
      * Finds resources by criteria, sorting, limit and offset.

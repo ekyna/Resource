@@ -13,7 +13,7 @@ use Pagerfanta\Pagerfanta;
 /**
  * Trait ResourceRepositoryTrait
  * @package Ekyna\Component\Resource\Doctrine\ORM\Util
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  *
  * @method string getClassName()
  */
@@ -33,6 +33,7 @@ trait ResourceRepositoryTrait
     public function createNew()
     {
         $class = $this->getClassName();
+
         return new $class;
     }
 
@@ -52,9 +53,9 @@ trait ResourceRepositoryTrait
             return $this->_em->find($this->_entityName, $id, $lockMode, $lockVersion);
         }
 
-        $query =  $this
+        $query = $this
             ->getQueryBuilder()
-            ->andWhere($this->getAlias().'.id = '.intval($id))
+            ->andWhere($this->getAlias() . '.id = ' . intval($id))
             ->getQuery();
 
         if ($lockMode) {
@@ -74,8 +75,7 @@ trait ResourceRepositoryTrait
         return $this
             ->getCollectionQueryBuilder()
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
     /**
@@ -83,30 +83,22 @@ trait ResourceRepositoryTrait
      *
      * @param array $criteria
      * @param array $orderBy
-     * @param int   $limit
-     * @param int   $offset
      *
      * @return null|object
      */
-    public function findOneBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    public function findOneBy(array $criteria, array $orderBy = null)
     {
-        $queryBuilder = $this->getQueryBuilder();
+        $qb = $this
+            ->getQueryBuilder()
+            ->setMaxResults(1)
+            ->setFirstResult(0);
 
-        $this->applyCriteria($queryBuilder, $criteria);
-        $this->applySorting($queryBuilder, $orderBy);
+        $this->applyCriteria($qb, $criteria);
+        $this->applySorting($qb, $orderBy);
 
-        if (null !== $limit) {
-            $queryBuilder->setMaxResults($limit);
-        }
-
-        if (null !== $offset) {
-            $queryBuilder->setFirstResult($offset);
-        }
-
-        return $queryBuilder
+        return $qb
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
 
     /**
@@ -121,20 +113,20 @@ trait ResourceRepositoryTrait
      */
     public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
     {
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $qb = $this->getCollectionQueryBuilder();
 
-        $this->applyCriteria($queryBuilder, $criteria);
-        $this->applySorting($queryBuilder, $orderBy);
+        $this->applyCriteria($qb, $criteria);
+        $this->applySorting($qb, $orderBy);
 
         if (null !== $limit) {
-            $queryBuilder->setMaxResults($limit);
+            $qb->setMaxResults($limit);
         }
 
         if (null !== $offset) {
-            $queryBuilder->setFirstResult($offset);
+            $qb->setFirstResult($offset);
         }
 
-        $query = $queryBuilder->getQuery();
+        $query = $qb->getQuery();
 
         if (null !== $limit) {
             return $this->collectionResult($query);
@@ -152,17 +144,16 @@ trait ResourceRepositoryTrait
      */
     public function findRandomOneBy(array $criteria)
     {
-        $queryBuilder = $this->getQueryBuilder();
+        $qb = $this->getQueryBuilder();
 
-        $this->applyCriteria($queryBuilder, $criteria);
+        $this->applyCriteria($qb, $criteria);
 
-        return $queryBuilder
+        return $qb
             ->addSelect('RAND() as HIDDEN rand')
             ->orderBy('rand')
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
     }
 
     /**
@@ -180,16 +171,15 @@ trait ResourceRepositoryTrait
             throw new InvalidArgumentException('Please use `findRandomOneBy()` for single result.');
         }
 
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $qb = $this->getCollectionQueryBuilder();
 
-        $this->applyCriteria($queryBuilder, $criteria);
+        $this->applyCriteria($qb, $criteria);
 
-        $query = $queryBuilder
+        $query = $qb
             ->addSelect('RAND() as HIDDEN rand')
             ->orderBy('rand')
             ->setMaxResults($limit)
-            ->getQuery()
-        ;
+            ->getQuery();
 
         return $this->collectionResult($query);
     }
@@ -204,12 +194,12 @@ trait ResourceRepositoryTrait
      */
     public function createPager(array $criteria = [], array $sorting = null)
     {
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $qb = $this->getCollectionQueryBuilder();
 
-        $this->applyCriteria($queryBuilder, $criteria);
-        $this->applySorting($queryBuilder, $sorting);
+        $this->applyCriteria($qb, $criteria);
+        $this->applySorting($qb, $sorting);
 
-        return $this->getPager($queryBuilder);
+        return $this->getPager($qb);
     }
 
     /**
@@ -222,6 +212,7 @@ trait ResourceRepositoryTrait
     public function getPager($query)
     {
         $pager = new Pagerfanta(new DoctrineORMAdapter($query, true, false));
+
         return $pager->setNormalizeOutOfRangePages(true);
     }
 
@@ -235,6 +226,7 @@ trait ResourceRepositoryTrait
     public function getArrayPager(array $objects)
     {
         $pager = new Pagerfanta(new ArrayAdapter($objects));
+
         return $pager->setNormalizeOutOfRangePages(true);
     }
 
@@ -250,7 +242,6 @@ trait ResourceRepositoryTrait
     {
         $alias = $alias ?: $this->getAlias();
 
-        /** @noinspection PhpUndefinedMethodInspection */
         /** @noinspection PhpUndefinedClassInspection */
         return parent::createQueryBuilder($alias, $indexBy);
     }
@@ -284,23 +275,22 @@ trait ResourceRepositoryTrait
     /**
      * Applies the criteria to the query builder.
      *
-     * @param QueryBuilder $queryBuilder
+     * @param QueryBuilder $qb
      * @param array        $criteria
      */
-    protected function applyCriteria(QueryBuilder $queryBuilder, array $criteria = [])
+    protected function applyCriteria(QueryBuilder $qb, array $criteria = [])
     {
         foreach ($criteria as $property => $value) {
             $name = $this->getPropertyName($property);
             if (null === $value) {
-                $queryBuilder->andWhere($queryBuilder->expr()->isNull($name));
+                $qb->andWhere($qb->expr()->isNull($name));
             } elseif (is_array($value)) {
-                $queryBuilder->andWhere($queryBuilder->expr()->in($name, $value));
+                $qb->andWhere($qb->expr()->in($name, $value));
             } elseif ('' !== $value) {
                 $parameter = str_replace('.', '_', $property);
-                $queryBuilder
-                    ->andWhere($queryBuilder->expr()->eq($name, ':'.$parameter))
-                    ->setParameter($parameter, $value)
-                ;
+                $qb
+                    ->andWhere($qb->expr()->eq($name, ':' . $parameter))
+                    ->setParameter($parameter, $value);
             }
         }
     }
@@ -308,10 +298,10 @@ trait ResourceRepositoryTrait
     /**
      * Applies the sorting to the query builder.
      *
-     * @param QueryBuilder $queryBuilder
+     * @param QueryBuilder $qb
      * @param array        $sorting
      */
-    protected function applySorting(QueryBuilder $queryBuilder, array $sorting = null)
+    protected function applySorting(QueryBuilder $qb, array $sorting = null)
     {
         if (empty($sorting)) {
             return;
@@ -319,7 +309,7 @@ trait ResourceRepositoryTrait
 
         foreach ($sorting as $property => $order) {
             if (!empty($order)) {
-                $queryBuilder->addOrderBy($this->getPropertyName($property), $order);
+                $qb->addOrderBy($this->getPropertyName($property), $order);
             }
         }
     }
@@ -334,8 +324,9 @@ trait ResourceRepositoryTrait
     protected function getPropertyName($name)
     {
         if (false === strpos($name, '.')) {
-            return $this->getAlias().'.'.$name;
+            return $this->getAlias() . '.' . $name;
         }
+
         return $name;
     }
 
