@@ -304,6 +304,13 @@ class ResourceOperator implements ResourceOperatorInterface
         try {
             $this->manager->persist($resource);
             $this->manager->flush();
+        } catch (ResourceExceptionInterface $e) {
+            $event->addMessage(new ResourceMessage(
+                $e->getMessage() ?? 'An error occurred',
+                ResourceMessage::TYPE_ERROR
+            ));
+
+            return;
         } catch (DBALException $e) {
             if ($this->debug) {
                 throw $e;
@@ -338,6 +345,13 @@ class ResourceOperator implements ResourceOperatorInterface
         try {
             $this->manager->remove($resource);
             $this->manager->flush();
+        } catch (ResourceExceptionInterface $e) {
+            $event->addMessage(new ResourceMessage(
+                $e->getMessage() ?? 'An error occurred',
+                ResourceMessage::TYPE_ERROR
+            ));
+
+            return;
         } catch (DBALException $e) {
             if ($this->debug) {
                 throw $e;
