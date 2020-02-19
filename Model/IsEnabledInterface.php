@@ -16,12 +16,12 @@ interface IsEnabledInterface
      *
      * @return $this|IsEnabledInterface
      */
-    public function setEnabled($enabled);
+    public function setEnabled(bool $enabled): IsEnabledInterface;
 
     /**
      * Returns whether the resource is enabled or not.
      *
      * @return bool
      */
-    public function isEnabled();
+    public function isEnabled(): bool;
 }

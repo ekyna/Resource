@@ -12,7 +12,7 @@ trait IsEnabledTrait
     /**
      * @var bool
      */
-    protected $enabled;
+    protected $enabled = true;
 
 
     /**
@@ -22,9 +22,9 @@ trait IsEnabledTrait
      *
      * @return $this|IsEnabledInterface
      */
-    public function setEnabled($enabled)
+    public function setEnabled(bool $enabled): IsEnabledInterface
     {
-        $this->enabled = (bool) $enabled;
+        $this->enabled = $enabled;
 
         return $this;
     }
@@ -34,7 +34,7 @@ trait IsEnabledTrait
      *
      * @return bool
      */
-    public function isEnabled()
+    public function isEnabled(): bool
     {
         return $this->enabled;
     }

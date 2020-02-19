@@ -29,14 +29,14 @@ interface ConfigurationInterface
     public function getParentId();
 
     /**
-     * Returns the resource alias (<namespace>_<id>).
+     * Returns the resource alias (namespace_id).
      *
      * @return string
      */
     public function getAlias();
 
     /**
-     * Returns the resource identifier (<namespace>.<id>).
+     * Returns the resource identifier (namespace.id).
      *
      * @return string
      */
