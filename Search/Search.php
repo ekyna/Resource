@@ -2,6 +2,8 @@
 
 namespace Ekyna\Component\Resource\Search;
 
+use Ekyna\Component\Resource\Exception\InvalidArgumentException;
+
 /**
  * Class Search
  * @package Ekyna\Bundle\CmsBundle\Search\Wide
@@ -26,7 +28,7 @@ class Search
     public function addRepository(string $name, ResourceRepositoryInterface $repository): self
     {
         if (array_key_exists($name, $this->repositories)) {
-            throw new \InvalidArgumentException("Search repository '$name' is already registered.");
+            throw new InvalidArgumentException("Search repository '$name' is already registered.");
         }
 
         $this->repositories[$name] = $repository;
@@ -42,6 +44,22 @@ class Search
     public function getRepositories(): array
     {
         return $this->repositories;
+    }
+
+    /**
+     * Returns the repository for the given name.
+     *
+     * @param string $name
+     *
+     * @return ResourceRepositoryInterface
+     */
+    public function getRepository(string $name): ResourceRepositoryInterface
+    {
+        if (!isset($this->repositories[$name])) {
+            throw new InvalidArgumentException("No repository registerd for name '$name'.");
+        }
+
+        return $this->repositories[$name];
     }
 
     /**

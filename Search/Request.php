@@ -241,7 +241,7 @@ class Request
     public function setParameters(array $parameters): self
     {
         foreach ($parameters as $key => $value) {
-            $this->addParameter($key, $value);
+            $this->setParameter($key, $value);
         }
 
         return $this;
