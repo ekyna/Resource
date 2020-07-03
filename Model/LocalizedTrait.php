@@ -32,7 +32,7 @@ trait LocalizedTrait
      *
      * @return $this|LocalizedInterface
      */
-    public function setLocale(?string $locale)
+    public function setLocale(string $locale = null): LocalizedInterface
     {
         $this->locale = $locale;
 
