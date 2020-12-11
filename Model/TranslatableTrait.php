@@ -3,11 +3,13 @@
 namespace Ekyna\Component\Resource\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Ekyna\Component\Resource\Exception\RuntimeException;
 
 /**
  * Trait TranslatableTrait
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 trait TranslatableTrait
 {
@@ -27,7 +29,7 @@ trait TranslatableTrait
     protected $currentTranslation;
 
     /**
-     * @var ArrayCollection|TranslationInterface[]
+     * @var Collection|TranslationInterface[]
      */
     protected $translations;
 
@@ -45,7 +47,7 @@ trait TranslatableTrait
      *
      * @see \Ekyna\Component\Resource\Doctrine\ORM\Listener\TranslatableListener::postLoad
      */
-    public function initializeTranslations()
+    public function initializeTranslations(): void
     {
         if (null === $this->translations) {
             $this->translations = new ArrayCollection();
@@ -55,67 +57,48 @@ trait TranslatableTrait
     /**
      * Returns the translation regarding to the current or fallback locale.
      *
-     * @param string $locale
-     * @param bool   $create
+     * @param string|null $locale
+     * @param bool $create
+     *
      * @return TranslationInterface
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
-    public function translate($locale = null, $create = false)
+    public function translate(string $locale = null, bool $create = false): TranslationInterface
     {
         $locale = $locale ?: $this->currentLocale;
         if (null === $locale) {
-            throw new \RuntimeException('No locale has been set and current locale is undefined.');
+            throw new RuntimeException('No locale has been set and current locale is undefined.');
         }
 
-        if ($this->currentTranslation && $locale === $this->currentTranslation->getLocale()) {
+        if ($this->currentTranslation && ($locale === $this->currentTranslation->getLocale())) {
             return $this->currentTranslation;
         }
 
         if (!$translation = $this->translations->get($locale)) {
-            if ($create) {
-                $className = $this->getTranslationClass();
+            if (null === $this->fallbackLocale) {
+                throw new RuntimeException('No fallback locale has been set.');
+            }
 
+            if ($fallbackTranslation = $this->translations->get($this->getFallbackLocale())) {
+                $translation = clone $fallbackTranslation;
+            } else {
+                $className = $this->getTranslationClass();
                 /** @var TranslationInterface $translation */
                 $translation = new $className();
-                $translation->setLocale($locale);
+            }
 
+            $translation->setLocale($locale);
+
+            if ($create || ($this->fallbackLocale === $locale)) {
                 $this->addTranslation($translation);
-            } else {
-                if (null === $this->fallbackLocale) {
-                    throw new \RuntimeException('No fallback locale has been set.');
-                }
-
-                if (!$fallbackTranslation = $this->translations->get($this->getFallbackLocale())) {
-                    $className = $this->getTranslationClass();
-
-                    /** @var TranslationInterface $translation */
-                    $translation = new $className();
-                    $translation->setLocale($locale);
-
-                    $this->addTranslation($translation);
-                } else {
-                    $translation = clone $fallbackTranslation;
-                }
             }
         }
 
-        $this->currentTranslation = $translation;
-        $this->currentLocale      = $locale;
+        if ($this->currentLocale && $this->currentLocale === $locale) {
+            $this->currentTranslation = $translation;
+        }
 
         return $translation;
-    }
-
-    /**
-     * Sets the current locale.
-     *
-     * @param string $locale
-     * @return TranslatableInterface|$this
-     */
-    public function setCurrentLocale($locale)
-    {
-        $this->currentLocale = $locale;
-
-        return $this;
     }
 
     /**
@@ -123,20 +106,21 @@ trait TranslatableTrait
      *
      * @return string
      */
-    public function getCurrentLocale()
+    public function getCurrentLocale(): ?string
     {
         return $this->currentLocale;
     }
 
     /**
-     * Sets the fallback locale.
+     * Sets the current locale.
      *
      * @param string $locale
+     *
      * @return TranslatableInterface|$this
      */
-    public function setFallbackLocale($locale)
+    public function setCurrentLocale(string $locale): TranslatableInterface
     {
-        $this->fallbackLocale = $locale;
+        $this->currentLocale = $locale;
 
         return $this;
     }
@@ -146,21 +130,37 @@ trait TranslatableTrait
      *
      * @return string
      */
-    public function getFallbackLocale()
+    public function getFallbackLocale(): ?string
     {
         return $this->fallbackLocale;
+    }
+
+    /**
+     * Sets the fallback locale.
+     *
+     * @param string $locale
+     *
+     * @return TranslatableInterface|$this
+     */
+    public function setFallbackLocale(string $locale): TranslatableInterface
+    {
+        $this->fallbackLocale = $locale;
+
+        return $this;
     }
 
     /**
      * Adds the translation.
      *
      * @param TranslationInterface $translation
+     *
      * @return TranslatableInterface|$this
      */
-    public function addTranslation(TranslationInterface $translation)
+    public function addTranslation(TranslationInterface $translation): TranslatableInterface
     {
         if (!$this->translations->containsKey($translation->getLocale())) {
             $this->translations->set($translation->getLocale(), $translation);
+            /** @noinspection PhpParamsInspection */
             $translation->setTranslatable($this);
         }
 
@@ -171,9 +171,10 @@ trait TranslatableTrait
      * Removes the translation.
      *
      * @param TranslationInterface $translation
+     *
      * @return TranslatableInterface|$this
      */
-    public function removeTranslation(TranslationInterface $translation)
+    public function removeTranslation(TranslationInterface $translation): TranslatableInterface
     {
         if ($this->translations->removeElement($translation)) {
             $translation->setTranslatable(null);
@@ -186,19 +187,32 @@ trait TranslatableTrait
      * Returns whether the translatable has the given translation.
      *
      * @param TranslationInterface $translation
+     *
      * @return bool
      */
-    public function hasTranslation(TranslationInterface $translation)
+    public function hasTranslation(TranslationInterface $translation): bool
     {
-        return $this->translations->containsKey($translation->getLocale());
+        return $this->hasTranslationForLocale($translation->getLocale());
+    }
+
+    /**
+     * Returns whether a translation exists for the given locale.
+     *
+     * @param string $locale
+     *
+     * @return bool
+     */
+    public function hasTranslationForLocale(string $locale): bool
+    {
+        return $this->translations->containsKey($locale);
     }
 
     /**
      * Returns the translations.
      *
-     * @return ArrayCollection|TranslationInterface[]
+     * @return Collection|TranslationInterface[]
      */
-    public function getTranslations()
+    public function getTranslations(): Collection
     {
         return $this->translations;
     }
@@ -208,7 +222,7 @@ trait TranslatableTrait
      *
      * @return string
      */
-    protected function getTranslationClass()
+    protected function getTranslationClass(): string
     {
         return get_class($this) . 'Translation';
     }

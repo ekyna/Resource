@@ -10,4 +10,15 @@ namespace Ekyna\Component\Resource\Model;
 abstract class AbstractTranslation implements TranslationInterface
 {
     use TranslationTrait;
+
+    /**
+     * Clones the translation.
+     */
+    public function __clone()
+    {
+        if ($this->id) {
+            $this->id = null;
+            $this->translatable = null;
+        }
+    }
 }
