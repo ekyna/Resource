@@ -12,7 +12,7 @@ interface ResourceInterface
     /**
      * Returns the id.
      *
-     * @return int
+     * @return int|null
      */
     public function getId();
 }

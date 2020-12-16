@@ -5,28 +5,39 @@ namespace Ekyna\Component\Resource\Model;
 /**
  * Trait TranslationTrait
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
 trait TranslationTrait
 {
-    /**
-     * @var string
-     */
-    protected $locale;
-
     /**
      * @var TranslatableInterface
      */
     protected $translatable;
 
+    /**
+     * @var string
+     */
+    protected $locale;
+
+
+    /**
+     * Returns the translatable.
+     *
+     * @return TranslatableInterface|null
+     */
+    public function getTranslatable(): ?TranslatableInterface
+    {
+        return $this->translatable;
+    }
 
     /**
      * Sets the translatable.
      *
-     * @param TranslatableInterface $translatable
-     * @return TranslationInterface|$this
+     * @param TranslatableInterface|null $translatable
+     *
+     * @return $this|TranslationInterface
      */
-    public function setTranslatable(TranslatableInterface $translatable = null)
+    public function setTranslatable(TranslatableInterface $translatable = null): TranslationInterface
     {
         if ($translatable === $this->translatable) {
             return $this;
@@ -48,35 +59,26 @@ trait TranslationTrait
     }
 
     /**
-     * Returns the translatable.
+     * Returns the locale.
      *
-     * @return TranslatableInterface
+     * @return string|null
      */
-    public function getTranslatable()
+    public function getLocale(): ?string
     {
-        return $this->translatable;
+        return $this->locale;
     }
 
     /**
      * Sets the locale.
      *
      * @param string $locale
-     * @return TranslatableInterface|$this
+     *
+     * @return $this|TranslationInterface
      */
-    public function setLocale($locale)
+    public function setLocale(string $locale): TranslationInterface
     {
         $this->locale = $locale;
 
         return $this;
-    }
-
-    /**
-     * Returns the locale.
-     *
-     * @return string
-     */
-    public function getLocale()
-    {
-        return $this->locale;
     }
 }
