@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Doctrine\ORM\Events;
 use Ekyna\Component\Resource\Doctrine\DBAL\EventListener\EncryptorListener;
 use Ekyna\Component\Resource\Doctrine\ORM\Factory\FactoryFactoryAdapter;
 use Ekyna\Component\Resource\Doctrine\ORM\Listener\EntityListener;
@@ -36,12 +37,12 @@ return static function (ContainerConfigurator $container) {
                 service('doctrine'),
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'preFlush',
+                'event'      => Events::preFlush,
                 'connection' => 'default',
                 'priority'   => 1024, // Must be triggered before any other listeners
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'postFlush',
+                'event'      => Events::postFlush,
                 'connection' => 'default',
                 'priority'   => 1024, // Must be triggered before any other listeners
             ])
@@ -71,7 +72,7 @@ return static function (ContainerConfigurator $container) {
                 // TODO abstract_arg('Tracking converters'),
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'postFlush',
+                'event'      => Events::postFlush,
                 'connection' => 'default',
                 'priority'   => 1024, // Must be triggered before any other listeners
             ])
@@ -100,7 +101,7 @@ return static function (ContainerConfigurator $container) {
                 service('ekyna_resource.behavior.executor'),
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'onFlush',
+                'event'      => Events::onFlush,
                 'connection' => 'default',
                 'priority'   => 1024, // Must be triggered before any other listeners
             ])
@@ -112,7 +113,7 @@ return static function (ContainerConfigurator $container) {
                 abstract_arg('The resources entities classes'), // Replaced by RegistriesPass
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'loadClassMetadata',
+                'event'      => Events::loadClassMetadata,
                 'connection' => 'default',
                 'priority'   => 768,
             ])
@@ -125,12 +126,12 @@ return static function (ContainerConfigurator $container) {
                 abstract_arg('The resources translations classes map'), // Replaced by RegistriesPass
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'loadClassMetadata',
+                'event'      => Events::loadClassMetadata,
                 'connection' => 'default',
                 'priority'   => 512,
             ])
             ->tag('doctrine.event_listener', [
-                'event'      => 'postLoad',
+                'event'      => Events::postLoad,
                 'connection' => 'default',
                 'priority'   => 512,
             ])

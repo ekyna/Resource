@@ -4,27 +4,20 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Model;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use Ekyna\Component\Resource\Copier\CopierInterface;
+use Ekyna\Component\Resource\Copier\CopyInterface;
 
 /**
  * Class AbstractTranslatable
  * @package Ekyna\Component\Resource\Model
  * @author Étienne Dauvergne <contact@ekyna.com>
  */
-abstract class AbstractTranslatable implements TranslatableInterface
+abstract class AbstractTranslatable extends AbstractResource implements TranslatableInterface, CopyInterface
 {
     use TranslatableTrait;
 
-
-    /**
-     * Clones the translatable.
-     */
-    public function __clone()
+    public function onCopy(CopierInterface $copier): void
     {
-        $translations = $this->translations->toArray();
-        $this->translations = new ArrayCollection();
-        foreach ($translations as $translation) {
-            $this->addTranslation(clone $translation);
-        }
+        $this->translations = $copier->copyCollection($this->translations, true);
     }
 }

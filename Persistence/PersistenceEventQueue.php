@@ -43,7 +43,6 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
     public function scheduleInsert(ResourceInterface $resource): void
     {
         if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::INSERT)) {
-            /** @noinspection PhpUnhandledExceptionInspection */
             $this->enqueue($resource, $eventName);
         }
     }
@@ -51,7 +50,6 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
     public function scheduleUpdate(ResourceInterface $resource): void
     {
         if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::UPDATE)) {
-            /** @noinspection PhpUnhandledExceptionInspection */
             $this->enqueue($resource, $eventName);
         }
     }
@@ -59,7 +57,6 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
     public function scheduleDelete(ResourceInterface $resource): void
     {
         if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::DELETE)) {
-            /** @noinspection PhpUnhandledExceptionInspection */
             $this->enqueue($resource, $eventName);
         }
     }

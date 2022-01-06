@@ -15,7 +15,7 @@ use Ekyna\Component\Resource\Exception\RuntimeException;
 trait TrackAssociationTrait
 {
     /** Associated entities ids. */
-    protected array $snapshot;
+    protected ?array $snapshot = null;
 
 
     /**

@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace Ekyna\Component\Resource\Model;
 
 /**
- * Class AbstractTranslation
+ * Class AbstractResource
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
+ *
+ * @TODO Make ResourceInterface implementations extends this
  */
-abstract class AbstractTranslation implements TranslationInterface
+class AbstractResource implements ResourceInterface
 {
-    use TranslationTrait;
-
-    protected ?int $id = null;
+    private ?int $id = null;
 
     public function __clone()
     {
         $this->id = null;
-        $this->translatable = null;
     }
 
     public function getId(): ?int
