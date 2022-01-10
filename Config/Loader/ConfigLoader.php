@@ -389,6 +389,7 @@ class ConfigLoader
             $config['interfaces'] = [];
         }
 
+        // TODO While overriding resource config, 'entity' entry may not be defined
         if (is_array($config['entity']) && isset($config['entity']['interface'])) {
             // TODO Check hierarchy (implementation consistency)
             $config['interfaces'][] = $config['entity']['interface'];

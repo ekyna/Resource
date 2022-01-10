@@ -29,17 +29,16 @@ trait LocaleAwareRepositoryTrait
 
         $expr = new Query\Expr();
 
-        // TODO This may change between master/sub requests
         $current = $provider->getCurrentLocale();
         $fallback = $provider->getFallbackLocale();
 
-        if ($current != $fallback) {
+        if ($current !== $fallback) {
             return $expr->orX(
-                $expr->eq($alias . '.locale', $expr->literal($provider->getCurrentLocale())),
-                $expr->eq($alias . '.locale', $expr->literal($provider->getFallbackLocale()))
+                $expr->eq($alias . '.locale', $expr->literal($current)),
+                $expr->eq($alias . '.locale', $expr->literal($fallback))
             );
         }
 
-        return $expr->eq($alias . '.locale', $expr->literal($provider->getCurrentLocale()));
+        return $expr->eq($alias . '.locale', $expr->literal($current));
     }
 }

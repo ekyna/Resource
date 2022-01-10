@@ -6,6 +6,7 @@ namespace Ekyna\Component\Resource\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Util\ClassUtils;
 use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 
 /**
@@ -139,17 +140,17 @@ trait TreeTrait
     {
         $parent && $this->supportNode($parent);
 
-        if ($parent !== $this->parent) {
-            if ($previous = $this->parent) {
-                $this->parent = null;
-                /** @noinspection PhpParamsInspection */
-                $previous->removeChild($this);
-            }
+        if ($parent === $this->parent) {
+            return $this;
+        }
 
-            if ($this->parent = $parent) {
-                /** @noinspection PhpParamsInspection */
-                $this->parent->addChild($this);
-            }
+        if ($previous = $this->parent) {
+            $this->parent = null;
+            $previous->removeChild($this);
+        }
+
+        if ($this->parent = $parent) {
+            $this->parent->addChild($this);
         }
 
         return $this;
@@ -190,7 +191,6 @@ trait TreeTrait
 
         if (!$this->hasChild($child)) {
             $this->children->add($child);
-            /** @noinspection PhpParamsInspection */
             $child->setParent($this);
         }
 
@@ -241,7 +241,10 @@ trait TreeTrait
      */
     protected function supportNode(TreeInterface $node): void
     {
-        if (!$node instanceof static) {
+        $nodeClass = ClassUtils::getClass($node);
+        $selfClass = ClassUtils::getRealClass(static::class);
+
+        if ($nodeClass !== $selfClass) {
             throw new UnexpectedTypeException($node, static::class);
         }
     }

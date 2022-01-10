@@ -10,14 +10,17 @@ namespace Ekyna\Component\Resource\Model;
  * @author  Étienne Dauvergne <contact@ekyna.com>
  *
  * @method int getId()
+ *
+ * @deprecated
+ * @TODO    Remove
  */
 trait TaggedEntityTrait
 {
     /**
      * Returns the entity tag.
      *
-     * @throws \RuntimeException
      * @return string
+     * @throws \RuntimeException
      */
     public function getEntityTag(): string
     {
