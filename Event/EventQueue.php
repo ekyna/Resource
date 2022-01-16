@@ -61,9 +61,9 @@ class EventQueue implements EventQueueInterface
 
     public function flush(): void
     {
-        while (!empty($queue = $this->clear())) {
-            $queue = $this->sortQueue($queue);
+        $this->dispatcher->dispatch(new Event(), QueueEvents::QUEUE_FLUSH);
 
+        while (!empty($queue = $this->clear())) {
             foreach ($queue as $eventName => $resources) {
                 foreach ($resources as $resourceOrEvent) {
                     if (!$resourceOrEvent instanceof ResourceEventInterface) {
@@ -268,6 +268,10 @@ class EventQueue implements EventQueueInterface
         $queue = $this->queue;
 
         $this->queue = [];
+
+        $queue = $this->sortQueue($queue);
+
+        $this->dispatcher->dispatch(new Event(), QueueEvents::QUEUE_CLEAR);
 
         return $queue;
     }

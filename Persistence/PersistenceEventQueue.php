@@ -35,7 +35,7 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
 
     protected function clear(): array
     {
-        $this->tracker->clearChangeSets();
+        $this->tracker->clearChangeSets(); // TODO Listen to Ekyna\Component\Resource\Event\QueueEvents::QUEUE_CLEAR event
 
         return parent::clear();
     }
