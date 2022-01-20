@@ -23,5 +23,5 @@ interface CopierInterface
      */
     public function copyResource(ResourceInterface $resource): ResourceInterface;
 
-    public function copyCollection(Collection $collection, bool $deep): Collection;
+    public function copyCollection(ResourceInterface $resource, string $property, bool $deep): void;
 }

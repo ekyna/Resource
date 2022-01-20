@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Copier;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
  * Class Copier
@@ -15,6 +17,8 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 class Copier implements CopierInterface
 {
+    private ?PropertyAccessorInterface $accessor = null;
+
     public function copyResource(ResourceInterface $resource): ResourceInterface
     {
         $copy = clone $resource;
@@ -26,18 +30,42 @@ class Copier implements CopierInterface
         return $copy;
     }
 
-    public function copyCollection(Collection $collection, bool $deep): Collection
+    public function copyCollection(ResourceInterface $resource, string $property, bool $deep): void
     {
-        $copy = new ArrayCollection();
+        $accessor = $this->getAccessor();
 
-        foreach ($collection->toArray() as $item) {
-            if ($deep && $item instanceof ResourceInterface) {
+        $collection = $accessor->getValue($resource, $property);
+
+        if (!$collection instanceof Collection) {
+            throw new UnexpectedTypeException($collection, Collection::class);
+        }
+
+        $sourceItems = $collection->toArray();
+        $collection->clear();
+
+        $copiedItems = [];
+
+        foreach ($sourceItems as $item) {
+            if ($deep) {
+                if (!$item instanceof ResourceInterface) {
+                    throw new UnexpectedTypeException($item, ResourceInterface::class);
+                }
+
                 $item = $this->copyResource($item);
             }
 
-            $copy->add($item);
+            $copiedItems[] = $item;
         }
 
-        return $copy;
+        $accessor->setValue($resource, $property, $copiedItems);
+    }
+
+    private function getAccessor(): PropertyAccessorInterface
+    {
+        if ($this->accessor) {
+            return $this->accessor;
+        }
+
+        return $this->accessor = PropertyAccess::createPropertyAccessor();
     }
 }

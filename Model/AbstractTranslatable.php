@@ -18,6 +18,6 @@ abstract class AbstractTranslatable extends AbstractResource implements Translat
 
     public function onCopy(CopierInterface $copier): void
     {
-        $this->translations = $copier->copyCollection($this->translations, true);
+        $copier->copyCollection($this, 'translations', true);
     }
 }
