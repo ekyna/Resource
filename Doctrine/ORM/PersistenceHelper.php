@@ -13,6 +13,10 @@ use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
+use function array_key_exists;
+use function gettype;
+use function var_dump;
+
 /**
  * Class PersistenceHelper
  * @package Ekyna\Component\Resource\Doctrine\ORM
@@ -58,12 +62,53 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource);
 
         if (is_string($properties)) {
-            return isset($changeSet[$properties]) || array_key_exists($properties, $changeSet);
+            return array_key_exists($properties, $changeSet);
         } elseif (is_array($properties)) {
             return !empty(array_intersect($properties, array_keys($changeSet)));
         }
 
         throw new UnexpectedTypeException($properties, ['string', 'array']);
+    }
+
+    /**
+     * @param mixed $from
+     */
+    public function isChangedFrom(ResourceInterface $resource, string $property, $from): bool
+    {
+        $changeSet = $this->getChangeSet($resource, $property);
+
+        return array_key_exists(0, $changeSet) && $this->isEqual($changeSet[0], $from);
+    }
+
+    /**
+     * @param mixed $a
+     * @param mixed $b
+     */
+    private function isEqual($a, $b): bool
+    {
+        return gettype($a) === gettype($b) && 0 === ($a <=> $b);
+    }
+
+    /**
+     * @param mixed $to
+     */
+    public function isChangedTo(ResourceInterface $resource, string $property, $to): bool
+    {
+        $changeSet = $this->getChangeSet($resource, $property);
+
+        return array_key_exists(1, $changeSet) && $this->isEqual($changeSet[1], $to);
+    }
+
+    /**
+     * @param mixed $from
+     * @param mixed $to
+     */
+    public function isChangedFromTo(ResourceInterface $resource, string $property, $from, $to): bool
+    {
+        $changeSet = $this->getChangeSet($resource, $property);
+
+        return array_key_exists(0, $changeSet) && $this->isEqual($changeSet[0], $from)
+            && array_key_exists(1, $changeSet) && $this->isEqual($changeSet[1], $to);
     }
 
     /**

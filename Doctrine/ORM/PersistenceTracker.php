@@ -7,14 +7,13 @@ namespace Ekyna\Component\Resource\Doctrine\ORM;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
-use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
 use function array_key_exists;
 use function get_class;
+use function gettype;
 use function spl_object_hash;
-use function sprintf;
 
 /**
  * Class PersistenceTracker
@@ -28,35 +27,15 @@ use function sprintf;
 class PersistenceTracker implements PersistenceTrackerInterface
 {
     protected ManagerRegistry $registry;
-    /** @var array<Tracking\NormalizerInterface> */
-    protected array $converters = [];
 
     protected array $originalData;
     protected array $changeSets;
 
-    public function __construct(ManagerRegistry $registry, array $converters = [])
+    public function __construct(ManagerRegistry $registry)
     {
         $this->registry = $registry;
 
-        $this->registerConverter(new Tracking\DateTimeNormalizer());
-        $this->registerConverter(new Tracking\DecimalNormalizer());
-
-        foreach ($converters as $converter) {
-            $this->registerConverter($converter);
-        }
-
         $this->clear();
-    }
-
-    public function registerConverter(Tracking\NormalizerInterface $converter): void
-    {
-        foreach ($converter->getTypes() as $type) {
-            if (isset($this->converters[$type])) {
-                throw new RuntimeException(sprintf('A converter is already registered for type \'%s\'.', $type));
-            }
-
-            $this->converters[$type] = $converter;
-        }
     }
 
     public function computeChangeSet(ResourceInterface $resource): void
@@ -141,24 +120,15 @@ class PersistenceTracker implements PersistenceTrackerInterface
 
             $orgValue = $originalData[$name] ?? null;
 
-            if ($this->isDifferent($orgValue, $actualValue, $name, $metadata)) {
-                $changeSet[$name] = [$orgValue, $actualValue];
+            // Skip equal values
+            if (gettype($orgValue) && gettype($actualValue) && 0 === ($orgValue <=> $actualValue)) {
+                continue;
             }
+
+            $changeSet[$name] = [$orgValue, $actualValue];
         }
 
         $this->changeSets[$oid] = $changeSet;
-    }
-
-    /**
-     * @param object|array|string|float|int|bool $a
-     * @param object|array|string|float|int|bool $b
-     */
-    private function isDifferent($a, $b, string $field, ClassMetadata $metadata): bool
-    {
-        $a = $this->normalizeData($a, $field, $metadata);
-        $b = $this->normalizeData($b, $field, $metadata);
-
-        return $a !== $b;
     }
 
     /**
@@ -180,28 +150,6 @@ class PersistenceTracker implements PersistenceTrackerInterface
             && $metadata->isAssociationWithSingleJoinColumn($field);
     }
 
-    /**
-     * Normalizes the data for comparison.
-     *
-     * @param mixed $data
-     *
-     * @return mixed
-     */
-    private function normalizeData($data, string $field, ClassMetadata $metadata)
-    {
-        if (!isset($metadata->fieldMappings[$field])) {
-            return $data;
-        }
-
-        $mapping = $metadata->fieldMappings[$field];
-
-        if (!isset($this->converters[$type = $mapping['type']])) {
-            return $data;
-        }
-
-        return $this->converters[$type]->convert($data, $mapping);
-    }
-
     public function getChangeSet(ResourceInterface $entity, string $property = null): array
     {
         $oid = spl_object_hash($entity);
@@ -215,11 +163,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
             return $changeSet;
         }
 
-        if (isset($changeSet[$property])) {
-            return $changeSet[$property];
-        }
-
-        return [];
+        return $changeSet[$property] ?? [];
     }
 
     public function clearChangeSets(): void

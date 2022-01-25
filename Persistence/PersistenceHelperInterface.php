@@ -55,6 +55,28 @@ interface PersistenceHelperInterface
     public function isChanged(ResourceInterface $resource, $properties): bool;
 
     /**
+     * Returns whether the resource property has changed from the given value.
+     *
+     * @param mixed $from
+     */
+    public function isChangedFrom(ResourceInterface $resource, string $property, $from): bool;
+
+    /**
+     * Returns whether the resource property has changed to the given value.
+     *
+     * @param mixed $to
+     */
+    public function isChangedTo(ResourceInterface $resource, string $property, $to): bool;
+
+    /**
+     * Returns whether the resource property has changed from and to the given values.
+     *
+     * @param mixed $from
+     * @param mixed $to
+     */
+    public function isChangedFromTo(ResourceInterface $resource, string $property, $from, $to): bool;
+
+    /**
      * Returns whether the resource is scheduled for insert.
      *
      * @param ResourceInterface $resource
