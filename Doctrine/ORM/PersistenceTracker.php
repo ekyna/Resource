@@ -121,7 +121,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
             $orgValue = $originalData[$name] ?? null;
 
             // Skip equal values
-            if (gettype($orgValue) && gettype($actualValue) && 0 === ($orgValue <=> $actualValue)) {
+            if (gettype($orgValue) === gettype($actualValue) && 0 === ($orgValue <=> $actualValue)) {
                 continue;
             }
 
