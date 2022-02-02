@@ -2,17 +2,11 @@
 
 namespace Acme\Resource\Entity;
 
-use Ekyna\Component\Resource\Model\ResourceInterface;
+use Ekyna\Component\Resource\Model\AbstractResource;
 
-class Category implements ResourceInterface
+class Category extends AbstractResource
 {
-    private $id;
     private $title;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getTitle()
     {

@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Copier;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Util\ClassUtils;
 use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
+use ReflectionProperty;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+
+use function get_class;
 
 /**
  * Class Copier
@@ -40,12 +45,11 @@ class Copier implements CopierInterface
             throw new UnexpectedTypeException($collection, Collection::class);
         }
 
-        $sourceItems = $collection->toArray();
-        $collection->clear();
+        $this->initializeCollection($resource, $property);
 
         $copiedItems = [];
 
-        foreach ($sourceItems as $item) {
+        foreach ($collection as $item) {
             if ($deep) {
                 if (!$item instanceof ResourceInterface) {
                     throw new UnexpectedTypeException($item, ResourceInterface::class);
@@ -67,5 +71,12 @@ class Copier implements CopierInterface
         }
 
         return $this->accessor = PropertyAccess::createPropertyAccessor();
+    }
+
+    private function initializeCollection(ResourceInterface $resource, string $property): void
+    {
+        $refProp = new ReflectionProperty(ClassUtils::getRealClass(get_class($resource)), $property);
+        $refProp->setAccessible(true);
+        $refProp->setValue($resource, new ArrayCollection());
     }
 }

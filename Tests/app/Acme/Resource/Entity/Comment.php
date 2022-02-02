@@ -2,21 +2,15 @@
 
 namespace Acme\Resource\Entity;
 
-class Comment implements CommentInterface
-{
-    /** @var int */
-    private $id;
+use Ekyna\Component\Resource\Model\AbstractResource;
 
+class Comment extends AbstractResource implements CommentInterface
+{
     /** @var PostInterface */
     private $post;
 
     /** @var string */
     private $message;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getPost(): ?PostInterface
     {

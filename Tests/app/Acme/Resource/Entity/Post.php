@@ -6,19 +6,11 @@ use Ekyna\Component\Resource\Model\AbstractTranslatable;
 
 class Post extends AbstractTranslatable implements PostInterface
 {
-    /** @var int */
-    private $id;
-
     /** @var Category */
     private $category;
 
     /** @var \DateTime */
     private $date;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
 
     public function getCategory(): ?Category
     {

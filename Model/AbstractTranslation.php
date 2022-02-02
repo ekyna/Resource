@@ -7,22 +7,16 @@ namespace Ekyna\Component\Resource\Model;
 /**
  * Class AbstractTranslation
  * @package Ekyna\Component\Resource\Model
- * @author Étienne Dauvergne <contact@ekyna.com>
+ * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-abstract class AbstractTranslation implements TranslationInterface
+abstract class AbstractTranslation extends AbstractResource implements TranslationInterface
 {
     use TranslationTrait;
 
-    protected ?int $id = null;
-
     public function __clone()
     {
-        $this->id = null;
-        $this->translatable = null;
-    }
+        parent::__clone();
 
-    public function getId(): ?int
-    {
-        return $this->id;
+        $this->translatable = null;
     }
 }

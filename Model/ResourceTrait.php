@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Ekyna\Component\Resource\Model;
 
 /**
- * Class AbstractResource
+ * Trait ResourceTrait
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class AbstractResource implements ResourceInterface
+trait ResourceTrait
 {
-    use ResourceTrait;
+    protected ?int $id = null;
 
-    public function __clone()
+    public function getId(): ?int
     {
-        $this->id = null;
+        return $this->id;
     }
 }

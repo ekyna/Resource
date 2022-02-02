@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Acme\Resource\Entity;
 
 use Ekyna\Component\Resource\Model\ResourceInterface;

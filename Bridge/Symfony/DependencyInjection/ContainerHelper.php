@@ -89,6 +89,11 @@ class ContainerHelper
         // Configure definition with callable
         is_callable($config['configure']) && $config['configure']($definition);
 
+        /**
+         * TODO If a service has been auto-registered with App\Repository\PostRepository ID,
+         *  we need to replace its ID with 'ekyna_blog.repository.post' (instead of creating wrong alias).
+         */
+
         // Id alias
         if ($name !== $config['id'] && !$container->hasAlias($config['id'])) {
             $container->setAlias($config['id'], $name);

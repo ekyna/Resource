@@ -81,6 +81,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
                         continue;
                     }
 
+                    // TODO This will fail if target entity is scheduled for delete...
                     $object = $uow->tryGetById(
                         $originalData[$column],
                         $metadata->getAssociationTargetClass($name)

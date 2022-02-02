@@ -8,9 +8,6 @@ namespace Ekyna\Component\Resource\Model;
  * Trait TaggedEntityTrait
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
- *
- * @method int getId()
- *
  * @deprecated
  * @TODO    Remove
  */

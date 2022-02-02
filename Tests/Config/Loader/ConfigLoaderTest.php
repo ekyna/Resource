@@ -176,5 +176,21 @@ class ConfigLoaderTest extends TestCase
         // Not found
         $this->expectException(NotFoundConfigurationException::class);
         $this->loader->getResource('bar');
+
+        // Override (test normalization before merging)
+        $this->loader->addResource('foo', [
+            'entity' => Entity\Review::class,
+        ]);
+        $result = [
+            'namespace' => 'acme',
+            'entity'    => [
+                'class'     => Entity\Review::class,
+                'interface' => Entity\CommentInterface::class,
+            ],
+            'interfaces' => [
+                Entity\CommentInterface::class
+            ],
+        ];
+        self::assertSame($result, $this->loader->getResource('foo'));
     }
 }
