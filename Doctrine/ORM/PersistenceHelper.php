@@ -15,7 +15,6 @@ use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
 use function array_key_exists;
 use function gettype;
-use function var_dump;
 
 /**
  * Class PersistenceHelper
@@ -62,7 +61,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource);
 
         if (is_string($properties)) {
-            return array_key_exists($properties, $changeSet);
+            return isset($changeSet[$properties]) || array_key_exists($properties, $changeSet);
         } elseif (is_array($properties)) {
             return !empty(array_intersect($properties, array_keys($changeSet)));
         }
@@ -110,6 +109,7 @@ class PersistenceHelper implements PersistenceHelperInterface
         return array_key_exists(0, $changeSet) && $this->isEqual($changeSet[0], $from)
             && array_key_exists(1, $changeSet) && $this->isEqual($changeSet[1], $to);
     }
+
 
     /**
      * @inheritDoc

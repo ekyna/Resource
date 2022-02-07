@@ -69,6 +69,7 @@ return static function (ContainerConfigurator $container) {
         ->set('ekyna_resource.orm.persistence_tracker', PersistenceTracker::class)
             ->args([
                 service('ekyna_resource.orm.manager_registry'),
+                // TODO abstract_arg('Tracking converters'),
             ])
             ->tag('doctrine.event_listener', [
                 'event'      => Events::postFlush,
