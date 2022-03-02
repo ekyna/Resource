@@ -11,6 +11,7 @@ use Psr\Cache\CacheItemPoolInterface;
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
+use function array_map;
 use function array_merge;
 use function array_slice;
 use function in_array;
@@ -118,7 +119,11 @@ final class Search
             return [];
         }
 
-        $filter = !empty($resources = $request->getResources());
+        if ($filter = !empty($resources = $request->getResources())) {
+            $resources = array_map(function($value) {
+                return $this->registry->find($value)->getEntityClass();
+            }, $resources);
+        }
 
         $results = [];
 
