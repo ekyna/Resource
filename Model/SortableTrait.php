@@ -35,7 +35,7 @@ trait SortableTrait
      *
      * @see https://github.com/Atlantic18/DoctrineExtensions/issues/1726
      */
-    public function compareTo($other)
+    public function compareTo($other): int
     {
         if (get_class($other) !== static::class) {
             return 0;
