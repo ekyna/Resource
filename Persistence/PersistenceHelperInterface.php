@@ -23,7 +23,7 @@ interface PersistenceHelperInterface
      * @return \Doctrine\ORM\EntityManagerInterface
      *
      * @deprecated Use manager service directly
-     * @TODO Remove / Break doctrine dependency
+     * @TODO       Remove / Break doctrine dependency
      */
     public function getManager(string $entityClass = null);
 
@@ -38,11 +38,11 @@ interface PersistenceHelperInterface
      * Returns the entity change set.
      *
      * @param ResourceInterface $resource
-     * @param string|null       $property
+     * @param array|string|null $property
      *
      * @return array
      */
-    public function getChangeSet(ResourceInterface $resource, string $property = null): array;
+    public function getChangeSet(ResourceInterface $resource, $property = null): array;
 
     /**
      * Returns whether at least one of the given properties has changed.

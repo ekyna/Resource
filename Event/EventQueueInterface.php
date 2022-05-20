@@ -15,14 +15,14 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 interface EventQueueInterface
 {
     /**
-     * Sets whether or not the queue is opened.
+     * Sets whether the queue is opened.
      *
      * @param bool $opened
      */
     public function setOpened(bool $opened): void;
 
     /**
-     * Returns whether or not the queue is opened.
+     * Returns whether the queue is opened.
      *
      * @return bool
      */

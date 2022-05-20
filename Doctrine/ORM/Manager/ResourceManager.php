@@ -87,7 +87,7 @@ class ResourceManager implements ResourceManagerInterface
 
     public function clear(): void
     {
-        $this->wrapped->clear($this->resourceClass);
+        $this->wrapped->clear();
     }
 
     /**

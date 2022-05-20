@@ -7,7 +7,6 @@ namespace Ekyna\Component\Resource\Doctrine\ORM;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
-use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
@@ -23,13 +22,13 @@ use function gettype;
  */
 class PersistenceHelper implements PersistenceHelperInterface
 {
-    protected ManagerRegistry $registry;
-    protected PersistenceTrackerInterface $tracker;
+    protected ManagerRegistry                $registry;
+    protected PersistenceTrackerInterface    $tracker;
     protected PersistenceEventQueueInterface $eventQueue;
 
     public function __construct(
-        ManagerRegistry $registry,
-        PersistenceTrackerInterface $tracker,
+        ManagerRegistry                $registry,
+        PersistenceTrackerInterface    $tracker,
         PersistenceEventQueueInterface $eventQueue
     ) {
         $this->registry = $registry;
@@ -48,7 +47,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function getChangeSet(ResourceInterface $resource, string $property = null): array
+    public function getChangeSet(ResourceInterface $resource, $property = null): array
     {
         return $this->tracker->getChangeSet($resource, $property);
     }
@@ -58,15 +57,7 @@ class PersistenceHelper implements PersistenceHelperInterface
      */
     public function isChanged(ResourceInterface $resource, $properties): bool
     {
-        $changeSet = $this->getChangeSet($resource);
-
-        if (is_string($properties)) {
-            return isset($changeSet[$properties]) || array_key_exists($properties, $changeSet);
-        } elseif (is_array($properties)) {
-            return !empty(array_intersect($properties, array_keys($changeSet)));
-        }
-
-        throw new UnexpectedTypeException($properties, ['string', 'array']);
+        return !empty($this->tracker->getChangeSet($resource, $properties));
     }
 
     /**
@@ -107,7 +98,8 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource, $property);
 
         return array_key_exists(0, $changeSet) && $this->isEqual($changeSet[0], $from)
-            && array_key_exists(1, $changeSet) && $this->isEqual($changeSet[1], $to);
+            && array_key_exists(1, $changeSet)
+            && $this->isEqual($changeSet[1], $to);
     }
 
 

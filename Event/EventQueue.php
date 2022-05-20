@@ -36,12 +36,14 @@ class EventQueue implements EventQueueInterface
         $this->dispatcher = $dispatcher;
 
         // TODO logger to track queued events
-
-        $this->clear();
     }
 
     public function setOpened(bool $opened): void
     {
+        if ($opened === $this->opened) {
+            return;
+        }
+
         if ($this->opened = $opened) {
             $this->dispatcher->dispatch(new Event(), QueueEvents::QUEUE_OPEN);
         } else {

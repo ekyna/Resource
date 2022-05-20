@@ -48,35 +48,10 @@ class PersistenceHelperTest extends TestCase
     {
         $resource = $this->createMock(ResourceInterface::class);
 
-        $this->configureChangeSet([
-            'string'  => ['foo', 'bar'],
-            'bool'    => [false, true],
-            'int'     => [12, 34],
-            'decimal' => [new Decimal('0.5'), new Decimal('12.34')],
-        ]);
-
+        $this->configureChangeSet([null, 'bar']);
         self::assertEquals(true, $this->helper->isChanged($resource, 'string'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'bool'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'int'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'decimal'));
 
-        $this->configureChangeSet([
-            'string'  => [null, ''],
-            'bool'    => [false, null],
-            'int'     => [null, 0],
-            'decimal' => [null, new Decimal('12.34')],
-        ]);
-
-        self::assertEquals(true, $this->helper->isChanged($resource, 'string'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'bool'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'int'));
-        self::assertEquals(true, $this->helper->isChanged($resource, 'decimal'));
-
-        $this->configureChangeSet([
-            'string' => [null, 'bar'],
-        ]);
-
-        self::assertEquals(true, $this->helper->isChanged($resource, 'string'));
+        $this->configureChangeSet([]);
         self::assertEquals(false, $this->helper->isChanged($resource, 'bool'));
         // TODO with array
     }
