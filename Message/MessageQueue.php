@@ -37,8 +37,17 @@ final class MessageQueue implements MessageQueueInterface
         return $this;
     }
 
+    /**
+     * Calls messages builders and dispatches messages through the bus.
+     */
     public function flush(): void
     {
+        if (null === $this->bus) {
+            $this->queue = [];
+
+            return;
+        }
+
         foreach ($this->queue as $message) {
             if (is_callable($message)) {
                 $message = $message();
