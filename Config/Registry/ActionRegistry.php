@@ -6,15 +6,13 @@ namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\ActionConfig;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
-use Generator;
 
 /**
  * Class ActionRegistry
- * @package      Ekyna\Component\Resource\Config\Registry
- * @author       Etienne Dauvergne <contact@ekyna.com>
+ * @package Ekyna\Component\Resource\Config\Registry
+ * @author  Etienne Dauvergne <contact@ekyna.com>
  *
- * @method Generator|ActionConfig[] all() Returns all the action configurations.
- * @noinspection PhpSuperClassIncompatibleWithInterfaceInspection
+ * @implements RegistryInterface<ActionConfig>
  */
 class ActionRegistry extends AbstractRegistry implements ActionRegistryInterface
 {
@@ -24,7 +22,6 @@ class ActionRegistry extends AbstractRegistry implements ActionRegistryInterface
     public function find(string $action, bool $throwException = true): ?ActionConfig
     {
         if ($this->has($action)) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->get($action);
         }
 

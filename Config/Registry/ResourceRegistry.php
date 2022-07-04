@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Config\Registry;
 
-use Closure;
 use Doctrine\Common\Util\ClassUtils;
 use Ekyna\Component\Resource\Config\AbstractConfig;
 use Ekyna\Component\Resource\Config\Loader\ChildrenLoader;
@@ -14,7 +13,6 @@ use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
 use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Model\TranslationInterface;
-use Generator;
 
 use function class_exists;
 use function get_class;
@@ -26,26 +24,23 @@ use function sprintf;
 
 /**
  * Class ResourceRegistry
- * @package      Ekyna\Component\Resource\Config\Registry
- * @author       Etienne Dauvergne <contact@ekyna.com>
+ * @package Ekyna\Component\Resource\Config\Registry
+ * @author  Etienne Dauvergne <contact@ekyna.com>
  *
- * @method Generator|ResourceConfig[] all()
- * @noinspection PhpSuperClassIncompatibleWithInterfaceInspection
+ * @implements RegistryInterface<ResourceConfig>
  */
 class ResourceRegistry extends AbstractRegistry implements ResourceRegistryInterface
 {
     protected ?array $parentMap        = null;
-    protected ?array $depthMap        = null;
+    protected ?array $depthMap         = null;
     protected ?array $eventPriorityMap = null;
-    protected ?Closure $childrenLoader = null;
-
 
     /**
      * @inheritDoc
      */
-    public function find($resource, bool $throwException = true): ?ResourceConfig
+    public function find(ResourceInterface|string $resource, bool $throwException = true): ?ResourceConfig
     {
-        if ($resource instanceof ResourceInterface) {
+        if (is_object($resource)) {
             $resource = get_class($resource);
         }
 
@@ -62,7 +57,6 @@ class ResourceRegistry extends AbstractRegistry implements ResourceRegistryInter
         }
 
         if ($this->has($resource)) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->get($resource);
         }
 
@@ -78,13 +72,11 @@ class ResourceRegistry extends AbstractRegistry implements ResourceRegistryInter
      *
      * @TODO Rework / Remove (allow translation with find) ?
      */
-    public function findByTranslation($translation, bool $throwException = true): ?ResourceConfig
-    {
+    public function findByTranslation(
+        TranslationInterface|string $translation,
+        bool                        $throwException = true
+    ): ?ResourceConfig {
         if (is_object($translation)) {
-            if (!$translation instanceof TranslationInterface) {
-                throw new LogicException($translation, TranslationInterface::class);
-            }
-
             if (null !== $translatable = $translation->getTranslatable()) {
                 return $this->find($translatable, $throwException);
             }
@@ -106,7 +98,6 @@ class ResourceRegistry extends AbstractRegistry implements ResourceRegistryInter
             }
 
             if ($this->has($translation)) {
-                /** @noinspection PhpIncompatibleReturnTypeInspection */
                 return $this->get($translation);
             }
         }

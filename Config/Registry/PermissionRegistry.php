@@ -6,15 +6,13 @@ namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\PermissionConfig;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
-use Generator;
 
 /**
  * Class PermissionRegistry
- * @package      Ekyna\Component\Resource\Config\Registry
- * @author       Etienne Dauvergne <contact@ekyna.com>
+ * @package Ekyna\Component\Resource\Config\Registry
+ * @author  Etienne Dauvergne <contact@ekyna.com>
  *
- * @method Generator|PermissionConfig[] all()
- * @noinspection PhpSuperClassIncompatibleWithInterfaceInspection
+ * @implements RegistryInterface<PermissionConfig>
  */
 class PermissionRegistry extends AbstractRegistry implements PermissionRegistryInterface
 {
@@ -24,7 +22,6 @@ class PermissionRegistry extends AbstractRegistry implements PermissionRegistryI
     public function find(string $permission, bool $throwException = true): ?PermissionConfig
     {
         if ($this->has($permission)) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->get($permission);
         }
 

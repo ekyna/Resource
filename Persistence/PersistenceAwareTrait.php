@@ -11,12 +11,7 @@ namespace Ekyna\Component\Resource\Persistence;
  */
 trait PersistenceAwareTrait
 {
-    private PersistenceHelperInterface $persistenceHelper;
-
-    public function getPersistenceHelper(): PersistenceHelperInterface
-    {
-        return $this->persistenceHelper;
-    }
+    protected readonly PersistenceHelperInterface $persistenceHelper;
 
     public function setPersistenceHelper(PersistenceHelperInterface $persistenceHelper): void
     {

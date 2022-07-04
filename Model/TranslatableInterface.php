@@ -11,6 +11,8 @@ use Ekyna\Component\Resource\Exception\RuntimeException;
  * Interface TranslatableInterface
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
+ *
+ * @template T of TranslationInterface
  */
 interface TranslatableInterface extends ResourceInterface
 {
@@ -23,6 +25,8 @@ interface TranslatableInterface extends ResourceInterface
 
     /**
      * Returns the translation regarding the current or fallback locale.
+     *
+     * @return T
      *
      * @throws RuntimeException
      */
@@ -50,16 +54,22 @@ interface TranslatableInterface extends ResourceInterface
 
     /**
      * Adds the translation.
+     *
+     * @psalm-param T $translation
      */
     public function addTranslation(TranslationInterface $translation): TranslatableInterface;
 
     /**
      * Removes the translation.
+     *
+     * @psalm-param T $translation
      */
     public function removeTranslation(TranslationInterface $translation): TranslatableInterface;
 
     /**
      * Returns whether the translatable has the given translation.
+     *
+     * @psalm-param T $translation
      */
     public function hasTranslation(TranslationInterface $translation): bool;
 
@@ -71,7 +81,7 @@ interface TranslatableInterface extends ResourceInterface
     /**
      * Returns the translations.
      *
-     * @return Collection<TranslationInterface>
+     * @return Collection<T>
      */
     public function getTranslations(): Collection;
 }

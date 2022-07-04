@@ -6,15 +6,13 @@ namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\NamespaceConfig;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
-use Generator;
 
 /**
  * Class NamespaceRegistry
- * @package      Ekyna\Component\Resource\Config\Registry
- * @author       Etienne Dauvergne <contact@ekyna.com>
+ * @package Ekyna\Component\Resource\Config\Registry
+ * @author  Etienne Dauvergne <contact@ekyna.com>
  *
- * @method Generator|NamespaceConfig[] all() Returns all the namespaces configurations.
- * @noinspection PhpSuperClassIncompatibleWithInterfaceInspection
+ * @implements RegistryInterface<NamespaceConfig>
  */
 class NamespaceRegistry extends AbstractRegistry implements NamespaceRegistryInterface
 {
@@ -24,7 +22,6 @@ class NamespaceRegistry extends AbstractRegistry implements NamespaceRegistryInt
     public function find(string $namespace, bool $throwException = true): ?NamespaceConfig
     {
         if ($this->has($namespace)) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->get($namespace);
         }
 

@@ -11,8 +11,11 @@ use Ekyna\Component\Resource\Repository\TranslatableRepositoryInterface;
 
 /**
  * Class TranslatableRepositoryTrait
- * @package Ekyna\Component\Resource\Doctrine\ORM\Repository
- * @author  Étienne Dauvergne <contact@ekyna.com>
+ * @package  Ekyna\Component\Resource\Doctrine\ORM\Repository
+ * @author   Étienne Dauvergne <contact@ekyna.com>
+ *
+ * @template T
+ * @extends ResourceRepositoryTrait<T>
  */
 trait TranslatableRepositoryTrait
 {
@@ -25,14 +28,8 @@ trait TranslatableRepositoryTrait
 
     protected array $translatableFields = [];
 
-
     /**
      * Returns the singe result query builder.
-     *
-     * @param string|null $alias
-     * @param string|null $indexBy
-     *
-     * @return QueryBuilder
      */
     protected function getQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
     {
@@ -47,11 +44,6 @@ trait TranslatableRepositoryTrait
 
     /**
      * Returns the collection query builder.
-     *
-     * @param string|null $alias
-     * @param string|null $indexBy
-     *
-     * @return QueryBuilder
      */
     protected function getCollectionQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
     {
@@ -66,10 +58,6 @@ trait TranslatableRepositoryTrait
 
     /**
      * Sets the translatable fields.
-     *
-     * @param array $fields
-     *
-     * @return $this|TranslatableRepositoryInterface
      */
     public function setTranslatableFields(array $fields): TranslatableRepositoryInterface
     {
@@ -80,10 +68,6 @@ trait TranslatableRepositoryTrait
 
     /**
      * Returns the aliased property name (for query builder usage).
-     *
-     * @param string $name
-     *
-     * @return string
      */
     protected function getPropertyName(string $name): string
     {
@@ -97,11 +81,9 @@ trait TranslatableRepositoryTrait
     /**
      * Returns the paginated collection result.
      *
-     * @param Query $query
-     *
-     * @return array|Paginator
+     * @return array<T>|Paginator<T>
      */
-    protected function collectionResult(Query $query)
+    protected function collectionResult(Query $query): array|Paginator
     {
         return new Paginator($query, true);
     }

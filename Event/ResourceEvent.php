@@ -21,9 +21,8 @@ class ResourceEvent extends Event implements ResourceEventInterface
     protected ?ResourceInterface $resource = null;
     protected bool               $hard     = false;
     protected array              $data     = [];
-    /** @var ResourceMessage[] */
+    /** @var array<int, ResourceMessage> */
     protected array $messages = [];
-
 
     public function getResource(): ?ResourceInterface
     {
@@ -47,10 +46,7 @@ class ResourceEvent extends Event implements ResourceEventInterface
         return $this->hard;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function addData(string $key, $value): ResourceEventInterface
+    public function addData(string $key, mixed $value): ResourceEventInterface
     {
         $this->data[$key] = $value;
 
@@ -62,10 +58,7 @@ class ResourceEvent extends Event implements ResourceEventInterface
         return array_key_exists($key, $this->data);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getData(string $key)
+    public function getData(string $key): mixed
     {
         if ($this->hasData($key)) {
             return $this->data[$key];

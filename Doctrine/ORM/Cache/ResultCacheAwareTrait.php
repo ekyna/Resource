@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Doctrine\ORM\Cache;
 
-use Doctrine\Common\Cache\Cache;
+use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * Trait ResultCacheAwareTrait
@@ -13,14 +13,14 @@ use Doctrine\Common\Cache\Cache;
  */
 trait ResultCacheAwareTrait
 {
-    private Cache $resultCache;
+    private CacheInterface $resultCache;
 
-    public function setResultCache(Cache $resultCache): void
+    public function setResultCache(CacheInterface $resultCache): void
     {
         $this->resultCache = $resultCache;
     }
 
-    protected function getResultCache(): Cache
+    protected function getResultCache(): CacheInterface
     {
         return $this->resultCache;
     }

@@ -6,15 +6,13 @@ namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\BehaviorConfig;
 use Ekyna\Component\Resource\Exception\NotFoundConfigurationException;
-use Generator;
 
 /**
  * Class BehaviorRegistry
  * @package Ekyna\Component\Resource\Config\Registry
  * @author  Etienne Dauvergne <contact@ekyna.com>
  *
- * @method Generator|BehaviorConfig[] all()
- * @noinspection PhpSuperClassIncompatibleWithInterfaceInspection
+ * @implements RegistryInterface<BehaviorConfig>
  */
 class BehaviorRegistry extends AbstractRegistry implements BehaviorRegistryInterface
 {
@@ -24,7 +22,6 @@ class BehaviorRegistry extends AbstractRegistry implements BehaviorRegistryInter
     public function find(string $behavior, bool $throwException = true): ?BehaviorConfig
     {
         if ($this->has($behavior)) {
-            /** @noinspection PhpIncompatibleReturnTypeInspection */
             return $this->get($behavior);
         }
 

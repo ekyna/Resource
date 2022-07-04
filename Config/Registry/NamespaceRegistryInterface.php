@@ -5,32 +5,17 @@ declare(strict_types=1);
 namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\NamespaceConfig;
-use Generator;
 
 /**
  * Interface NamespaceRegistryInterface
  * @package Ekyna\Component\Resource\Config\Registry
  * @author  Etienne Dauvergne <contact@ekyna.com>
+ *
+ * @implements RegistryInterface<NamespaceConfig>
  */
-interface NamespaceRegistryInterface
+interface NamespaceRegistryInterface extends RegistryInterface
 {
     public const NAME = 'namespace';
-
-    /**
-     * Returns whether or not a configuration is registered for the given name.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function has(string $name): bool;
-
-    /**
-     * Returns all the registered configurations.
-     *
-     * @return Generator|NamespaceConfig[]
-     */
-    public function all(): Generator;
 
     /**
      * Finds the namespace configuration by its name.

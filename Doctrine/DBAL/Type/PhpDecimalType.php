@@ -21,10 +21,7 @@ class PhpDecimalType extends DecimalType
 {
     public const NAME = 'php_decimal';
 
-    /**
-     * @inheritDoc
-     */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): mixed
     {
         if (is_null($value) || 0 === strlen($value)) {
             return null;
@@ -33,10 +30,7 @@ class PhpDecimalType extends DecimalType
         return new Decimal((string)$value);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): mixed
     {
         if (is_null($value)) {
             return null;

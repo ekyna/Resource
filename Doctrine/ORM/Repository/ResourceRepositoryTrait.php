@@ -12,7 +12,6 @@ use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Model\TaggedEntityInterface;
-use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Doctrine\ORM\QueryAdapter;
 use Pagerfanta\Pagerfanta;
 
@@ -20,32 +19,26 @@ use function is_subclass_of;
 
 /**
  * Trait ResourceRepositoryTrait
- * @package Ekyna\Component\Resource\Doctrine\ORM\Repository
- * @author  Étienne Dauvergne <contact@ekyna.com>
+ * @package  Ekyna\Component\Resource\Doctrine\ORM\Repository
+ * @author   Étienne Dauvergne <contact@ekyna.com>
  *
- * @template T
+ * @template R of ResourceInterface
  */
 trait ResourceRepositoryTrait
 {
+    /** @var EntityRepository<R> */
     protected EntityRepository $wrapped;
     private ?string            $cachePrefix = null;
 
-
     /**
      * Sets the wrapped repository.
-     *
-     * @param EntityRepository $wrapped
      */
-    public function setWrapped(EntityRepository $wrapped)
+    public function setWrapped(EntityRepository $wrapped): void
     {
         $this->wrapped = $wrapped;
     }
 
-    /**
-     * @inheritDoc
-     * @return mixed
-     */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments): mixed
     {
         return call_user_func([$this->wrapped, $name], ...$arguments);
     }
@@ -53,10 +46,7 @@ trait ResourceRepositoryTrait
     /**
      * Finds the resource by its ID.
      *
-     * @param int $id
-     *
-     * @return ResourceInterface|null
-     * @psalm-return ?T
+     * @return R|null
      */
     public function find(int $id): ?ResourceInterface
     {
@@ -71,10 +61,9 @@ trait ResourceRepositoryTrait
     /**
      * Finds all resources.
      *
-     * @return array<ResourceInterface>|Paginator
-     * @psalm-return [T]
+     * @return array<R>|Paginator<R>
      */
-    public function findAll()
+    public function findAll(): array|Paginator
     {
         return $this
             ->getCollectionQueryBuilder()
@@ -85,11 +74,7 @@ trait ResourceRepositoryTrait
     /**
      * Finds one resource by criteria and sorting.
      *
-     * @param array $criteria
-     * @param array $sorting
-     *
-     * @return ResourceInterface|null
-     * @psalm-return ?T
+     * @return R|null
      */
     public function findOneBy(array $criteria, array $sorting = []): ?ResourceInterface
     {
@@ -99,7 +84,6 @@ trait ResourceRepositoryTrait
         $this->applySorting($queryBuilder, $sorting);
 
         return $queryBuilder
-            //->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
     }
@@ -107,15 +91,9 @@ trait ResourceRepositoryTrait
     /**
      * Finds resources by criteria, sorting, limit and offset.
      *
-     * @param array    $criteria
-     * @param array    $sorting
-     * @param int|null $limit
-     * @param int|null $offset
-     *
-     * @return array<ResourceInterface>|Paginator
-     * @psalm-return [T]
+     * @return array<R>|Paginator<R>
      */
-    public function findBy(array $criteria, array $sorting = [], int $limit = null, int $offset = null)
+    public function findBy(array $criteria, array $sorting = [], int $limit = null, int $offset = null): array|Paginator
     {
         $queryBuilder = $this->getCollectionQueryBuilder();
 
@@ -146,6 +124,7 @@ trait ResourceRepositoryTrait
      *
      * @return null|object
      * @TODO Remove
+     * @deprecated
      */
     public function findRandomOneBy(array $criteria)
     {
@@ -169,6 +148,7 @@ trait ResourceRepositoryTrait
      *
      * @return array|Paginator
      * @TODO Remove
+     * @deprecated
      */
     public function findRandomBy(array $criteria, int $limit)
     {
@@ -211,11 +191,9 @@ trait ResourceRepositoryTrait
     /**
      * Returns the (doctrine) pager.
      *
-     * @param Query|QueryBuilder $query
-     *
-     * @return Pagerfanta
+     * @return Pagerfanta<R>
      */
-    public function getPager($query): Pagerfanta
+    public function getPager(Query|QueryBuilder $query): Pagerfanta
     {
         $pager = new Pagerfanta(new QueryAdapter($query, true, false));
 
@@ -223,28 +201,9 @@ trait ResourceRepositoryTrait
     }
 
     /**
-     * Returns the (array) pager.
-     *
-     * @param array $objects
-     *
-     * @return Pagerfanta
-     */
-    public function getArrayPager(array $objects): Pagerfanta
-    {
-        $pager = new Pagerfanta(new ArrayAdapter($objects));
-
-        return $pager->setNormalizeOutOfRangePages(true);
-    }
-
-    /**
      * Creates a query builder.
-     *
-     * @param string|null $alias
-     * @param string|null $indexBy
-     *
-     * @return QueryBuilder
      */
-    public function createQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
+    protected function createQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
     {
         $alias = $alias ?: $this->getAlias();
 
@@ -253,8 +212,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Returns the resource class name.
-     *
-     * @return string
      */
     public function getClassName(): string
     {
@@ -263,12 +220,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Returns the singe result query builder.
-     *
-     * @param string|null $alias
-     * @param string|null $indexBy
-     *
-     * @return QueryBuilder
-     * @TODO Remove (?)
      */
     protected function getQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
     {
@@ -277,12 +228,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Returns the collection query builder.
-     *
-     * @param string|null $alias
-     * @param string|null $indexBy
-     *
-     * @return QueryBuilder
-     * @TODO Remove (?)
      */
     protected function getCollectionQueryBuilder(string $alias = null, string $indexBy = null): QueryBuilder
     {
@@ -291,9 +236,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Applies the criteria to the query builder.
-     *
-     * @param QueryBuilder $queryBuilder
-     * @param array        $criteria
      */
     protected function applyCriteria(QueryBuilder $queryBuilder, array $criteria = []): void
     {
@@ -319,9 +261,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Applies the sorting to the query builder.
-     *
-     * @param QueryBuilder $queryBuilder
-     * @param array        $sorting
      */
     protected function applySorting(QueryBuilder $queryBuilder, array $sorting = []): void
     {
@@ -334,14 +273,10 @@ trait ResourceRepositoryTrait
 
     /**
      * Returns the property name.
-     *
-     * @param string $name
-     *
-     * @return string
      */
     protected function getPropertyName(string $name): string
     {
-        if (false === strpos($name, '.')) {
+        if (!str_contains($name, '.')) {
             return $this->getAlias() . '.' . $name;
         }
 
@@ -351,11 +286,9 @@ trait ResourceRepositoryTrait
     /**
      * Returns the collection results.
      *
-     * @param Query $query
-     *
-     * @return array|Paginator
+     * @return array<R>|Paginator<R>
      */
-    protected function collectionResult(Query $query)
+    protected function collectionResult(Query $query): array|Paginator
     {
         return $query->getResult();
     }
@@ -364,6 +297,8 @@ trait ResourceRepositoryTrait
      * Returns the cache prefix.
      *
      * @return string
+     *
+     * @TODO Remove
      */
     public function getCachePrefix(): string
     {
@@ -388,8 +323,6 @@ trait ResourceRepositoryTrait
 
     /**
      * Returns the alias.
-     *
-     * @return string
      */
     protected function getAlias(): string
     {

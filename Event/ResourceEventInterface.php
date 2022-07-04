@@ -40,12 +40,8 @@ interface ResourceEventInterface extends StoppableEventInterface
 
     /**
      * Adds the data.
-     *
-     * @param mixed $value
-     *
-     * @return $this|ResourceEventInterface
      */
-    public function addData(string $key, $value): ResourceEventInterface;
+    public function addData(string $key, mixed $value): ResourceEventInterface;
 
     /**
      * Returns whether there is a data for the given key or not.
@@ -59,10 +55,9 @@ interface ResourceEventInterface extends StoppableEventInterface
     /**
      * Returns the data by key.
      *
-     * @return mixed
      * @throws InvalidArgumentException
      */
-    public function getData(string $key);
+    public function getData(string $key): mixed;
 
     /**
      * Adds the messages.

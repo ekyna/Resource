@@ -18,11 +18,7 @@ class EncryptedJsonType extends JsonType
 
     public const NAME = 'encrypted_json';
 
-
-    /**
-     * @inheritDoc
-     */
-    public function convertToDatabaseValue($value, AbstractPlatform $platform)
+    public function convertToDatabaseValue(mixed $value, AbstractPlatform $platform): mixed
     {
         if (empty($value)) {
             return null;
@@ -33,10 +29,7 @@ class EncryptedJsonType extends JsonType
         return $this->getEncryptor($platform)->encrypt($encoded);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function convertToPHPValue($value, AbstractPlatform $platform)
+    public function convertToPHPValue(mixed $value, AbstractPlatform $platform): mixed
     {
         if (empty($value)) {
             return null;

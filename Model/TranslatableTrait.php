@@ -11,13 +11,15 @@ use Doctrine\Common\Collections\Collection;
  * Trait TranslatableTrait
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
+ *
+ * @template T of TranslationInterface
  */
 trait TranslatableTrait
 {
     protected string                $currentLocale;
     protected string                $fallbackLocale;
     protected ?TranslationInterface $currentTranslation = null;
-    /**@var Collection|TranslationInterface[]|null */
+    /**@var Collection<T>|null */
     protected ?Collection $translations = null;
 
     public function __construct()
@@ -35,6 +37,9 @@ trait TranslatableTrait
         }
     }
 
+    /**
+     * @return T
+     */
     public function translate(string $locale = null, bool $create = false): TranslationInterface
     {
         $locale = $locale ?: $this->currentLocale;
@@ -90,6 +95,9 @@ trait TranslatableTrait
         return $this;
     }
 
+    /**
+     * @psalm-param T $translation
+     */
     public function addTranslation(TranslationInterface $translation): TranslatableInterface
     {
         if (!$this->translations->containsKey($translation->getLocale())) {
@@ -100,6 +108,9 @@ trait TranslatableTrait
         return $this;
     }
 
+    /**
+     * @psalm-param T $translation
+     */
     public function removeTranslation(TranslationInterface $translation): TranslatableInterface
     {
         if ($this->translations->removeElement($translation)) {
@@ -109,6 +120,9 @@ trait TranslatableTrait
         return $this;
     }
 
+    /**
+     * @psalm-param T $translation
+     */
     public function hasTranslation(TranslationInterface $translation): bool
     {
         return $this->hasTranslationForLocale($translation->getLocale());
@@ -120,7 +134,7 @@ trait TranslatableTrait
     }
 
     /**
-     * @return Collection<TranslationInterface>
+     * @return Collection<T>
      */
     public function getTranslations(): Collection
     {

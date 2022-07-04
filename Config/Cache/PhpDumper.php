@@ -18,17 +18,11 @@ use function sprintf;
  * Class PhpDumper
  * @package Ekyna\Component\Resource\Config\Cache
  * @author  Etienne Dauvergne <contact@ekyna.com>
- *
- * @TODO PHP8 Type hinting
  */
 class PhpDumper
 {
     /**
      * Dumps the registry data.
-     *
-     * @param array $data
-     *
-     * @return string
      */
     public function dump(array $data): string
     {
@@ -39,10 +33,6 @@ EOT;
 
     /**
      * Generates the configuration.
-     *
-     * @param array $data
-     *
-     * @return string
      */
     private function dumpData(array $data): string
     {
@@ -65,10 +55,6 @@ EOT;
 
     /**
      * Dumps the options.
-     *
-     * @param array $options
-     *
-     * @return string
      */
     private function dumpArray(array $options): string
     {
@@ -76,7 +62,7 @@ EOT;
 
         foreach ($options as $key => $value) {
             if (!is_numeric($key)) {
-                $output .= "'{$key}'=>";
+                $output .= "'$key'=>";
             }
 
             if (is_array($value)) {
@@ -93,12 +79,8 @@ EOT;
 
     /**
      * Dumps the scalar value.
-     *
-     * @param string|int|float|bool|null $value
-     *
-     * @return string
      */
-    private function dumpScalar($value): string
+    private function dumpScalar(string|int|float|bool|null $value): string
     {
         if (is_numeric($value)) {
             return (string)$value;

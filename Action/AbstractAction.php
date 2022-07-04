@@ -17,9 +17,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 abstract class AbstractAction implements ActionInterface
 {
     protected ActionConfig $config;
-    protected Request $request;
-    protected Context $context;
-    protected array $options;
+    protected Request      $request;
+    protected Context      $context;
+    protected array        $options;
 
 
     /**
@@ -74,6 +74,5 @@ abstract class AbstractAction implements ActionInterface
      */
     public static function configureOptions(OptionsResolver $resolver): void
     {
-
     }
 }

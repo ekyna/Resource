@@ -11,7 +11,5 @@ namespace Ekyna\Component\Resource\Persistence;
  */
 interface PersistenceAwareInterface
 {
-    public function getPersistenceHelper(): PersistenceHelperInterface;
-
     public function setPersistenceHelper(PersistenceHelperInterface $persistenceHelper): void;
 }

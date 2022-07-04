@@ -8,23 +8,18 @@ use Ekyna\Component\Resource\Config\AbstractConfig;
 
 /**
  * Class Cache
- * @package Ekyna\Component\Resource\Config\Registry
- * @author  Etienne Dauvergne <contact@ekyna.com>
+ * @package  Ekyna\Component\Resource\Config\Registry
+ * @author   Etienne Dauvergne <contact@ekyna.com>
+ *
+ * @template T of AbstractConfig
  */
 class Cache
 {
-    /**
-     * @var AbstractConfig[]
-     */
+    /** @var array<T> */
     private array $configs = [];
-
 
     /**
      * Returns whether a config is cached for the given name.
-     *
-     * @param string $name
-     *
-     * @return bool
      */
     public function has(string $name): bool
     {
@@ -34,9 +29,7 @@ class Cache
     /**
      * Returns the cached config by its name.
      *
-     * @param string $name
-     *
-     * @return AbstractConfig
+     * @return T
      */
     public function get(string $name): AbstractConfig
     {
@@ -46,10 +39,9 @@ class Cache
     /**
      * Sets the cache config.
      *
-     * @param string         $name
-     * @param AbstractConfig $config
+     * @param T $config
      */
-    public function set(string $name, AbstractConfig $config)
+    public function set(string $name, AbstractConfig $config): void
     {
         $this->configs[$name] = $config;
     }

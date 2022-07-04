@@ -15,6 +15,7 @@ use function fclose;
 use function fopen;
 use function pathinfo;
 use function sprintf;
+use function str_ends_with;
 use function sys_get_temp_dir;
 use function tempnam;
 
@@ -38,8 +39,7 @@ abstract class File
 
     public static function create(string $name): Csv
     {
-        // TODO PHP8 Use str_ends_with()
-        if (substr($name, -strlen(static::$extension)) !== static::$extension) {
+        if (!str_ends_with($name, '.' . static::$extension)) {
             throw new UnexpectedValueException(sprintf("File name must ends with '.%s'.", static::$extension));
         }
 

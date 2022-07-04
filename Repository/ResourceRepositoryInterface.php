@@ -14,9 +14,8 @@ use Pagerfanta\Pagerfanta;
  * Interface ResourceRepositoryInterface
  * @package  Ekyna\Component\Resource\Repository
  * @author   Etienne Dauvergne <contact@ekyna.com>
- * @TODO     PHP8 Type hinting
  *
- * @template T
+ * @template R of ResourceInterface
  */
 interface ResourceRepositoryInterface
 {
@@ -25,40 +24,30 @@ interface ResourceRepositoryInterface
     /**
      * Finds the resource by its ID.
      *
-     * @param int $id
-     *
-     * @return T|ResourceInterface|null
+     * @return R|null
      */
     public function find(int $id): ?ResourceInterface;
 
     /**
      * Finds all resources.
      *
-     * @return array<T|ResourceInterface>|Paginator
+     * @return array<R>|Paginator<R>
      */
-    public function findAll();
+    public function findAll(): array|Paginator;
 
     /**
      * Finds one resource by criteria and sorting.
      *
-     * @param array $criteria
-     * @param array $sorting
-     *
-     * @return T|ResourceInterface|null
+     * @return R|null
      */
     public function findOneBy(array $criteria, array $sorting = []): ?ResourceInterface;
 
     /**
      * Finds resources by criteria, sorting, limit and offset.
      *
-     * @param array    $criteria
-     * @param array    $sorting
-     * @param int|null $limit
-     * @param int|null $offset
-     *
-     * @return array<T|ResourceInterface>|Paginator
+     * @return array<R>|Paginator<R>
      */
-    public function findBy(array $criteria, array $sorting = [], int $limit = null, int $offset = null);
+    public function findBy(array $criteria, array $sorting = [], int $limit = null, int $offset = null): array|Paginator;
 
     /**
      * Finds a random resource by criteria.
@@ -66,6 +55,8 @@ interface ResourceRepositoryInterface
      * @param array $criteria
      *
      * @return ResourceInterface|null
+     * @TODO Remove
+     * @deprecated
      */
     public function findRandomOneBy(array $criteria);
 
@@ -76,32 +67,27 @@ interface ResourceRepositoryInterface
      * @param int   $limit
      *
      * @return ResourceInterface[]
+     * @TODO Remove
+     * @deprecated
      */
     public function findRandomBy(array $criteria, int $limit);
 
     /**
      * Creates a pager.
      *
-     * @param array $criteria
-     * @param array $sorting
-     *
-     * @return Pagerfanta<T|ResourceInterface>
+     * @return Pagerfanta<R>
      */
     public function createPager(array $criteria = [], array $sorting = []): Pagerfanta;
 
     /**
      * Returns the (doctrine) pager.
      *
-     * @param Query|QueryBuilder $query
-     *
-     * @return Pagerfanta<T|ResourceInterface>
+     * @return Pagerfanta<R>
      */
-    public function getPager($query): Pagerfanta;
+    public function getPager(Query|QueryBuilder $query): Pagerfanta;
 
     /**
      * Returns the resource class name.
-     *
-     * @return string
      */
     public function getClassName(): string;
 }

@@ -8,7 +8,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
 use Ekyna\Component\Resource\Exception\RuntimeException;
-use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceTrackerInterface;
 
@@ -16,7 +15,6 @@ use function array_fill_keys;
 use function array_intersect_key;
 use function array_key_exists;
 use function get_class;
-use function is_array;
 use function spl_object_hash;
 use function sprintf;
 
@@ -154,11 +152,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
         $this->changeSets[$oid] = $changeSet;
     }
 
-    /**
-     * @param object|array|string|float|int|bool $a
-     * @param object|array|string|float|int|bool $b
-     */
-    private function isDifferent($a, $b, string $field, ClassMetadata $metadata): bool
+    private function isDifferent(mixed $a, mixed $b, string $field, ClassMetadata $metadata): bool
     {
         $a = $this->normalizeData($a, $field, $metadata);
         $b = $this->normalizeData($b, $field, $metadata);
@@ -187,12 +181,8 @@ class PersistenceTracker implements PersistenceTrackerInterface
 
     /**
      * Normalizes the data for comparison.
-     *
-     * @param mixed $data
-     *
-     * @return mixed
      */
-    private function normalizeData($data, string $field, ClassMetadata $metadata)
+    private function normalizeData(mixed $data, string $field, ClassMetadata $metadata): mixed
     {
         if (!isset($metadata->fieldMappings[$field])) {
             return $data;
@@ -207,10 +197,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
         return $this->normalizers[$type]->convert($data, $mapping);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function getChangeSet(ResourceInterface $entity, $properties): array
+    public function getChangeSet(ResourceInterface $entity, array|string|null $properties): array
     {
         $oid = spl_object_hash($entity);
 
@@ -227,11 +214,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
             return $changeSet[$properties] ?? [];
         }
 
-        if (is_array($properties)) {
-            return array_intersect_key($changeSet, array_fill_keys($properties, null));
-        }
-
-        throw new UnexpectedTypeException($properties, ['null', 'string', 'array']);
+        return array_intersect_key($changeSet, array_fill_keys($properties, null));
     }
 
     public function clearChangeSets(): void

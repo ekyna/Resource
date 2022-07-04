@@ -11,7 +11,7 @@ namespace Ekyna\Component\Resource\Message;
  */
 trait MessageQueueAwareTrait
 {
-    protected MessageQueueInterface $messageQueue;
+    protected readonly MessageQueueInterface $messageQueue;
 
     public function setMessageQueue(MessageQueueInterface $messageQueue): void
     {

@@ -15,20 +15,13 @@ interface PersistenceTrackerInterface
 {
     /**
      * Computes the resource change set.
-     *
-     * @param ResourceInterface $resource
      */
     public function computeChangeSet(ResourceInterface $resource): void;
 
     /**
      * Returns the entity change set, optionally for the given property(ies).
-     *
-     * @param ResourceInterface $entity
-     * @param array|string|null $properties
-     *
-     * @return array
      */
-    public function getChangeSet(ResourceInterface $entity, $properties): array;
+    public function getChangeSet(ResourceInterface $entity, array|string|null $properties): array;
 
     /**
      * Clears the change sets.

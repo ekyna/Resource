@@ -5,32 +5,17 @@ declare(strict_types=1);
 namespace Ekyna\Component\Resource\Config\Registry;
 
 use Ekyna\Component\Resource\Config\PermissionConfig;
-use Generator;
 
 /**
  * Interface PermissionRegistryInterface
  * @package Ekyna\Component\Resource\Config\Registry
  * @author  Etienne Dauvergne <contact@ekyna.com>
+ *
+ * @implements RegistryInterface<PermissionConfig>
  */
-interface PermissionRegistryInterface
+interface PermissionRegistryInterface extends RegistryInterface
 {
     public const NAME = 'permission';
-
-    /**
-     * Returns whether or not a configuration is registered for the given name.
-     *
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function has(string $name): bool;
-
-    /**
-     * Returns all the registered configurations.
-     *
-     * @return Generator|PermissionConfig[]
-     */
-    public function all(): Generator;
 
     /**
      * Finds the permission configuration by its name.
