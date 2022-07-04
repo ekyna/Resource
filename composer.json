@@ -25,7 +25,7 @@
         "symfony/dependency-injection": "^5.0",
         "symfony/serializer": "^5.0",
         "symfony/http-foundation": "^5.0",
-        "symfony/translation-contracts": "^3.0",
+        "symfony/translation-contracts": "^2.0|^3.0",
         "symfony/uid": "^5.0",
         "doctrine/dbal": "^2.13|^3.0",
         "doctrine/common": "^2.7|^3.0",
@@ -35,7 +35,7 @@
     "require-dev": {
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*",
-        "phpunit/phpunit": "^8.0",
+        "phpunit/phpunit": "^9.5",
         "doctrine/orm": "^2.10",
         "doctrine/data-fixtures": "^1.1",
         "ruflin/elastica": "^7.0",
