@@ -16,39 +16,25 @@ use Throwable;
  */
 class PdfGenerator
 {
-    private string $endpoint;
-    private string $token;
-    private int    $retry;
-
-    public function __construct(string $endpoint, string $token, int $retry = 3)
-    {
-        $this->endpoint = $endpoint;
-        $this->token = $token;
-        $this->retry = $retry;
+    public function __construct(
+        private readonly string $endpoint,
+        private readonly string $token,
+        private readonly int $retry = 3
+    ) {
     }
 
     /**
      * Generates a PDF form the given URL.
      *
-     * @param string $url
-     * @param array  $options
-     *
-     * @return string
-     *
      * @throws PdfException
      */
     public function generateFromUrl(string $url, array $options = []): string
     {
-        return $this->generate(array_replace($options, ['headers' => []], ['url' => $url]));
+        return $this->generate(array_replace($options, ['url' => $url]));
     }
 
     /**
      * Generates a PDF form the given HTML.
-     *
-     * @param string $html
-     * @param array  $options
-     *
-     * @return string
      *
      * @throws PdfException
      */
@@ -60,31 +46,27 @@ class PdfGenerator
     /**
      * Generates the PDF.
      *
-     * @param array $options
-     *
-     * @return string
-     *
      * @throws PdfException
      */
     private function generate(array $options): string
     {
-        $options = array_replace_recursive([
-            'orientation' => 'portrait',
-            'format'      => 'A4',
-            'paper'       => [
-                'width'  => null,
-                'height' => null,
-                'unit'   => 'in',
-            ],
-            'margins'     => [
-                'top'    => 6,
-                'right'  => 6,
-                'bottom' => 6,
-                'left'   => 6,
-                'unit'   => 'mm',
-            ],
-            'header'      => null,
-            'footer'      => null,
+        $options = array_replace([
+            'url'                 => null,
+            'html'                => null,
+            'landscape'           => false,
+            'printBackground'     => false,
+            'displayHeaderFooter' => false,
+            'preferCSSPageSize'   => false,
+            'unit'                => 'mm',
+            'marginTop'           => 6,
+            'marginBottom'        => 6,
+            'marginLeft'          => 6,
+            'marginRight'         => 6,
+            'paperWidth'          => 210,
+            'paperHeight'         => 297,
+            'headerTemplate'      => '',
+            'footerTemplate'      => '',
+            'scale'               => 1.0,
         ], $options);
 
         $client = new Client();
@@ -93,7 +75,7 @@ class PdfGenerator
             try {
                 $response = $client->request('GET', $this->endpoint, [
                     'json'    => $options,
-                    'timeout' => 30,
+                    'timeout' => 15,
                     'headers' => [
                         'X-AUTH-TOKEN' => $this->token,
                     ],
@@ -104,8 +86,8 @@ class PdfGenerator
                 }
 
                 return $response->getBody()->getContents();
-            } catch (Throwable $e) {
-                if (3 == $i) {
+            } catch (Throwable) {
+                if (3 === $i) {
                     throw new PdfException('Failed to generate PDF.');
                 }
             }
