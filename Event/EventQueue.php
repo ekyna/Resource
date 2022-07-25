@@ -8,9 +8,7 @@ use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Dispatcher\ResourceEventDispatcherInterface;
 use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
-use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
-
 use Symfony\Contracts\EventDispatcher\Event;
 
 use function spl_object_hash;
@@ -23,18 +21,14 @@ use function uksort;
  */
 class EventQueue implements EventQueueInterface
 {
-    protected ResourceRegistryInterface $registry;
-    protected ResourceEventDispatcherInterface $dispatcher;
+    /** @var array<string, array<string, ResourceEventInterface>> */
+    protected array $queue  = [];
+    protected bool  $opened = false;
 
-    protected array $queue = [];
-    protected bool $opened = false;
-
-
-    public function __construct(ResourceRegistryInterface $registry, ResourceEventDispatcherInterface $dispatcher)
-    {
-        $this->registry = $registry;
-        $this->dispatcher = $dispatcher;
-
+    public function __construct(
+        protected readonly ResourceRegistryInterface        $registry,
+        protected readonly ResourceEventDispatcherInterface $dispatcher
+    ) {
         // TODO logger to track queued events
     }
 
@@ -56,9 +50,20 @@ class EventQueue implements EventQueueInterface
         return $this->opened;
     }
 
-    public function scheduleEvent(object $resourceOrEvent, string $eventName): void
+    public function scheduleEvent(ResourceInterface|ResourceEventInterface $resourceOrEvent, string $eventName): void
     {
         $this->enqueue($resourceOrEvent, $eventName);
+    }
+
+    public function clearEvent(ResourceInterface $resource, string $eventName): void
+    {
+        if (!isset($this->queue[$eventName])) {
+            return;
+        }
+
+        $oid = spl_object_hash($resource);
+
+        unset($this->queue[$eventName][$oid]);
     }
 
     public function flush(): void
@@ -67,12 +72,8 @@ class EventQueue implements EventQueueInterface
 
         while (!empty($queue = $this->clear())) {
             foreach ($queue as $eventName => $resources) {
-                foreach ($resources as $resourceOrEvent) {
-                    if (!$resourceOrEvent instanceof ResourceEventInterface) {
-                        $resourceOrEvent = $this->dispatcher->createResourceEvent($resourceOrEvent);
-                    }
-
-                    $this->dispatcher->dispatch($resourceOrEvent, $eventName);
+                foreach ($resources as $event) {
+                    $this->dispatcher->dispatch($event, $eventName);
                 }
             }
         }
@@ -80,28 +81,21 @@ class EventQueue implements EventQueueInterface
 
     /**
      * Schedules a resource event of the given type.
-     *
-     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
      */
-    protected function enqueue(object $resourceOrEvent, string $eventName): void
+    protected function enqueue(ResourceInterface|ResourceEventInterface $resourceOrEvent, string $eventName): void
     {
         if (!$this->isOpened()) {
             throw new RuntimeException('The event queue is closed.');
         }
 
         if (!preg_match('~^[a-z_]+\.[a-z_]+\.[a-z_]+$~', $eventName)) {
-            throw new InvalidArgumentException("Unexpected event name '{$eventName}'.");
+            throw new InvalidArgumentException("Unexpected event name '$eventName'.");
         }
 
         if ($resourceOrEvent instanceof ResourceInterface) {
-            $resource = $resourceOrEvent;
-        } elseif ($resourceOrEvent instanceof ResourceEventInterface) {
-            $resource = $resourceOrEvent->getResource();
+            $resourceOrEvent = $this->dispatcher->createResourceEvent($resource = $resourceOrEvent);
         } else {
-            throw new UnexpectedTypeException($resourceOrEvent, [
-                ResourceInterface::class,
-                ResourceEventInterface::class
-            ]);
+            $resource = $resourceOrEvent->getResource();
         }
 
         $oid = spl_object_hash($resource);
@@ -143,7 +137,6 @@ class EventQueue implements EventQueueInterface
      */
     protected function preventEventConflict(string $eventName, string $oid): void
     {
-
     }
 
     /**
@@ -263,7 +256,7 @@ class EventQueue implements EventQueueInterface
     /**
      * Clears the event queue.
      *
-     * @return array The copy of the event queue
+     * @return array<string, array<string, ResourceEventInterface>> The copy of the event queue
      */
     protected function clear(): array
     {

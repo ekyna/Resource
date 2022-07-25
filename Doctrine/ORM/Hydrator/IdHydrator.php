@@ -17,6 +17,6 @@ class IdHydrator extends AbstractHydrator
 
     protected function hydrateAllData(): array
     {
-        return array_map(fn(string $id) => (int)$id, $this->statement()->fetchFirstColumn());
+        return array_map(fn(string $id): int => (int)$id, $this->statement()->fetchFirstColumn());
     }
 }

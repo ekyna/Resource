@@ -16,10 +16,20 @@ use function fputcsv;
 class Csv extends File
 {
     protected static string $extension = 'csv';
-    protected static string $mimeType = 'text/csv';
+    protected static string $mimeType  = 'text/csv';
 
     private string $separator = ',';
     private string $enclosure = '"';
+
+    public function setSeparator(string $separator): void
+    {
+        $this->separator = $separator;
+    }
+
+    public function setEnclosure(string $enclosure): void
+    {
+        $this->enclosure = $enclosure;
+    }
 
     public function addRows(array $rows): void
     {

@@ -109,7 +109,8 @@ abstract class File
         return $this->path;
     }
 
-    public function download(array $options = []): BinaryFileResponse {
+    public function download(array $options = []): BinaryFileResponse
+    {
         $path = $this->close();
 
         $options['file_name'] ??= $this->name;

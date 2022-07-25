@@ -10,6 +10,8 @@ use Ekyna\Component\Resource\Event\EventQueue;
 use Ekyna\Component\Resource\Exception\PersistenceEventException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
+use function in_array;
+
 /**
  * Class PersistenceEventQueue
  * @package Ekyna\Component\Resource\Persistence
@@ -17,19 +19,11 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 final class PersistenceEventQueue extends EventQueue implements PersistenceEventQueueInterface
 {
-    public const INSERT = 'insert';
-    public const UPDATE = 'update';
-    public const DELETE = 'delete';
-
-    protected PersistenceTrackerInterface $tracker;
-
     public function __construct(
-        ResourceRegistryInterface $registry,
-        ResourceEventDispatcherInterface $dispatcher,
-        PersistenceTrackerInterface $tracker
+        ResourceRegistryInterface                      $registry,
+        ResourceEventDispatcherInterface               $dispatcher,
+        protected readonly PersistenceTrackerInterface $tracker
     ) {
-        $this->tracker = $tracker;
-
         parent::__construct($registry, $dispatcher);
     }
 
@@ -42,23 +36,44 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
 
     public function scheduleInsert(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::INSERT)) {
-            $this->enqueue($resource, $eventName);
+        $eventName = $this->dispatcher->getResourceEventName($resource, PersistenceEventQueueInterface::INSERT);
+
+        if (null === $eventName) {
+            return;
         }
+
+        $this->enqueue($resource, $eventName);
     }
 
     public function scheduleUpdate(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::UPDATE)) {
-            $this->enqueue($resource, $eventName);
+        $eventName = $this->dispatcher->getResourceEventName($resource, PersistenceEventQueueInterface::UPDATE);
+
+        if (null === $eventName) {
+            return;
         }
+
+        $this->enqueue($resource, $eventName);
     }
 
     public function scheduleDelete(ResourceInterface $resource): void
     {
-        if (null !== $eventName = $this->dispatcher->getResourceEventName($resource, self::DELETE)) {
-            $this->enqueue($resource, $eventName);
+        $eventName = $this->dispatcher->getResourceEventName($resource, PersistenceEventQueueInterface::DELETE);
+
+        if (null === $eventName) {
+            return;
         }
+
+        $this->enqueue($resource, $eventName);
+    }
+
+    public function clearEvent(ResourceInterface $resource, string $eventName): void
+    {
+        if (in_array($eventName, $this->getPersistenceSuffixes(), true)) {
+            $eventName = $this->dispatcher->getResourceEventName($resource, $eventName);
+        }
+
+        parent::clearEvent($resource, $eventName);
     }
 
     protected function preventEventConflict(string $eventName, string $oid): void
@@ -74,9 +89,15 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
         // Watch for persistence event conflict
         $prefix = $this->getEventPrefix($eventName);
         foreach (array_diff($this->getPersistenceSuffixes(), [$suffix]) as $other) {
-            if (isset($this->queue[$prefix . '.' . $other]) && isset($this->queue[$prefix . '.' . $other][$oid])) {
-                throw new PersistenceEventException("Already scheduled for action '$other'.");
+            if (!isset($this->queue[$prefix . '.' . $other])) {
+                continue;
             }
+
+            if (!isset($this->queue[$prefix . '.' . $other][$oid])) {
+                continue;
+            }
+
+            throw new PersistenceEventException("Already scheduled for action '$other'.");
         }
     }
 
@@ -87,11 +108,15 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
     {
         $suffix = $this->getEventSuffix($eventName);
 
-        if ($suffix === self::UPDATE) {
+        if ($suffix === PersistenceEventQueueInterface::UPDATE) {
             return 9999;
-        } elseif ($suffix === self::INSERT) {
+        }
+
+        if ($suffix === PersistenceEventQueueInterface::INSERT) {
             return 9998;
-        } elseif ($suffix === self::DELETE) {
+        }
+
+        if ($suffix === PersistenceEventQueueInterface::DELETE) {
             return 9997;
         }
 
@@ -103,6 +128,10 @@ final class PersistenceEventQueue extends EventQueue implements PersistenceEvent
      */
     private function getPersistenceSuffixes(): array
     {
-        return [self::INSERT, self::UPDATE, self::DELETE];
+        return [
+            PersistenceEventQueueInterface::INSERT,
+            PersistenceEventQueueInterface::UPDATE,
+            PersistenceEventQueueInterface::DELETE,
+        ];
     }
 }

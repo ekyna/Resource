@@ -19,7 +19,7 @@ final class MessageQueue implements MessageQueueInterface
 {
     private ?MessageBusInterface $bus;
 
-    /** @var array<object|callable> */
+    /** @var array<int, object|callable> */
     private array $queue = [];
 
     public function __construct(?MessageBusInterface $bus)
@@ -27,10 +27,7 @@ final class MessageQueue implements MessageQueueInterface
         $this->bus = $bus;
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function addMessage($message): MessageQueueInterface
+    public function addMessage(object|callable $message): MessageQueueInterface
     {
         $this->queue[] = $message;
 

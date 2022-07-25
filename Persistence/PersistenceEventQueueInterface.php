@@ -14,6 +14,10 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
  */
 interface PersistenceEventQueueInterface extends EventQueueInterface
 {
+    public const DELETE = 'delete';
+    public const INSERT = 'insert';
+    public const UPDATE = 'update';
+
     /**
      * Schedules the insert resource event.
      */

@@ -11,8 +11,5 @@ namespace Ekyna\Component\Resource\Message;
  */
 interface MessageQueueInterface
 {
-    /**
-     * @param object|callable $message
-     */
-    public function addMessage($message): MessageQueueInterface;
+    public function addMessage(object|callable $message): MessageQueueInterface;
 }

@@ -7,6 +7,7 @@ namespace Ekyna\Component\Resource\Doctrine\ORM;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\UnitOfWork;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
+use Ekyna\Component\Resource\Event\ResourceEventInterface;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceEventQueueInterface;
 use Ekyna\Component\Resource\Persistence\PersistenceHelperInterface;
@@ -22,18 +23,11 @@ use function gettype;
  */
 class PersistenceHelper implements PersistenceHelperInterface
 {
-    protected ManagerRegistry                $registry;
-    protected PersistenceTrackerInterface    $tracker;
-    protected PersistenceEventQueueInterface $eventQueue;
-
     public function __construct(
-        ManagerRegistry                $registry,
-        PersistenceTrackerInterface    $tracker,
-        PersistenceEventQueueInterface $eventQueue
+        protected readonly ManagerRegistry                $registry,
+        protected readonly PersistenceTrackerInterface    $tracker,
+        protected readonly PersistenceEventQueueInterface $eventQueue
     ) {
-        $this->registry = $registry;
-        $this->tracker = $tracker;
-        $this->eventQueue = $eventQueue;
     }
 
     /**
@@ -47,7 +41,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function getChangeSet(ResourceInterface $resource, $property = null): array
+    public function getChangeSet(ResourceInterface $resource, array|string $property = null): array
     {
         return $this->tracker->getChangeSet($resource, $property);
     }
@@ -55,15 +49,15 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function isChanged(ResourceInterface $resource, $properties): bool
+    public function isChanged(ResourceInterface $resource, string|array $properties): bool
     {
         return !empty($this->tracker->getChangeSet($resource, $properties));
     }
 
     /**
-     * @param mixed $from
+     * @inheritDoc
      */
-    public function isChangedFrom(ResourceInterface $resource, string $property, $from): bool
+    public function isChangedFrom(ResourceInterface $resource, string $property, mixed $from): bool
     {
         $changeSet = $this->getChangeSet($resource, $property);
 
@@ -71,18 +65,17 @@ class PersistenceHelper implements PersistenceHelperInterface
     }
 
     /**
-     * @param mixed $a
-     * @param mixed $b
+     * @inheritDoc
      */
-    private function isEqual($a, $b): bool
+    private function isEqual(mixed $a, mixed $b): bool
     {
         return gettype($a) === gettype($b) && 0 === ($a <=> $b);
     }
 
     /**
-     * @param mixed $to
+     * @inheritDoc
      */
-    public function isChangedTo(ResourceInterface $resource, string $property, $to): bool
+    public function isChangedTo(ResourceInterface $resource, string $property, mixed $to): bool
     {
         $changeSet = $this->getChangeSet($resource, $property);
 
@@ -90,10 +83,9 @@ class PersistenceHelper implements PersistenceHelperInterface
     }
 
     /**
-     * @param mixed $from
-     * @param mixed $to
+     * @inheritDoc
      */
-    public function isChangedFromTo(ResourceInterface $resource, string $property, $from, $to): bool
+    public function isChangedFromTo(ResourceInterface $resource, string $property, mixed $from, mixed $to): bool
     {
         $changeSet = $this->getChangeSet($resource, $property);
 
@@ -193,9 +185,17 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function scheduleEvent(object $resourceOrEvent, string $eventName): void
+    public function scheduleEvent(ResourceInterface|ResourceEventInterface $resourceOrEvent, string $eventName): void
     {
         $this->eventQueue->scheduleEvent($resourceOrEvent, $eventName);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function clearEvent(ResourceInterface $resource, string $eventName): void
+    {
+        $this->eventQueue->clearEvent($resource, $eventName);
     }
 
     /**

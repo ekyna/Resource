@@ -31,12 +31,14 @@ interface EventQueueInterface
     /**
      * Schedules the resource event.
      *
-     * @param ResourceInterface|ResourceEventInterface $resourceOrEvent
-     * @param string                                   $eventName
-     *
      * @throws ResourceExceptionInterface
      */
-    public function scheduleEvent(object $resourceOrEvent, string $eventName): void;
+    public function scheduleEvent(ResourceInterface|ResourceEventInterface $resourceOrEvent, string $eventName): void;
+
+    /**
+     * Clears the resource event.
+     */
+    public function clearEvent(ResourceInterface $resource, string $eventName): void;
 
     /**
      * Flushes the event queue.

@@ -10,6 +10,10 @@
          stopOnFailure="false"
          bootstrap="./Tests/bootstrap.php">
 
+    <extensions>
+        <extension class="Ekyna\Component\Resource\Tests\PhpUnit\DecimalExtension" />
+    </extensions>
+
     <testsuites>
         <testsuite name="Resource">
             <directory>./Tests/</directory>

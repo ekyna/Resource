@@ -54,7 +54,7 @@ class PdfGenerator
             'url'                 => null,
             'html'                => null,
             'landscape'           => false,
-            'printBackground'     => false,
+            'printBackground'     => true,
             'displayHeaderFooter' => false,
             'preferCSSPageSize'   => false,
             'unit'                => 'mm',
