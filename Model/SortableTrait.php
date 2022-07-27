@@ -45,7 +45,10 @@ trait SortableTrait
         return $this->getComparedValue() <=> $other->getComparedValue();
     }
 
-    private function getComparedValue(): int
+    /**
+     * INF typed as float
+     */
+    private function getComparedValue(): int|float
     {
         return -1 === $this->position ? INF : $this->position;
     }
