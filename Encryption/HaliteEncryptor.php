@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Ekyna\Component\Resource\Encryption;
 
 use ParagonIE\Halite\Alerts;
-use ParagonIE\Halite\HiddenString;
 use ParagonIE\Halite\KeyFactory;
 use ParagonIE\Halite\Symmetric\Crypto;
 use ParagonIE\Halite\Symmetric\EncryptionKey;
+use ParagonIE\HiddenString\HiddenString;
 
 /**
  * Class HaliteEncryptor
@@ -18,17 +18,9 @@ use ParagonIE\Halite\Symmetric\EncryptionKey;
 class HaliteEncryptor implements EncryptorInterface
 {
     private ?EncryptionKey $encryptionKey = null;
-    private string         $keyFile;
 
-
-    /**
-     * Constructor.
-     *
-     * @param string $keyFile
-     */
-    public function __construct(string $keyFile)
+    public function __construct(private readonly string $keyFile)
     {
-        $this->keyFile = $keyFile;
     }
 
     /**
@@ -64,7 +56,7 @@ class HaliteEncryptor implements EncryptorInterface
 
             try {
                 $this->encryptionKey = KeyFactory::loadEncryptionKey($this->keyFile);
-            } catch (Alerts\CannotPerformOperation $e) {
+            } catch (Alerts\CannotPerformOperation) {
                 $this->encryptionKey = KeyFactory::generateEncryptionKey();
                 KeyFactory::save($this->encryptionKey, $this->keyFile);
             }
