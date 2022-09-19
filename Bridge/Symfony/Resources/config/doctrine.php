@@ -10,6 +10,7 @@ use Ekyna\Component\Resource\Doctrine\ORM\Factory\FactoryFactoryAdapter;
 use Ekyna\Component\Resource\Doctrine\ORM\Listener\EntityListener;
 use Ekyna\Component\Resource\Doctrine\ORM\Listener\LoadMetadataListener;
 use Ekyna\Component\Resource\Doctrine\ORM\Listener\TranslatableListener;
+use Ekyna\Component\Resource\Doctrine\ORM\ListenerToggler;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerFactoryAdapter;
 use Ekyna\Component\Resource\Doctrine\ORM\Manager\ManagerRegistry;
 use Ekyna\Component\Resource\Doctrine\ORM\PersistenceHelper;
@@ -136,5 +137,11 @@ return static function (ContainerConfigurator $container) {
                 'priority'   => 512,
             ])
             ->tag('doctrine.orm.entity_listener')
+
+        // ORM Listener Toggler
+        ->set('ekyna_resource.orm.listener_toggler', ListenerToggler::class)
+            ->args([
+                service('doctrine.orm.default_entity_manager'),
+            ])
     ;
 };

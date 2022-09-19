@@ -9,7 +9,7 @@ namespace Ekyna\Component\Resource\Model;
  * @package Ekyna\Component\Resource\Model
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class AbstractResource implements ResourceInterface
+abstract class AbstractResource implements ResourceInterface
 {
     use ResourceTrait;
 
