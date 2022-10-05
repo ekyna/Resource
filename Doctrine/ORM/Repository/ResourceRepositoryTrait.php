@@ -12,9 +12,8 @@ use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 use Ekyna\Component\Resource\Model\TaggedEntityInterface;
-use Pagerfanta\Doctrine\ORM\QueryAdapter;
-use Pagerfanta\Pagerfanta;
 
+use function call_user_func_array;
 use function is_subclass_of;
 
 /**
@@ -40,7 +39,7 @@ trait ResourceRepositoryTrait
 
     public function __call(string $name, array $arguments): mixed
     {
-        return call_user_func([$this->wrapped, $name], ...$arguments);
+        return call_user_func_array([$this->wrapped, $name], $arguments);
     }
 
     /**
@@ -152,7 +151,6 @@ trait ResourceRepositoryTrait
      */
     public function findRandomBy(array $criteria, int $limit)
     {
-        $limit = intval($limit);
         if ($limit <= 1) {
             throw new InvalidArgumentException('Please use `findRandomOneBy()` for single result.');
         }
@@ -171,14 +169,14 @@ trait ResourceRepositoryTrait
     }
 
     /**
-     * Creates a pager.
+     * Creates a paginator.
      *
      * @param array $criteria
      * @param array $sorting
      *
-     * @return Pagerfanta
+     * @return Paginator
      */
-    public function createPager(array $criteria = [], array $sorting = []): Pagerfanta
+    public function createPager(array $criteria = [], array $sorting = []): Paginator
     {
         $queryBuilder = $this->getCollectionQueryBuilder();
 
@@ -189,15 +187,11 @@ trait ResourceRepositoryTrait
     }
 
     /**
-     * Returns the (doctrine) pager.
-     *
-     * @return Pagerfanta<R>
+     * Returns the (doctrine) paginator.
      */
-    public function getPager(Query|QueryBuilder $query): Pagerfanta
+    public function getPager(Query|QueryBuilder $query): Paginator
     {
-        $pager = new Pagerfanta(new QueryAdapter($query, true, false));
-
-        return $pager->setNormalizeOutOfRangePages(true);
+        return new Paginator($query, true);
     }
 
     /**
@@ -290,7 +284,7 @@ trait ResourceRepositoryTrait
      */
     protected function collectionResult(Query $query): array|Paginator
     {
-        return $query->getResult();
+        return new Paginator($query, true);
     }
 
     /**

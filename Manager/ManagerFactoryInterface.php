@@ -6,8 +6,8 @@ namespace Ekyna\Component\Resource\Manager;
 
 /**
  * Interface ManagerFactoryInterface
- * @package Ekyna\Component\Resource\Manager
- * @author  Etienne Dauvergne <contact@ekyna.com>
+ * @package  Ekyna\Component\Resource\Manager
+ * @author   Etienne Dauvergne <contact@ekyna.com>
  *
  * @template T
  */
@@ -29,9 +29,7 @@ interface ManagerFactoryInterface
     /**
      * Returns the resource manager for the given resource class.
      *
-     * @param string                $resource The resource class.
-     *
-     * @psalm-param class-string<T> $resource
+     * @param class-string<T> $resource The resource class.
      *
      * @return ResourceManagerInterface<T>
      */

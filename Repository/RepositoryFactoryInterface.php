@@ -21,7 +21,7 @@ interface RepositoryFactoryInterface
     /**
      * Returns the repository for the given resource class.
      *
-     * @param string $resource The resource class.
+     * @param class-string<T> $resource The resource class.
      *
      * @return ResourceRepositoryInterface<T>
      */

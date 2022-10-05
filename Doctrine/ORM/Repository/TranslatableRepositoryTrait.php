@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Doctrine\ORM\Repository;
 
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Ekyna\Component\Resource\Repository\TranslatableRepositoryInterface;
 
 /**
@@ -76,15 +74,5 @@ trait TranslatableRepositoryTrait
         }
 
         return $this->traitGetPropertyName($name);
-    }
-
-    /**
-     * Returns the paginated collection result.
-     *
-     * @return array<T>|Paginator<T>
-     */
-    protected function collectionResult(Query $query): array|Paginator
-    {
-        return new Paginator($query, true);
     }
 }

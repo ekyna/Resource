@@ -76,7 +76,6 @@ class Copier implements CopierInterface
     private function initializeCollection(ResourceInterface $resource, string $property): void
     {
         $refProp = new ReflectionProperty(ClassUtils::getRealClass(get_class($resource)), $property);
-        $refProp->setAccessible(true);
         $refProp->setValue($resource, new ArrayCollection());
     }
 }

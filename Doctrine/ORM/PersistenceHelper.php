@@ -41,7 +41,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function getChangeSet(ResourceInterface $resource, array|string $property = null): array
+    public function getChangeSet(ResourceInterface $resource, string|array $property = null): array
     {
         return $this->tracker->getChangeSet($resource, $property);
     }
@@ -62,14 +62,6 @@ class PersistenceHelper implements PersistenceHelperInterface
         $changeSet = $this->getChangeSet($resource, $property);
 
         return array_key_exists(0, $changeSet) && $this->isEqual($changeSet[0], $from);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    private function isEqual(mixed $a, mixed $b): bool
-    {
-        return gettype($a) === gettype($b) && 0 === ($a <=> $b);
     }
 
     /**
@@ -125,7 +117,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function persistAndRecompute(ResourceInterface $resource, bool $schedule = false): void
+    public function persistAndRecompute(ResourceInterface $resource, bool $schedule): void
     {
         $manager = $this->getManager(get_class($resource));
 
@@ -162,7 +154,7 @@ class PersistenceHelper implements PersistenceHelperInterface
     /**
      * @inheritDoc
      */
-    public function remove(ResourceInterface $resource, bool $schedule = false): void
+    public function remove(ResourceInterface $resource, bool $schedule): void
     {
         $manager = $this->getManager(get_class($resource));
 
@@ -198,12 +190,12 @@ class PersistenceHelper implements PersistenceHelperInterface
         $this->eventQueue->clearEvent($resource, $eventName);
     }
 
-    /**
-     * @inheritDoc
-     *
-     * @TODO Make protected
-     */
-    public function getManager(string $entityClass = null): EntityManagerInterface
+    private function isEqual(mixed $a, mixed $b): bool
+    {
+        return gettype($a) === gettype($b) && 0 === ($a <=> $b);
+    }
+
+    private function getManager(string $entityClass = null): EntityManagerInterface
     {
         if ($entityClass) {
             // TODO Performance issue ?
@@ -215,13 +207,6 @@ class PersistenceHelper implements PersistenceHelperInterface
         return $this->registry->getManager();
     }
 
-    /**
-     * Returns the unit of work.
-     *
-     * @param string $class
-     *
-     * @return UnitOfWork
-     */
     private function getUnitOfWork(string $class): UnitOfWork
     {
         return $this->getManager($class)->getUnitOfWork();

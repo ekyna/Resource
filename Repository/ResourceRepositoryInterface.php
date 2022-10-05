@@ -15,7 +15,7 @@ use Pagerfanta\Pagerfanta;
  * @package  Ekyna\Component\Resource\Repository
  * @author   Etienne Dauvergne <contact@ekyna.com>
  *
- * @template R of ResourceInterface
+ * @template R
  */
 interface ResourceRepositoryInterface
 {
@@ -77,14 +77,14 @@ interface ResourceRepositoryInterface
      *
      * @return Pagerfanta<R>
      */
-    public function createPager(array $criteria = [], array $sorting = []): Pagerfanta;
+    public function createPager(array $criteria = [], array $sorting = []): Paginator;
 
     /**
      * Returns the (doctrine) pager.
      *
      * @return Pagerfanta<R>
      */
-    public function getPager(Query|QueryBuilder $query): Pagerfanta;
+    public function getPager(Query|QueryBuilder $query): Paginator;
 
     /**
      * Returns the resource class name.

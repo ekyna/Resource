@@ -16,18 +16,6 @@ use Ekyna\Component\Resource\Model\ResourceInterface;
 interface PersistenceHelperInterface
 {
     /**
-     * Returns the manager.
-     *
-     * @param string|null $entityClass
-     *
-     * @return \Doctrine\ORM\EntityManagerInterface
-     *
-     * @deprecated Use manager service directly
-     * @TODO       Remove / Break doctrine dependency
-     */
-    public function getManager(string $entityClass = null);
-
-    /**
      * Returns the persistence event queue.
      */
     public function getEventQueue(): PersistenceEventQueueInterface;
@@ -75,12 +63,12 @@ interface PersistenceHelperInterface
     /**
      * Persists and recompute the given resource.
      */
-    public function persistAndRecompute(ResourceInterface $resource, bool $schedule = false): void;
+    public function persistAndRecompute(ResourceInterface $resource, bool $schedule): void;
 
     /**
      * Removes the given resource.
      */
-    public function remove(ResourceInterface $resource, bool $schedule = false): void;
+    public function remove(ResourceInterface $resource, bool $schedule): void;
 
     /**
      * Schedules the resource event to be dispatched during the persistence phase (onFlush).
