@@ -13,6 +13,7 @@ use Generator;
 
 use function array_map;
 use function iterator_to_array;
+use function preg_match;
 
 /**
  * Class DateRange
@@ -32,7 +33,7 @@ final class DateRange
     public function __construct(DateTimeInterface $start = null, DateTimeInterface $end = null)
     {
         $start = ($start ?? new DateTime())->setTime(0, 0);
-        $end = ($end ?? new DateTime())->setTime(23, 59, 59, 999999);
+        $end = ($end ?? $start)->setTime(23, 59, 59, 999999);
 
         if ($start->getTimestamp() <= $end->getTimestamp()) {
             $this->setStart($start);
@@ -69,6 +70,11 @@ final class DateRange
         return $this;
     }
 
+    public function getDays(): int
+    {
+        return $this->start->diff($this->end)->days;
+    }
+
     public function getYears(): array
     {
         $years = new DatePeriod($this->start, new DateInterval('P1Y'), $this->end);
@@ -92,5 +98,26 @@ final class DateRange
                 $date->modify('last day of this month')->setTime(23, 59, 59, 999999)
             );
         }
+    }
+
+    public static function fromString(string $value): ?DateRange
+    {
+        $pattern = '~^(?P<start>\d{4}-\d{2}-\d{2})_(?P<end>\d{4}-\d{2}-\d{2})$~';
+        if (!preg_match($pattern, $value, $matches)) {
+            return null;
+        }
+
+        return new self(
+            new DateTime($matches['start']),
+            new DateTime($matches['end']),
+        );
+    }
+
+    public function toString(): string
+    {
+        return implode('_', [
+            $this->start->format('Y-m-d'),
+            $this->end->format('Y-m-d'),
+        ]);
     }
 }
