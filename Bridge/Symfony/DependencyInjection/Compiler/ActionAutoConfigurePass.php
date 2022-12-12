@@ -10,11 +10,13 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
+use function array_map;
 use function array_merge;
 use function array_unique;
 use function class_uses;
 use function get_parent_class;
 use function in_array;
+use function is_array;
 
 /**
  * Class ActionAutoConfigurePass
@@ -46,8 +48,20 @@ abstract class ActionAutoConfigurePass implements CompilerPassInterface
                     continue;
                 }
 
-                foreach ($calls as $setter => $service) {
-                    $definition->addMethodCall($setter, [new Reference($service)]);
+                foreach ($calls as $setter => $arguments) {
+                    if (!is_array($arguments)) {
+                        $arguments = [$arguments];
+                    }
+
+                    $arguments = array_map(function (Reference|string $arg) {
+                        if ($arg instanceof Reference) {
+                            return $arg;
+                        }
+
+                        return new Reference($arg);
+                    }, $arguments);
+
+                    $definition->addMethodCall($setter, $arguments);
                 }
             }
         }
@@ -76,9 +90,9 @@ abstract class ActionAutoConfigurePass implements CompilerPassInterface
     }
 
     /**
-     * Returns the actions auto configuration to apply.
+     * Returns the actions autoconfiguration to apply.
      *
-     * @return array
+     * @return array<string, array<string, Reference|string|array<int, Reference|string>>>
      */
     abstract protected function getAutoconfigureMap(): array;
 }
