@@ -32,8 +32,8 @@ final class DateRange
 
     public function __construct(DateTimeInterface $start = null, DateTimeInterface $end = null)
     {
-        $start = ($start ?? new DateTime())->setTime(0, 0);
-        $end = ($end ?? $start)->setTime(23, 59, 59, 999999);
+        $start = $start ?? new DateTime();
+        $end = $end ?? clone $start;
 
         if ($start->getTimestamp() <= $end->getTimestamp()) {
             $this->setStart($start);
@@ -55,6 +55,8 @@ final class DateRange
     {
         $this->start = DateTimeImmutable::createFromInterface($start);
 
+        $this->start = $this->start->setTime(0, 0);
+
         return $this;
     }
 
@@ -66,6 +68,8 @@ final class DateRange
     public function setEnd(DateTimeInterface $end): DateRange
     {
         $this->end = DateTimeImmutable::createFromInterface($end);;
+
+        $this->end = $this->end->setTime(23, 59, 59, 999999);
 
         return $this;
     }
@@ -93,10 +97,17 @@ final class DateRange
 
         /** @var DateTimeImmutable $date */
         foreach ($months as $date) {
-            yield new DateRange(
-                $date->modify('first day of this month')->setTime(0, 0),
-                $date->modify('last day of this month')->setTime(23, 59, 59, 999999)
-            );
+            $start = $date->modify('first day of this month')->setTime(0, 0);
+            if ($start < $this->start) {
+                $start = clone $this->start;
+            }
+
+            $end = $date->modify('last day of this month')->setTime(23, 59, 59, 999999);
+            if ($end > $this->end) {
+                $end = clone $this->end;
+            }
+
+            yield new DateRange($start, $end);
         }
     }
 
