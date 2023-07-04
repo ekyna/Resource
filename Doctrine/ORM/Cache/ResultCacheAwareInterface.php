@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Doctrine\ORM\Cache;
 
-use Symfony\Contracts\Cache\CacheInterface;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Interface ResultCacheAwareInterface
@@ -13,5 +13,5 @@ use Symfony\Contracts\Cache\CacheInterface;
  */
 interface ResultCacheAwareInterface
 {
-    public function setResultCache(CacheInterface $resultCache): void;
+    public function setResultCache(CacheItemPoolInterface $resultCache): void;
 }

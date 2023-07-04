@@ -17,14 +17,12 @@ use function is_object;
  */
 final class MessageQueue implements MessageQueueInterface
 {
-    private ?MessageBusInterface $bus;
-
     /** @var array<int, object|callable> */
     private array $queue = [];
 
-    public function __construct(?MessageBusInterface $bus)
-    {
-        $this->bus = $bus;
+    public function __construct(
+        private readonly MessageBusInterface $bus
+    ) {
     }
 
     public function addMessage(object|callable $message): MessageQueueInterface
@@ -39,24 +37,24 @@ final class MessageQueue implements MessageQueueInterface
      */
     public function flush(): void
     {
-        if (null === $this->bus) {
-            $this->queue = [];
-
+        if (empty($this->queue)) {
             return;
         }
 
-        foreach ($this->queue as $message) {
-            if (is_callable($message)) {
-                $message = $message();
-            }
+        while (!empty($queue = $this->queue)) {
+            $this->queue = [];
 
-            if (!is_object($message)) {
-                throw new UnexpectedTypeException($message, 'object');
-            }
+            foreach ($queue as $message) {
+                if (is_callable($message)) {
+                    $message = $message();
+                }
 
-            $this->bus->dispatch($message);
+                if (!is_object($message)) {
+                    throw new UnexpectedTypeException($message, 'object');
+                }
+
+                $this->bus->dispatch($message);
+            }
         }
-
-        $this->queue = [];
     }
 }
