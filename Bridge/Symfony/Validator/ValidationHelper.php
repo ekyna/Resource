@@ -8,7 +8,6 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class ValidationHelper
@@ -44,7 +43,7 @@ class ValidationHelper
             /** @var ConstraintViolationInterface $violation */
             foreach ($violationList as $violation) {
                 $this->context
-                    ->buildViolation($violation->getMessage())
+                    ->buildViolation($violation->getMessage(), $violation->getParameters())
                     ->setInvalidValue($violation->getInvalidValue())
                     ->atPath($field)
                     ->addViolation();

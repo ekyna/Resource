@@ -16,21 +16,17 @@ use Ekyna\Component\Resource\Config\Factory\RegistryFactory as WrappedRegistryFa
 use Ekyna\Component\Resource\Config\Loader\ConfigLoader;
 use Ekyna\Component\Resource\Config\ResourceConfig;
 use Ekyna\Component\Resource\Exception\ConfigurationException;
-use Ekyna\Component\Resource\Exception\InvalidArgumentException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Factory\ResourceFactoryInterface;
 use Ekyna\Component\Resource\Manager\ResourceManagerInterface;
 use Ekyna\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\DependencyInjection as DI;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
-use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder as Container;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 
 use function call_user_func;
 use function iterator_to_array;
-use function sprintf;
 
 /**
  * Class ContainerBuilder
@@ -201,7 +197,7 @@ final class ContainerBuilder
      *
      * @throws ConfigurationException
      */
-    public function configureServices(Container $container)
+    public function configureServices(Container $container): void
     {
         $this->buildRegistries($container, $this->registryConfig);
         $this->registryFactory->setReady();
@@ -228,7 +224,7 @@ final class ContainerBuilder
      *
      * @throws ConfigurationException
      */
-    private function buildRegistries(Container $container, Config $config)
+    private function buildRegistries(Container $container, Config $config): void
     {
         $builder = new RegistryBuilder($this->config, $config);
 
@@ -262,7 +258,7 @@ final class ContainerBuilder
      * @param Container      $container
      * @param ResourceConfig $resource
      */
-    private function configureBehaviors(Container $container, ResourceConfig $resource)
+    private function configureBehaviors(Container $container, ResourceConfig $resource): void
     {
         $behaviors = $this->config->getBehaviors();
         $behaviorAliases = $this->config->getBehaviorsAliases();
@@ -276,7 +272,7 @@ final class ContainerBuilder
                 throw new RuntimeException("Unknown behavior '$behavior'.");
             }
 
-            /** @see \Ekyna\Component\Resource\Behavior\BehaviorInterface::buildContainer */
+            /** @see BehaviorInterface::buildContainer */
             call_user_func([$behaviors[$behavior]['class'], 'buildContainer'], $container, $resource, $options);
         }
     }

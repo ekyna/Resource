@@ -37,7 +37,7 @@ abstract class File
     private      $handle;
     private bool $opened = true;
 
-    public static function create(string $name): Csv
+    public static function create(string $name): static
     {
         if (!str_ends_with($name, '.' . static::$extension)) {
             throw new UnexpectedValueException(sprintf("File name must ends with '.%s'.", static::$extension));

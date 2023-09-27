@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ekyna\Component\Resource\Tests\PhpUnit;
+namespace Ekyna\Component\Resource\Tests\PhpUnit\Decimal;
 
 use Decimal\Decimal;
 use PHPUnit\Framework\TestCase;

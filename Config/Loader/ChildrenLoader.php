@@ -23,7 +23,7 @@ final class ChildrenLoader
 {
     public static function create(ResourceRegistryInterface $registry): Closure
     {
-        return Closure::fromCallable(function () use ($registry): array {
+        return (function () use ($registry): array {
             if (!$this instanceof ResourceConfig) {
                 throw new LogicException('ChildrenLoader must be bound to ResourceConfig object.');
             }
@@ -46,7 +46,7 @@ final class ChildrenLoader
             }
 
             return $children;
-        });
+        })(...);
     }
 
     private function __construct()
