@@ -72,6 +72,7 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
         /** @var Model\ResourceInterface $object */
         return [
             'id'   => $object->getId(),
+            // TODO 'text' entry is only used by choice form types when creating choices from a XHR response.
             'text' => (string)$object, // 'text' Required for Select2
         ];
     }

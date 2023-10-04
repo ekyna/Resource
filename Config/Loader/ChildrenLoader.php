@@ -8,11 +8,6 @@ use Closure;
 use Ekyna\Component\Commerce\Exception\LogicException;
 use Ekyna\Component\Resource\Config\Registry\ResourceRegistryInterface;
 use Ekyna\Component\Resource\Config\ResourceConfig;
-use Ekyna\Component\Resource\Exception\RuntimeException;
-
-use Generator;
-
-use function sprintf;
 
 /**
  * Class ChildrenLoader
@@ -32,14 +27,6 @@ final class ChildrenLoader
             foreach ($registry->all() as $child) {
                 if ($child->getParentId() !== $this->getId()) {
                     continue;
-                }
-
-                if ($child->getNamespace() !== $this->getNamespace()) {
-                    throw new RuntimeException(sprintf(
-                        "Expected '%s' namespace, for '%'.",
-                        $this->getNamespace(),
-                        $child->getId()
-                    ));
                 }
 
                 $children[$child->getId()] = $child;

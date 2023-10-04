@@ -59,6 +59,12 @@ abstract class File
         $options = array_replace([
             'file_name' => null,
             'inline'    => false,
+            /**
+             * TODO Set to NULL and use mime type detection:
+             * \Symfony\Component\Mime\MimeTypes::guessMimeType
+             * \League\MimeTypeDetection\GeneratedExtensionToMimeTypeMap::lookupMimeType
+             * \GuzzleHttp\Psr7\MimeType::fromExtension
+             */
             'mime_type' => 'text/plain',
         ], $options);
 

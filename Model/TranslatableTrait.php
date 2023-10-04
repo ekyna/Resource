@@ -141,6 +141,11 @@ trait TranslatableTrait
         return $this->translations;
     }
 
+    /**
+     * @TODO Translation class may be overridden by resource configuration files.
+     *       Use resource registry to get proper translation class.
+     * @deprecated
+     */
     protected function getTranslationClass(): string
     {
         return get_class($this) . 'Translation';
