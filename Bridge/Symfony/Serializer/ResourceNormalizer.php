@@ -79,14 +79,8 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
 
     /**
      * Normalizes the object.
-     *
-     * @param object|null $object
-     * @param string      $format
-     * @param array       $context
-     *
-     * @return array|string
      */
-    protected function normalizeObject(?object $object, string $format, array $context)
+    protected function normalizeObject(?object $object, string $format, array $context): array|string|null
     {
         if (is_null($object)) {
             return null;
@@ -151,12 +145,12 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
     /**
      * Returns whether the given groups are configured in the serialization context.
      *
-     * @param string|string[] $search  The group(s) to test
-     * @param array           $context The serialization context
+     * @param string|array<string> $search  The group(s) to test
+     * @param array                $context The serialization context
      *
      * @return bool
      */
-    protected function contextHasGroup($search, array $context): bool
+    public static function contextHasGroup(string|array $search, array $context): bool
     {
         $groups = isset($context['groups']) ? (array)$context['groups'] : [];
 
@@ -168,11 +162,9 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
             return in_array($search, $groups, true);
         }
 
-        if (is_array($search)) {
-            foreach ($search as $group) {
-                if (in_array($group, $groups, true)) {
-                    return true;
-                }
+        foreach ($search as $group) {
+            if (in_array($group, $groups, true)) {
+                return true;
             }
         }
 
