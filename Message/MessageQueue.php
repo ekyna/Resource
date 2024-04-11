@@ -46,7 +46,9 @@ final class MessageQueue implements MessageQueueInterface
 
             foreach ($queue as $message) {
                 if (is_callable($message)) {
-                    $message = $message();
+                    if (null === $message = $message()) {
+                        continue;
+                    }
                 }
 
                 if (!is_object($message)) {
