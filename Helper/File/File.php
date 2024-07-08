@@ -100,6 +100,15 @@ abstract class File
         $this->close();
     }
 
+    public function addRows(array $rows): void
+    {
+        foreach ($rows as $row) {
+            $this->addRow($row);
+        }
+    }
+
+    abstract public function addRow(array $row): void;
+
     public function close(): string
     {
         if (!$this->opened) {

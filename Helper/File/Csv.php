@@ -31,13 +31,6 @@ class Csv extends File
         $this->enclosure = $enclosure;
     }
 
-    public function addRows(array $rows): void
-    {
-        foreach ($rows as $row) {
-            $this->addRow($row);
-        }
-    }
-
     public function addRow(array $row): void
     {
         if (false !== fputcsv($this->getHandle(), $row, $this->separator, $this->enclosure)) {
