@@ -18,6 +18,8 @@ interface NormalizerInterface
 
     /**
      * @param mixed $value
+     * @param array $mapping
+     * @return string|array|null
      */
-    public function convert($value, array $mapping): ?string;
+    public function convert(mixed $value, array $mapping): null|string|array;
 }

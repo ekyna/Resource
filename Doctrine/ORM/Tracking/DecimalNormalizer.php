@@ -25,7 +25,7 @@ class DecimalNormalizer implements NormalizerInterface
     /**
      * @inheritDoc
      */
-    public function convert($value, array $mapping): ?string
+    public function convert(mixed $value, array $mapping): null|string|array
     {
         if (is_null($value)) {
             return null;

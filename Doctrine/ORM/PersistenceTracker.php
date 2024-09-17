@@ -40,6 +40,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
     {
         $this->registry = $registry;
 
+        $this->registerNormalizer(new Tracking\ArrayNormalizer());
         $this->registerNormalizer(new Tracking\DateTimeNormalizer());
         $this->registerNormalizer(new Tracking\DecimalNormalizer());
 
