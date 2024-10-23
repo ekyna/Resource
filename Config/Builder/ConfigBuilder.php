@@ -17,14 +17,15 @@ use Ekyna\Component\Resource\Extension\ExtensionInterface;
 use Symfony\Component\OptionsResolver\Exception\ExceptionInterface;
 
 use function array_diff;
+use function array_keys;
 use function array_merge_recursive;
+use function array_push;
 use function array_replace;
 use function array_replace_recursive;
 use function call_user_func;
 use function class_exists;
 use function explode;
 use function implode;
-use function in_array;
 use function is_null;
 use function is_subclass_of;
 use function preg_match;
@@ -439,7 +440,9 @@ class ConfigBuilder
                 }
 
                 if (!class_exists($bName)) {
-                    throw new Exception\ConfigurationException("Behavior '$bName' must be register in resources files.");
+                    throw new Exception\ConfigurationException(
+                        "Behavior '$bName' must be register in resources files."
+                    );
                 }
 
                 $this->registerBehavior($bName);
@@ -484,12 +487,14 @@ class ConfigBuilder
                     try {
                         $rBehaviors[$bClass] = $resolver->resolve($bClass, []);
                     } catch (ExceptionInterface $exception) {
-                        throw new Exception\RuntimeException(sprintf(
-                            'The class %s implements %s but this behavior can\'t be ' .
-                            'configured automatically. Please configure it manually.',
-                            $rClass,
-                            $interface
-                        ), 0, $exception);
+                        throw new Exception\RuntimeException(
+                            sprintf(
+                                'The class %s implements %s but this behavior can\'t be ' .
+                                'configured automatically. Please configure it manually.',
+                                $rClass,
+                                $interface
+                            ), 0, $exception
+                        );
                     }
                 }
             }
@@ -521,7 +526,9 @@ class ConfigBuilder
                 }
 
                 if (!class_exists($aName)) {
-                    throw new Exception\ConfigurationException("Action '$aName' must be register in resources files.");
+                    throw new Exception\ConfigurationException(
+                        "Action '$aName' must be registered in resources files."
+                    );
                 }
 
                 $this->registerAction($aName);
@@ -537,7 +544,7 @@ class ConfigBuilder
             $configured = $rConfig['actions'];
             $resolved = [];
 
-            // First pass : use action builders
+            // First pass: use action builders
             foreach ($configured as $aClass => $aConfig) {
                 if (!isset($this->actions[$aClass])) {
                     throw new Exception\RuntimeException("Action '$aClass' does not exist.");
@@ -562,7 +569,7 @@ class ConfigBuilder
                 unset($configured[$aClass]);
             }
 
-            // Second pass : use actions
+            // Second pass: use actions
             foreach ($configured as $aClass => $aConfig) {
                 try {
                     $resolved[$aClass] = $resolver->resolve($aClass, (array)$aConfig);
@@ -571,7 +578,7 @@ class ConfigBuilder
                 }
             }
 
-            // Third pass : use aliases to replace behaviors names with classes
+            // Third pass: use aliases to replace behaviors names with classes
             $configured = $rConfig['behaviors'];
             foreach ($configured as $bName => $bConfig) {
                 if (!isset($this->behaviorsAliases[$bName])) {
@@ -582,7 +589,7 @@ class ConfigBuilder
                 $configured[$this->behaviorsAliases[$bName]] = $bConfig;
             }
 
-            // Fourth pass : use behaviors
+            // Fourth pass: use behaviors
             foreach ($configured as $bClass => $bConfig) {
                 if (!isset($this->behaviors[$bClass])) {
                     throw new Exception\RuntimeException("Behavior '$bClass' does not exist.");
@@ -629,21 +636,24 @@ class ConfigBuilder
 
                 $aConfig = array_replace_recursive($this->actions[$aName], $aConfig);
 
-                if (is_null($pName = $aConfig['permission'])) {
+                if (empty($permissions = $aConfig['permissions'])) {
                     continue;
                 }
 
-                if (!isset($this->permissions[$pName])) {
+                if (!empty($diff = array_diff($permissions, array_keys($this->permissions)))) {
                     throw new Exception\ConfigurationException(
-                        "Permission '$pName' required for action '$aName' is not registered."
+                        sprintf(
+                            "Unknown permission '%s'.",
+                            implode(', ', $diff)
+                        )
                     );
                 }
 
-                if (in_array($pName, $rConfig['permissions'], true)) {
+                if (empty($diff = array_diff($permissions, $rConfig['permissions']))) {
                     continue;
                 }
 
-                $rConfig['permissions'][] = $pName;
+                array_push($rConfig['permissions'], ...$diff);
             }
         }
     }

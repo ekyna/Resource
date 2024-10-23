@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Extension;
 
-use Ekyna\Component\Resource\Action\Permission;
 use Ekyna\Component\Resource\Behavior\BehaviorBuilderInterface;
 use Ekyna\Component\Resource\Behavior\BehaviorInterface;
 use Ekyna\Component\Resource\Behavior\Behaviors;
@@ -23,8 +22,13 @@ use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+use function array_diff;
+use function array_map;
+use function array_push;
 use function array_replace;
 use function class_exists;
+use function constant;
+use function defined;
 use function gettype;
 use function interface_exists;
 use function is_array;
@@ -103,8 +107,8 @@ class CoreExtension extends AbstractExtension
     public function extendActionConfig(OptionsResolver $resolver, DefaultsResolver $defaults): void
     {
         $options = [
-            'permission' => Permission::READ,
-            'options'    => [
+            'permissions' => [],
+            'options'     => [
                 'expose' => false,
             ],
         ];
@@ -118,7 +122,6 @@ class CoreExtension extends AbstractExtension
             ->setDefaults($options)
             ->setAllowedTypes('name', 'string')
             ->setAllowedTypes('class', 'string')
-            ->setAllowedTypes('permission', ['string', 'null'])
             ->setAllowedTypes('options', 'array')
             ->setAllowedValues('name', function ($value) {
                 if (!(class_exists($value) || preg_match(self::NAME_REGEX, $value))) {
@@ -127,6 +130,13 @@ class CoreExtension extends AbstractExtension
 
                 return true;
             });
+
+        $this->addPermissionsOptions($resolver);
+    }
+
+    public function extendActionOptions(OptionsResolver $resolver): void
+    {
+        $this->addPermissionsOptions($resolver);
     }
 
     /**
@@ -204,18 +214,18 @@ class CoreExtension extends AbstractExtension
     public function extendResourceConfig(OptionsResolver $resolver, DefaultsResolver $defaults): void
     {
         $options = [
-            'factory'            => null,
-            'repository'         => null,
-            'manager'            => null,
-            'search'             => null,
-            'translation'        => null,
-            'parent'             => null,
-            'event'              => null,
-            'actions'            => [],
-            'behaviors'          => [],
-            'permissions'        => [],
-            'trans_prefix'       => null,
-            'trans_domain'       => null,
+            'factory'      => null,
+            'repository'   => null,
+            'manager'      => null,
+            'search'       => null,
+            'translation'  => null,
+            'parent'       => null,
+            'event'        => null,
+            'actions'      => [],
+            'behaviors'    => [],
+            'permissions'  => [],
+            'trans_prefix' => null,
+            'trans_domain' => null,
         ];
 
         /** @noinspection PhpUnhandledExceptionInspection */
@@ -287,7 +297,7 @@ class CoreExtension extends AbstractExtension
                     ));
                 }
 
-                if (!isset($value['fields']) || empty($value['fields'])) {
+                if (empty($value['fields'])) {
                     throw new InvalidOptionsException('Resource translation fields must be configured.');
                 }
 
@@ -399,38 +409,76 @@ class CoreExtension extends AbstractExtension
 
                 return $this->normalizeInterface($value, $interface);
             })
-            ->setNormalizer(
-                'manager',
-                function (Options $options, $value) {
-                    return $this->normalizeInterface($value, ResourceManagerInterface::class);
+            ->setNormalizer('manager', function (Options $options, $value) {
+                return $this->normalizeInterface($value, ResourceManagerInterface::class);
+            })
+            ->setNormalizer('event', function (Options $options, $value) {
+                if (empty($value)) {
+                    $value = [];
+                } elseif (is_string($value)) {
+                    $value = ['class' => $value,];
                 }
-            )
-            ->setNormalizer(
-                'event',
-                function (Options $options, $value) {
-                    if (empty($value)) {
-                        $value = [];
-                    } elseif (is_string($value)) {
-                        $value = ['class' => $value,];
-                    }
 
-                    $value = array_replace([
-                        'class'    => ResourceEvent::class,
-                        'priority' => 0,
-                    ], $value);
+                $value = array_replace([
+                    'class'    => ResourceEvent::class,
+                    'priority' => 0,
+                ], $value);
 
-                    if (
-                        $value['class'] !== ResourceEvent::class
-                        && !is_subclass_of($value['class'], ResourceEventInterface::class)
-                    ) {
-                        throw new InvalidOptionsException(sprintf(
-                            'Class %s must implements %s.',
-                            $value['class'], ResourceEventInterface::class
-                        ));
-                    }
+                if (
+                    $value['class'] !== ResourceEvent::class
+                    && !is_subclass_of($value['class'], ResourceEventInterface::class)
+                ) {
+                    throw new InvalidOptionsException(sprintf(
+                        'Class %s must implements %s.',
+                        $value['class'],
+                        ResourceEventInterface::class
+                    ));
+                }
 
+                return $value;
+            })
+            ->setNormalizer('permissions', function (Options $options, $value) {
+                if (is_string($value)) {
+                    $value = [$value];
+                }
+
+                return array_map(
+                    fn(string $val): string => defined($val) ? constant($val) : $val,
+                    $value
+                );
+            });
+    }
+
+    private function addPermissionsOptions(OptionsResolver $resolver): void
+    {
+        $normalizer = function (Options $options, $value) {
+            if (is_string($value)) {
+                $value = [$value];
+            }
+
+            return array_map(
+                fn(string $val): string => defined($val) ? constant($val) : $val,
+                $value
+            );
+        };
+
+        $resolver
+            ->setDefined(['permission', 'permissions'])
+            ->setAllowedTypes('permission', ['array', 'string'])
+            ->setAllowedTypes('permissions', ['array', 'string'])
+            ->setNormalizer('permission', $normalizer)
+            ->setNormalizer('permissions', $normalizer)
+            ->setDeprecated('permission', 'ekyna/resource', '0.9')
+            ->addNormalizer('permissions', function (Options $options, $value) {
+                if (!isset($options['permission'])) {
                     return $value;
                 }
-            );
+
+                if (!empty($diff = array_diff($options['permission'], $value))) {
+                    array_push($value, ...$diff);
+                }
+
+                return $value;
+            });
     }
 }

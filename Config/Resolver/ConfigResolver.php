@@ -13,6 +13,8 @@ use Symfony\Component\OptionsResolver\Exception\ExceptionInterface;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+use function array_keys;
+use function implode;
 use function is_subclass_of;
 use function preg_match;
 
@@ -33,12 +35,12 @@ class ConfigResolver
      */
     private array $defaults;
 
-    private ?OptionsResolver $permissionResolver    = null;
-    private ?OptionsResolver $actionResolver        = null;
+    private ?OptionsResolver $permissionResolver = null;
+    private ?OptionsResolver $actionResolver = null;
     private ?OptionsResolver $actionBuilderResolver = null;
-    private ?OptionsResolver $behaviorResolver      = null;
-    private ?OptionsResolver $namespaceResolver     = null;
-    private ?OptionsResolver $resourceResolver      = null;
+    private ?OptionsResolver $behaviorResolver = null;
+    private ?OptionsResolver $namespaceResolver = null;
+    private ?OptionsResolver $resourceResolver = null;
 
 
     /**
@@ -101,8 +103,11 @@ class ConfigResolver
                 throw new ConfigurationException($exception->getMessage(), $exception->getCode(), $exception);
             }
 
-            if (isset($data['permission']) && !isset($permissions[$data['permission']])) {
-                throw new ConfigurationException(sprintf("Unknown permission '%s'.", $data['permission']));
+            if (
+                !empty($data['permissions']) &&
+                !empty($diff = array_diff($data['permissions'], array_keys($permissions)))
+            ) {
+                throw new ConfigurationException(sprintf("Unknown permission '%s'.", implode(', ', $diff)));
             }
 
             // TODO Remove defaults
@@ -114,12 +119,14 @@ class ConfigResolver
             return $this->getActionBuilderResolver()->resolve($options);
         }
 
-        throw new ConfigurationException(sprintf(
-            'Action class %s must implements %s or %s',
-            $options['class'],
-            ActionInterface::class,
-            ActionBuilderInterface::class
-        ));
+        throw new ConfigurationException(
+            sprintf(
+                'Action class %s must implements %s or %s',
+                $options['class'],
+                ActionInterface::class,
+                ActionBuilderInterface::class
+            )
+        );
     }
 
     /**

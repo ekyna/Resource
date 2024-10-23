@@ -162,11 +162,11 @@ class YamlFileLoaderTest extends TestCase
             ->expects(self::once())
             ->method('addAction')
             ->with('foo_action', [
-                'name'       => 'foo_action',
-                'class'      => FooAction::class,
-                'route'      => 'foo_route',
-                'permission' => 'foo_perm',
-                'options'    => ['foo' => 'bar'],
+                'name'        => 'foo_action',
+                'class'       => FooAction::class,
+                'route'       => 'foo_route',
+                'permissions' => 'foo_perm',
+                'options'     => ['foo' => 'bar'],
             ]);
 
         $this->createFixturesLoader()->load('action.yml');

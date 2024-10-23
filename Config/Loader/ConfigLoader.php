@@ -384,14 +384,12 @@ class ConfigLoader
     {
         $this->assertNotLocked();
 
-        /** @see src/Ekyna/Component/Resource/Config/Builder/ConfigBuilder.php:400 */
+        /** @see \Ekyna\Component\Resource\Config\Builder\ConfigBuilder::buildResources() */
         if (!isset($config['interfaces'])) {
             $config['interfaces'] = [];
         }
 
-        // TODO While overriding resource config, 'entity' entry may not be defined
-        if (is_array($config['entity']) && isset($config['entity']['interface'])) {
-            // TODO Check hierarchy (implementation consistency)
+        if (isset($config['entity']['interface'])) {
             $config['interfaces'][] = $config['entity']['interface'];
         }
 

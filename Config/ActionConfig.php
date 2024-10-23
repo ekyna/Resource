@@ -32,13 +32,13 @@ class ActionConfig extends AbstractConfig
     }
 
     /**
-     * Returns the action permission name.
+     * Returns the action permissions names.
      *
-     * @return string|null
+     * @return array
      */
-    public function getPermission(): ?string
+    public function getPermissions(): array
     {
-        return $this->getData('permission');
+        return $this->getData('permissions');
     }
 
     /**

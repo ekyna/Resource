@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Config\Cache;
 
+use Ekyna\Component\Resource\Exception\UnexpectedTypeException;
 use Ekyna\Component\Resource\Exception\UnexpectedValueException;
 
 use function addcslashes;
@@ -11,6 +12,7 @@ use function is_array;
 use function is_bool;
 use function is_null;
 use function is_numeric;
+use function is_object;
 use function is_string;
 use function sprintf;
 
@@ -39,6 +41,10 @@ EOT;
         $output = "[\n";
 
         foreach ($data as $key => $config) {
+            if (is_object($config)) {
+                throw new UnexpectedTypeException($config, ['array', 'string', 'int', 'float', 'bool', 'null']);
+            }
+
             if (is_array($config)) {
                 $value = $this->dumpArray($config);
             } else {
@@ -61,6 +67,10 @@ EOT;
         $output = '[';
 
         foreach ($options as $key => $value) {
+            if (is_object($value)) {
+                throw new UnexpectedTypeException($value, ['array', 'string', 'int', 'float', 'bool', 'null']);
+            }
+
             if (!is_numeric($key)) {
                 $output .= "'$key'=>";
             }

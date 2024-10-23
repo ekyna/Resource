@@ -1,9 +1,11 @@
-<?php return [
+<?php
+
+return [
     'permission' => ['trans_domain' => null,],
     'namespace'  => ['label' => null, 'trans_domain' => null,],
     'action'     => [
-        'permission' => null,
-        'options'    => ['expose' => false,],
+        'permissions' => null,
+        'options'     => ['expose' => false,],
     ],
     'behavior'   => ['options' => [],],
     'resource'   => [

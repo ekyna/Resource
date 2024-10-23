@@ -15,10 +15,6 @@ use Acme\Resource\Entity;
 use Acme\Resource\Repository;
 use Ekyna\Component\Resource\Behavior\Behaviors;
 use Ekyna\Component\Resource\Config\Resolver\ConfigResolver;
-use Ekyna\Component\Resource\Doctrine\ORM\Factory\ResourceFactory;
-use Ekyna\Component\Resource\Doctrine\ORM\Factory\TranslatableFactory;
-use Ekyna\Component\Resource\Doctrine\ORM\Manager\ResourceManager;
-use Ekyna\Component\Resource\Doctrine\ORM\Repository\ResourceRepository;
 use Ekyna\Component\Resource\Event\ResourceEvent;
 use Ekyna\Component\Resource\Exception\ConfigurationException;
 use Ekyna\Component\Resource\Extension\CoreExtension;
@@ -67,10 +63,10 @@ class ConfigResolverTest extends TestCase
     ];
 
     private const ACTION_DEFAULTS = [
-        'name'       => null,
-        'class'      => null,
-        'permission' => null,
-        'options'    => [
+        'name'        => null,
+        'class'       => null,
+        'permissions' => null,
+        'options'     => [
             'expose' => false,
         ],
     ];
@@ -333,38 +329,38 @@ class ConfigResolverTest extends TestCase
         return [
             [
                 [
-                    'name'       => '0_0', // Invalid name (regex)
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
+                    'name'        => '0_0', // Invalid name (regex)
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
                 ],
             ],
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => 'UnknownClass', // Invalid class (does not exist)
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => 'UnknownClass', // Invalid class (does not exist)
+                    'permissions' => 'valid_permission',
                 ],
             ],
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => Entity\Foo::class, // Invalid class (does not implements ActionInterface)
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => Entity\Foo::class, // Invalid class (does not implements ActionInterface)
+                    'permissions' => 'valid_permission',
                 ],
             ],
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'invalid_permission', // Invalid permission (unknown)
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'invalid_permission', // Invalid permission (unknown)
                 ],
             ],
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
-                    'button'     => ['label' => null], // Invalid button (undefined label)
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
+                    'button'      => ['label' => null], // Invalid button (undefined label)
                 ],
             ],
         ];
@@ -375,26 +371,26 @@ class ConfigResolverTest extends TestCase
         return [
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
                 ],
                 array_replace(self::ACTION_DEFAULTS, [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
                 ]),
             ],
             [
                 [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
                 ],
                 array_replace(self::ACTION_DEFAULTS, [
-                    'name'       => 'foo',
-                    'class'      => FooAction::class,
-                    'permission' => 'valid_permission',
+                    'name'        => 'foo',
+                    'class'       => FooAction::class,
+                    'permissions' => 'valid_permission',
                 ]),
             ],
         ];
@@ -505,7 +501,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'    => 'doctrine/orm',
                     // ERROR: Unknown namespace
                     'namespace' => 'foo',
                     'name'      => 'post',
@@ -516,7 +512,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'      => 'doctrine/orm',
                     'namespace'   => 'acme',
                     'name'        => 'post',
                     'entity'      => [
@@ -536,7 +532,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'      => 'doctrine/orm',
                     'namespace'   => 'acme',
                     'name'        => 'post',
                     'entity'      => [
@@ -555,7 +551,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'      => 'doctrine/orm',
                     'namespace'   => 'acme',
                     'name'        => 'post',
                     'entity'      => [
@@ -574,7 +570,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'    => 'doctrine/orm',
                     'namespace' => 'acme',
                     'name'      => 'bar',
                     'entity'    => [
@@ -585,7 +581,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'    => 'doctrine/orm',
                     'namespace' => 'acme',
                     'name'      => 'foo',
                     'entity'    => [
@@ -613,14 +609,14 @@ class ConfigResolverTest extends TestCase
                     'namespace' => 'acme',
                     'name'      => 'category',
                     'entity'    => [
-                        'class' => Entity\Category::class,
+                        'class'     => Entity\Category::class,
                         'interface' => null,
                     ],
                 ]),
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'      => 'doctrine/orm',
                     'namespace'   => 'acme',
                     'name'        => 'post',
                     'entity'      => [
@@ -655,7 +651,7 @@ class ConfigResolverTest extends TestCase
             ],
             [
                 [
-                    'driver'       => 'doctrine/orm',
+                    'driver'     => 'doctrine/orm',
                     'namespace'  => 'acme',
                     'name'       => 'comment',
                     'entity'     => [

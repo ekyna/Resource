@@ -6,7 +6,6 @@ namespace Ekyna\Component\Resource\Extension;
 
 use Ekyna\Component\Resource\Config\Factory\RegistryFactoryInterface;
 use Ekyna\Component\Resource\Config\Resolver\DefaultsResolver;
-use Ekyna\Component\Resource\Config\ResourceConfig;
 use Symfony\Component\DependencyInjection as DI;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 

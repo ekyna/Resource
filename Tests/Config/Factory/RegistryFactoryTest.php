@@ -116,13 +116,13 @@ class RegistryFactoryTest extends TestCase
         self::assertInstanceOf(ActionRegistryInterface::class, $registry);
 
         $expected = new ActionConfig('foo', [
-            'permission' => 'foo',
-            'options'    => [
+            'permissions' => 'foo',
+            'options'     => [
                 'expose' => false,
             ],
-            'class'      => 'Acme\\Resource\\Action\\FooAction',
-            'name'       => 'foo',
-            'route'      => 'foo',
+            'class'       => 'Acme\\Resource\\Action\\FooAction',
+            'name'        => 'foo',
+            'route'       => 'foo',
         ]);
 
         self::assertEquals($expected, $registry->find('foo'));

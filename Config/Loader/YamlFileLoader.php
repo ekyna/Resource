@@ -15,6 +15,8 @@ use Symfony\Component\Yaml\Parser;
 use function array_merge;
 use function array_replace;
 use function class_exists;
+use function constant;
+use function defined;
 use function dirname;
 use function file_exists;
 use function file_get_contents;
@@ -51,26 +53,24 @@ class YamlFileLoader extends FileLoader
             return;
         }
 
-        // Imports
-        $this->parseImports($content, $path);
+        foreach ($content as $key => $value) {
+            if (!is_array($value)) {
+                throw new ConfigurationException(
+                    "The '$key' key should contain an array in $path. Check your YAML syntax."
+                );
+            }
 
-        // Extensions
-        $this->parseExtensions($content, $path);
-
-        // Permissions configurations
-        $this->parsePermissions($content, $resource);
-
-        // Namespaces configurations
-        $this->parseNamespaces($content, $resource);
-
-        // Actions configurations
-        $this->parseActions($content, $resource);
-
-        // Behaviors configurations
-        $this->parseBehaviors($content, $resource);
-
-        // Resources configurations
-        $this->parseResources($content, $resource);
+            match ($key) {
+                'imports'     => $this->parseImports($value, $path),
+                'extensions'  => $this->parseExtensions($value, $path),
+                'permissions' => $this->parsePermissions($value, $path),
+                'namespaces'  => $this->parseNamespaces($value, $path),
+                'actions'     => $this->parseActions($value, $path),
+                'behaviors'   => $this->parseBehaviors($value, $path),
+                'resources'   => $this->parseResources($value, $path),
+                default       => throw new ConfigurationException("Unexpected entry '$key'."),
+            };
+        }
     }
 
     /**
@@ -93,18 +93,8 @@ class YamlFileLoader extends FileLoader
      */
     private function parseImports(array $content, string $file): void
     {
-        if (!isset($content['imports'])) {
-            return;
-        }
-
-        if (!is_array($content['imports'])) {
-            throw new ConfigurationException(
-                "The 'imports' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
         $defaultDirectory = dirname($file);
-        foreach ($content['imports'] as $import) {
+        foreach ($content as $import) {
             $this->setCurrentDir($defaultDirectory);
 
             $ignoreErrors = isset($import['ignore_errors']) && $import['ignore_errors'];
@@ -127,17 +117,7 @@ class YamlFileLoader extends FileLoader
      */
     private function parseExtensions(array $content, string $file): void
     {
-        if (!isset($content['extensions'])) {
-            return;
-        }
-
-        if (!is_array($content['extensions'])) {
-            throw new ConfigurationException(
-                "The 'extensions' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['extensions'] as $extension) {
+        foreach ($content as $extension) {
             if (!is_string($extension)) {
                 throw new ConfigurationException(
                     "The 'extensions' key should contain an array of string in $file. Check your YAML syntax."
@@ -158,21 +138,15 @@ class YamlFileLoader extends FileLoader
      */
     private function parsePermissions(array $content, string $file): void
     {
-        if (!isset($content['permissions'])) {
-            return;
-        }
-
-        if (!is_array($content['permissions'])) {
-            throw new ConfigurationException(
-                "The 'permissions' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['permissions'] as $name => $options) {
+        foreach ($content as $name => $options) {
             if (!is_array($options)) {
                 throw new ConfigurationException(
                     "The 'permissions.$name' key should contain an array in $file. Check your YAML syntax."
                 );
+            }
+
+            if (defined($name)) {
+                $name = constant($name);
             }
 
             $this->loader->addPermission($name, array_merge($options, [
@@ -191,17 +165,7 @@ class YamlFileLoader extends FileLoader
      */
     private function parseNamespaces(array $content, string $file): void
     {
-        if (!isset($content['namespaces'])) {
-            return;
-        }
-
-        if (!is_array($content['namespaces'])) {
-            throw new ConfigurationException(
-                "The 'namespaces' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['namespaces'] as $name => $options) {
+        foreach ($content as $name => $options) {
             if (!is_array($options)) {
                 throw new ConfigurationException(
                     "The 'namespaces.$name' key should contain an array in $file. Check your YAML syntax."
@@ -224,17 +188,7 @@ class YamlFileLoader extends FileLoader
      */
     private function parseActions(array $content, string $file): void
     {
-        if (!isset($content['actions'])) {
-            return;
-        }
-
-        if (!is_array($content['actions'])) {
-            throw new ConfigurationException(
-                "The 'actions' key should contain an array in file $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['actions'] as $name => $options) {
+        foreach ($content as $name => $options) {
             if (is_null($options)) {
                 $options = [];
             }
@@ -267,17 +221,7 @@ class YamlFileLoader extends FileLoader
      */
     private function parseBehaviors(array $content, string $file): void
     {
-        if (!isset($content['behaviors'])) {
-            return;
-        }
-
-        if (!is_array($content['behaviors'])) {
-            throw new ConfigurationException(
-                "The 'behaviors' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['behaviors'] as $name => $options) {
+        foreach ($content as $name => $options) {
             if (is_null($options)) {
                 $options = [];
             }
@@ -308,19 +252,9 @@ class YamlFileLoader extends FileLoader
      *
      * @throws ConfigurationException
      */
-    private function parseResources(array $content, string $file)
+    private function parseResources(array $content, string $file): void
     {
-        if (!isset($content['resources'])) {
-            return;
-        }
-
-        if (!is_array($content['resources'])) {
-            throw new ConfigurationException(
-                "The 'resources' key should contain an array in $file. Check your YAML syntax."
-            );
-        }
-
-        foreach ($content['resources'] as $namespace => $definitions) {
+        foreach ($content as $namespace => $definitions) {
             if (!is_array($definitions)) {
                 throw new ConfigurationException(
                     "The 'resources.$namespace' key should contain an array in $file. Check your YAML syntax."
@@ -347,7 +281,7 @@ class YamlFileLoader extends FileLoader
      *
      * @param string $file
      *
-     * @return array The file content
+     * @return array|null The file content
      *
      * @throws InvalidArgumentException When the given file is not a local file,
      *                                  when it does not exist or when it is not valid.
@@ -355,7 +289,9 @@ class YamlFileLoader extends FileLoader
     private function loadFile(string $file): ?array
     {
         if (!class_exists('Symfony\Component\Yaml\Parser')) {
-            throw new RuntimeException('Unable to load YAML config files as the Symfony Yaml Component is not installed.');
+            throw new RuntimeException(
+                'Unable to load YAML config files as the Symfony Yaml Component is not installed.'
+            );
         }
 
         if (!stream_is_local($file)) {
@@ -373,7 +309,11 @@ class YamlFileLoader extends FileLoader
         try {
             $config = $this->parser->parse(file_get_contents($file));
         } catch (ParseException $exception) {
-            throw new InvalidArgumentException(sprintf('The file "%s" does not contain valid YAML.', $file), 0, $exception);
+            throw new InvalidArgumentException(
+                sprintf('The file "%s" does not contain valid YAML.', $file),
+                0,
+                $exception
+            );
         }
 
         // empty file

@@ -23,8 +23,8 @@ class ActionConfigTest extends TestCase
         self::assertEquals(FooAction::class, $config->getClass());
         self::assertEquals('foo_route', $config->getRoute());
 
-        self::assertNull($config->getPermission());
         self::assertNull($config->getButton());
+        self::assertEquals([], $config->getPermissions());
         self::assertEquals([], $config->getDefaultOptions());
     }
 
@@ -36,7 +36,7 @@ class ActionConfigTest extends TestCase
         self::assertEquals(FooAction::class, $config->getClass());
         self::assertEquals('foo_route', $config->getRoute());
 
-        self::assertEquals('foo', $config->getPermission());
+        self::assertEquals(['foo'], $config->getPermissions());
 
         self::assertEquals([
             'label' => 'Foo',
@@ -60,15 +60,15 @@ class ActionConfigTest extends TestCase
     private function getAdvancedConfig(): ActionConfig
     {
         return new ActionConfig('acme_foo', [
-            'class'      => FooAction::class,
-            'route'      => 'foo_route',
-            'permission' => 'foo',
-            'button'     => [
+            'class'       => FooAction::class,
+            'route'       => 'foo_route',
+            'permissions' => ['foo'],
+            'button'      => [
                 'label' => 'Foo',
                 'theme' => 'default',
                 'icon'  => 'check',
             ],
-            'options'    => [
+            'options'     => [
                 'template' => 'foo.html.twig',
             ],
         ]);

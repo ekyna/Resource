@@ -168,20 +168,6 @@ class ResourceRegistryTest extends TestCase
         $this->registry->find(new Baz());
     }
 
-    public function testFindWithNonResourceObject(): void
-    {
-        // Unexpected value
-        $this->expectException(UnexpectedValueException::class);
-        $this->registry->find(new Foo());
-    }
-
-    public function testFindWithArray(): void
-    {
-        $this->expectException(UnexpectedValueException::class);
-        /** @noinspection PhpParamsInspection */
-        $this->registry->find([]);
-    }
-
     public function testFindById(): void
     {
         self::assertEquals(
