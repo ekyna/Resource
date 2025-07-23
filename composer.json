@@ -31,7 +31,8 @@
         "doctrine/common": "^2.7|^3.0",
         "doctrine/inflector": "^2.0",
         "doctrine/persistence": "^2.5",
-        "paragonie/halite": "^5.1"
+        "paragonie/halite": "^5.1",
+        "phpoffice/phpspreadsheet": "^1.18"
     },
     "require-dev": {
         "ext-pdo": "*",
