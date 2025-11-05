@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Copier;
 
-use Doctrine\Common\Collections\Collection;
 use Ekyna\Component\Resource\Model\ResourceInterface;
 
 /**

@@ -9,6 +9,9 @@ use SebastianBergmann\Comparator\Comparator;
 use SebastianBergmann\Comparator\ComparisonFailure;
 use SebastianBergmann\Comparator\Factory;
 
+use function is_int;
+use function is_string;
+
 /**
  * Class DecimalComparator
  * @package Ekyna\Component\Resource\Tests\PhpUnit
@@ -26,7 +29,8 @@ final class DecimalComparator extends Comparator
      */
     public function accepts($expected, $actual)
     {
-        return $expected instanceof Decimal && $actual instanceof Decimal;
+        return ($expected instanceof Decimal || is_int($expected) || is_string($expected))
+            && $actual instanceof Decimal;
     }
 
     /**
@@ -38,6 +42,9 @@ final class DecimalComparator extends Comparator
          * @var Decimal $expected
          * @var Decimal $actual
          */
+        if (!$expected instanceof Decimal) {
+            $expected = new Decimal($expected);
+        }
 
         if ($expected->equals($actual)) {
             return;

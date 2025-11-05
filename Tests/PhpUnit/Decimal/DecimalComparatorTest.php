@@ -20,6 +20,11 @@ class DecimalComparatorTest extends TestCase
         self::assertEquals(new Decimal(12), new Decimal(12));
         self::assertEquals(new Decimal('12.34'), new Decimal('12.34'));
         self::assertEquals(new Decimal('12.3456789'), new Decimal('12.3456789'));
+
+        self::assertEquals(0, new Decimal(0));
+        self::assertEquals(12, new Decimal(12));
+        self::assertEquals('12.34', new Decimal('12.34'));
+        self::assertEquals('12.3456789', new Decimal('12.3456789'));
     }
 
     public function testNotEqual(): void
@@ -29,5 +34,11 @@ class DecimalComparatorTest extends TestCase
         self::assertNotEquals(new Decimal('12.34'), new Decimal('12.35'));
         self::assertNotEquals(new Decimal('12.34'), new Decimal('12.344'));
         self::assertNotEquals(new Decimal('12.34567891'), new Decimal('12.34567892'));
+
+        self::assertNotEquals(0, new Decimal(1));
+        self::assertNotEquals(1, new Decimal(2));
+        self::assertNotEquals('12.34', new Decimal('12.35'));
+        self::assertNotEquals('12.34', new Decimal('12.344'));
+        self::assertNotEquals('12.34567891', new Decimal('12.34567892'));
     }
 }
