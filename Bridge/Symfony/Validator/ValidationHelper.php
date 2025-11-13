@@ -23,7 +23,7 @@ class ValidationHelper
     ) {
     }
 
-    public function validate(object $object, array $config): void
+    public function validate(object $object, array $config, bool $break): void
     {
         if (null === $this->propertyAccessor) {
             $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
@@ -49,7 +49,9 @@ class ValidationHelper
                     ->addViolation();
             }
 
-            break;
+            if ($break) {
+                break;
+            }
         }
     }
 }
