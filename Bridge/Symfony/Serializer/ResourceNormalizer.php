@@ -16,6 +16,7 @@ use Symfony\Component\Serializer\SerializerAwareTrait;
 
 use function class_exists;
 use function in_array;
+use function is_a;
 use function is_null;
 use function is_string;
 use function is_subclass_of;
@@ -139,7 +140,7 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
      */
     public function supportsDenormalization($data, string $type, string $format = null): bool
     {
-        return class_exists($type) && is_subclass_of($type, $this->class, true);
+        return class_exists($type) && is_a($type, $this->class, true);
     }
 
     /**
