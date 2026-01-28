@@ -8,6 +8,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xls as XlsWriter;
 
 /**
@@ -75,9 +76,19 @@ class Xls extends AbstractFile
         $this->spreadsheet = new Spreadsheet();
     }
 
+    public function getSheet(): Worksheet
+    {
+        return $this->spreadsheet->getActiveSheet();
+    }
+
+    public function getRow(): int
+    {
+        return $this->row;
+    }
+
     public function setHeaders(array $headers): void
     {
-        $sheet = $this->spreadsheet->getActiveSheet();
+        $sheet = $this->getSheet();
         $this->row++;
 
         $col = 0;
@@ -106,7 +117,7 @@ class Xls extends AbstractFile
      */
     public function setColumnsWidths(array $widths): void
     {
-        $sheet = $this->spreadsheet->getActiveSheet();
+        $sheet = $this->getSheet();
 
         $col = 0;
         foreach ($widths as $width) {
@@ -116,7 +127,7 @@ class Xls extends AbstractFile
 
     public function addRow(array $row): void
     {
-        $sheet = $this->spreadsheet->getActiveSheet();
+        $sheet = $this->getSheet();
         $this->row++;
 
         $col = 1;

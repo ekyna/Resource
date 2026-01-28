@@ -98,11 +98,19 @@ abstract class AbstractFile
     {
         $path = $this->close();
 
-        $config = static::configure();
-
-        $options['file_name'] ??= $this->name . '.' . $config['extension'];
-        $options['mime_type'] ??= $config['mime_type'];
+        $options['file_name'] ??= $this->getFilename();
+        $options['mime_type'] ??= $this->getMimeType();
 
         return FileHelper::buildResponse($path, $options);
+    }
+
+    public function getFilename(): string
+    {
+        return $this->name . '.' . static::configure()['extension'];
+    }
+
+    public function getMimeType(): string
+    {
+        return static::configure()['mime_type'];
     }
 }
