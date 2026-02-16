@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Bridge\Symfony\Elastica;
 
+use Ekyna\Component\Resource\Bridge\Symfony\DependencyInjection\Compiler\SearchPass;
 use Ekyna\Component\Resource\Bridge\Symfony\DependencyInjection\ContainerHelper;
 use Ekyna\Component\Resource\Bridge\Symfony\ResourceUtil;
 use Ekyna\Component\Resource\Config\Factory\RegistryFactoryInterface;
@@ -94,6 +95,7 @@ class SearchExtension extends AbstractExtension
 
         foreach ($resources as $resource) {
             $this->configureRepository($container, $resource);
+            $this->configureListener($container, $resource);
         }
 
         $container
@@ -106,6 +108,13 @@ class SearchExtension extends AbstractExtension
         $container
             ->getDefinition('ekyna_resource.search')
             ->replaceArgument(2, $this->resources);
+    }
+
+    public function configurePasses(Container $container, RegistryFactoryInterface $factory): void
+    {
+        // Just after ConfigSourcePass
+        /** @see \FOS\ElasticaBundle\DependencyInjection\Compiler\ConfigSourcePass */
+        // TODO $container->addCompilerPass(new SearchPass($factory), DI\Compiler\PassConfig::TYPE_BEFORE_OPTIMIZATION, -1);
     }
 
     /**
@@ -187,5 +196,25 @@ class SearchExtension extends AbstractExtension
             'configure_found'   => $configureFound,
             'create'            => $create,
         ]);
+    }
+
+    private function configureListener(Container $container, ResourceConfig $resource): void
+    {
+        $id = $resource->getId();
+
+        $listenerId = sprintf('fos_elastica.listener.%s', $id);
+
+        if (!$container->hasDefinition($listenerId)) {
+            return;
+        }
+
+        $definition = $container->getDefinition($listenerId);
+        $definition
+            ->setClass(DoctrineListener::class)
+            ->addMethodCall('configure', [
+                new Reference('fos_elastica.config_manager'),
+                new Reference('ekyna_resource.orm.persistence_tracker'),
+                $id
+            ]);
     }
 }

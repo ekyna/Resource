@@ -94,6 +94,7 @@ class PersistenceTracker implements PersistenceTrackerInterface
             else {
                 $originalData = $uow->getOriginalEntityData($resource);
                 foreach ($metadata->reflFields as $name => $refProp) {
+                    // TODO What about to many associations ?
                     if (isset($originalData[$name]) || !$this->isSingleAssociation($name, $metadata)) {
                         continue;
                     }
@@ -178,6 +179,11 @@ class PersistenceTracker implements PersistenceTrackerInterface
     {
         return $metadata->isSingleValuedAssociation($field)
             && $metadata->isAssociationWithSingleJoinColumn($field);
+    }
+
+    private function isManyAssociation(string $field, ClassMetadata $metadata): bool
+    {
+        return $metadata->isCollectionValuedAssociation($field);
     }
 
     /**
