@@ -12,6 +12,8 @@ use DateTimeInterface;
 use Generator;
 
 use function array_map;
+use function array_unique;
+use function array_values;
 use function iterator_to_array;
 use function preg_match;
 
@@ -29,6 +31,7 @@ final class DateRange
 
     private DateTimeImmutable $start;
     private DateTimeImmutable $end;
+    private ?array $years = null;
 
     public function __construct(DateTimeInterface $start = null, DateTimeInterface $end = null)
     {
@@ -53,6 +56,8 @@ final class DateRange
 
     public function setStart(DateTimeInterface $start): DateRange
     {
+        $this->clear();
+
         $this->start = DateTimeImmutable::createFromInterface($start);
 
         $this->start = $this->start->setTime(0, 0);
@@ -67,6 +72,8 @@ final class DateRange
 
     public function setEnd(DateTimeInterface $end): DateRange
     {
+        $this->clear();
+
         $this->end = DateTimeImmutable::createFromInterface($end);;
 
         $this->end = $this->end->setTime(23, 59, 59, 999999);
@@ -81,9 +88,20 @@ final class DateRange
 
     public function getYears(): array
     {
-        $years = new DatePeriod($this->start, new DateInterval('P1Y'), $this->end);
+        if (null !== $this->years) {
+            return $this->years;
+        }
 
-        return array_map(fn(DateTimeInterface $year): string => $year->format('Y'), iterator_to_array($years));
+        $years = new DatePeriod(
+            $this->start,
+            new DateInterval('P1M'),
+            $this->end
+        );
+
+        return $this->years = array_values(array_unique(array_map(
+            fn(DateTimeInterface $year): string => $year->format('Y'),
+            iterator_to_array($years)
+        )));
     }
 
     /**
@@ -109,6 +127,11 @@ final class DateRange
 
             yield new DateRange($start, $end);
         }
+    }
+
+    private function clear(): void
+    {
+        $this->years = null;
     }
 
     public static function fromString(string $value): ?DateRange
