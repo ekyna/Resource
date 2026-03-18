@@ -10,12 +10,14 @@ use GuzzleHttp\Client;
 use Throwable;
 
 /**
- * Class PdfGenerator
+ * Class ChromeToPdfGenerator
  * @package Ekyna\Bundle\CommerceBundle\Service\Document
  * @author  Étienne Dauvergne <contact@ekyna.com>
  */
-class PdfGenerator
+class ChromeToPdfGenerator implements PdfGeneratorInterface
 {
+    public const NAME = 'chrometopdf';
+
     public function __construct(
         private readonly string $endpoint,
         private readonly string $token,
