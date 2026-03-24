@@ -116,13 +116,13 @@ class GotenbergGenerator implements PdfGeneratorInterface
             }
         }
 
-        $multipart = array_replace(
-            array_map(
+        array_push(
+            $multipart,
+            ...array_map(
                 fn(string $key, mixed $value) => ['name' => $key, 'contents' => $value],
                 array_keys($parameters),
                 array_values($parameters)
-            ),
-            $multipart
+            )
         );
 
         $client = new Client();
