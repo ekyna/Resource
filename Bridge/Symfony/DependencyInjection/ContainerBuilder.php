@@ -18,6 +18,8 @@ use Ekyna\Component\Resource\Config\ResourceConfig;
 use Ekyna\Component\Resource\Exception\ConfigurationException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Factory\ResourceFactoryInterface;
+use Ekyna\Component\Resource\Helper\ResourceHelperAwareInterface;
+use Ekyna\Component\Resource\Helper\ResourceHelperInterface;
 use Ekyna\Component\Resource\Manager\ResourceManagerInterface;
 use Ekyna\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\DependencyInjection as DI;
@@ -72,12 +74,7 @@ final class ContainerBuilder
         $this->configureParameters($container);
     }
 
-    /**
-     * Configures the container's compiler passes.
-     *
-     * @param Container $container
-     */
-    private function configurePasses(Container $container): void
+    private function configureAutoConfiguration(Container $container): void
     {
         // Auto tag actions
         $container
@@ -101,6 +98,19 @@ final class ContainerBuilder
 
         // TODO auto tag resource event listeners and subscribers
 
+        // Auto inject resource Helper
+        $container
+            ->registerForAutoconfiguration(ResourceHelperAwareInterface::class)
+            ->addMethodCall('setHelper', [DI\Loader\Configurator\service(ResourceHelperInterface::class)]);
+    }
+
+    /**
+     * Configures the container's compiler passes.
+     *
+     * @param Container $container
+     */
+    private function configurePasses(Container $container): void
+    {
         // TODO Read resources services by tag (factory, repository and manger)
         // for auto configuration (loader, resource config entries)
 

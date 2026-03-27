@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ekyna\Component\Resource\Bridge\Symfony\Serializer;
 
+use Doctrine\Common\Collections\Collection;
 use Ekyna\Component\Resource\Model;
 use Exception;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
@@ -14,6 +15,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerAwareTrait;
 
+use function array_map;
 use function class_exists;
 use function in_array;
 use function is_a;
@@ -30,7 +32,7 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
 {
     use SerializerAwareTrait;
 
-    protected string                 $class;
+    protected ?string                 $class = null;
     protected NameConverterInterface $nameConverter;
     protected PropertyAccessor       $propertyAccessor;
 
@@ -95,6 +97,14 @@ class ResourceNormalizer implements NormalizerInterface, DenormalizerInterface, 
 
         /** @noinspection PhpUnhandledExceptionInspection */
         return $this->serializer->normalize($object, $format, $context);
+    }
+
+    protected function normalizeCollection(Collection $collection, string $format = null, array $context = []): array
+    {
+        return array_map(
+            fn (object $object): array => $this->normalizeObject($object, $format, $context),
+            $collection->toArray()
+        );
     }
 
     /**
