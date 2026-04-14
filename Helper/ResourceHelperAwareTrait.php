@@ -11,7 +11,7 @@ namespace Ekyna\Component\Resource\Helper;
  */
 trait ResourceHelperAwareTrait
 {
-    private readonly ResourceHelperInterface $helper;
+    private ResourceHelperInterface $helper;
 
     public function setResourceHelper(ResourceHelperInterface $helper): void
     {

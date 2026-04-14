@@ -18,8 +18,6 @@ use Ekyna\Component\Resource\Config\ResourceConfig;
 use Ekyna\Component\Resource\Exception\ConfigurationException;
 use Ekyna\Component\Resource\Exception\RuntimeException;
 use Ekyna\Component\Resource\Factory\ResourceFactoryInterface;
-use Ekyna\Component\Resource\Helper\ResourceHelperAwareInterface;
-use Ekyna\Component\Resource\Helper\ResourceHelperInterface;
 use Ekyna\Component\Resource\Manager\ResourceManagerInterface;
 use Ekyna\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\DependencyInjection as DI;
@@ -66,6 +64,9 @@ final class ContainerBuilder
             new WrappedRegistryFactory($this->registryConfig)
         );
 
+        // Configures auto configuration
+        $this->configureAutoConfiguration($container);
+
         // Configures the compiler passes
         $this->configurePasses($container);
 
@@ -97,11 +98,6 @@ final class ContainerBuilder
             ->addTag(BehaviorBuilderInterface::DI_TAG);
 
         // TODO auto tag resource event listeners and subscribers
-
-        // Auto inject resource Helper
-        $container
-            ->registerForAutoconfiguration(ResourceHelperAwareInterface::class)
-            ->addMethodCall('setHelper', [DI\Loader\Configurator\service(ResourceHelperInterface::class)]);
     }
 
     /**

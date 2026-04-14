@@ -10,6 +10,8 @@ use Ekyna\Component\Resource\Config\Factory\RegistryFactoryInterface;
 use Ekyna\Component\Resource\Config\Resolver\DefaultsResolver;
 use Ekyna\Component\Resource\Config\ResourceConfig;
 use Ekyna\Component\Resource\Extension\AbstractExtension;
+use Ekyna\Component\Resource\Helper\ResourceHelperAwareInterface;
+use Ekyna\Component\Resource\Helper\ResourceHelperInterface;
 use Ekyna\Component\Resource\Model\TranslatableInterface;
 use Symfony\Component\DependencyInjection as DI;
 use Symfony\Component\DependencyInjection\ContainerBuilder as Container;
@@ -189,6 +191,13 @@ class SerializerExtension extends AbstractExtension
         if (!$definition->hasMethodCall('setPropertyAccessor')) {
             $definition->addMethodCall('setPropertyAccessor', [
                 new DI\Reference('serializer.property_accessor'),
+            ]);
+        }
+
+        // Inject resource helper if instance of ResourceHelperAwareInterface
+        if (is_a($definition->getClass(), ResourceHelperAwareInterface::class, true)) {
+            $definition->addMethodCall('setResourceHelper', [
+                new DI\Reference(ResourceHelperInterface::class),
             ]);
         }
     }
