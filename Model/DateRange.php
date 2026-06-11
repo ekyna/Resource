@@ -83,7 +83,7 @@ final class DateRange
 
     public function getDays(): int
     {
-        return $this->start->diff($this->end)->days;
+        return $this->start->diff($this->end)->days + 1;
     }
 
     public function getYears(): array

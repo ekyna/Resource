@@ -35,4 +35,25 @@ class DateRangeTest extends TestCase
 
         self::assertEquals(['2025'], $years);
     }
+
+    public function testGetDays(): void
+    {
+        $range = new DateRange(
+            new DateTime('2026-01-01'),
+            new DateTime('2026-12-31')
+        );
+
+        $days = $range->getDays();
+
+        self::assertEquals(365, $days);
+
+        $range = new DateRange(
+            new DateTime('2026-01-01'),
+            new DateTime('2026-01-01')
+        );
+
+        $days = $range->getDays();
+
+        self::assertEquals(1, $days);
+    }
 }
