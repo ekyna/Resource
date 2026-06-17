@@ -14,7 +14,7 @@ use DateTimeInterface;
  */
 trait TimestampableTrait
 {
-    protected DateTimeInterface  $createdAt;
+    protected ?DateTimeInterface $createdAt = null;
     protected ?DateTimeInterface $updatedAt = null;
 
 
@@ -33,7 +33,7 @@ trait TimestampableTrait
         return $this;
     }
 
-    public function getCreatedAt(): DateTimeInterface
+    public function getCreatedAt(): ?DateTimeInterface
     {
         return $this->createdAt;
     }

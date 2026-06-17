@@ -21,7 +21,7 @@ interface TimestampableInterface
     /**
      * Returns the 'created at' date.
      */
-    public function getCreatedAt(): DateTimeInterface;
+    public function getCreatedAt(): ?DateTimeInterface;
 
     /**
      * Set the 'updated at' date.
